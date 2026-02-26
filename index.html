@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Роза и Шип</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+  :root {
+    --cream:   #faf7f2;
+    --ivory:   #f2ede4;
+    --blush:   #e8d5c4;
+    --rose:    #c9856a;
+    --deep:    #7a4535;
+    --green:   #5a6e4e;
+    --dark:    #2a1f1a;
+    --muted:   #9e8c82;
+    --card-bg: #fffcf8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--cream);
+    color: var(--dark);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── ШАПКА ── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--cream);
+    border-bottom: 1px solid var(--blush);
+    padding: 14px 20px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    letter-spacing: 0.02em; color: var(--deep);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-icon { font-size: 18px; }
+  .cart-btn {
+    position: relative;
+    background: var(--rose); border: none;
+    border-radius: 50px; padding: 8px 16px;
+    color: white; font-family: 'Jost', sans-serif;
+    font-size: 13px; font-weight: 400;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .cart-btn:active { transform: scale(0.96); }
+  .cart-count {
+    background: white; color: var(--rose);
+    border-radius: 50%; width: 18px; height: 18px;
+    font-size: 11px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    display: none;
+  }
+  .cart-count.visible { display: flex; }
+
+  /* ── ГЕРОЙ ── */
+  .hero {
+    background: linear-gradient(135deg, #f5e6d8 0%, #ede0d4 50%, #e8d5c4 100%);
+    padding: 32px 20px 28px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '🌸';
+    position: absolute; right: -10px; top: -20px;
+    font-size: 120px; opacity: 0.12;
+    transform: rotate(-20deg);
+  }
+  .hero-tag {
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--rose); font-weight: 500; margin-bottom: 8px;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34px; font-weight: 300; line-height: 1.1;
+    color: var(--deep); margin-bottom: 8px;
+  }
+  .hero-title em { font-style: italic; color: var(--rose); }
+  .hero-sub {
+    font-size: 13px; color: var(--muted); line-height: 1.5;
+  }
+  .hero-badges {
+    display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+  }
+  .badge {
+    background: white; border-radius: 20px;
+    padding: 5px 12px; font-size: 12px; color: var(--deep);
+    display: flex; align-items: center; gap: 4px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+
+  /* ── КАТЕГОРИИ ── */
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 400;
+    color: var(--deep); padding: 20px 20px 4px;
+    letter-spacing: 0.01em;
+  }
+  .cats {
+    display: flex; gap: 8px;
+    padding: 12px 20px; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat {
+    flex-shrink: 0;
+    background: white; border: 1.5px solid var(--blush);
+    border-radius: 24px; padding: 7px 16px;
+    font-size: 13px; color: var(--muted);
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .cat.active {
+    background: var(--deep); border-color: var(--deep);
+    color: white;
+  }
+  .cat:active { transform: scale(0.95); }
+
+  /* ── СЕТКА ТОВАРОВ ── */
+  .grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; padding: 8px 16px 100px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(42,31,26,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .card:active { transform: scale(0.97); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-img {
+    width: 100%; aspect-ratio: 1;
+    object-fit: cover; display: block;
+    background: linear-gradient(135deg, var(--ivory), var(--blush));
+    font-size: 52px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .card-body { padding: 10px 12px 12px; }
+  .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; font-weight: 400;
+    color: var(--dark); line-height: 1.2; margin-bottom: 3px;
+  }
+  .card-desc {
+    font-size: 11px; color: var(--muted);
+    line-height: 1.4; margin-bottom: 8px;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-price {
+    font-size: 16px; font-weight: 500; color: var(--deep);
+  }
+  .card-price span { font-size: 11px; font-weight: 300; color: var(--muted); }
+  .add-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--rose); border: none;
+    color: white; font-size: 18px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .add-btn.added {
+    background: var(--green);
+  }
+  .add-btn:active { transform: scale(0.88); }
+
+  /* ── КОРЗИНА (боттом-шит) ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(42,31,26,0.5);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--cream);
+    border-radius: 24px 24px 0 0;
+    z-index: 201; padding: 0 0 40px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+    max-height: 80vh; overflow-y: auto;
+  }
+  .sheet.open { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--blush); margin: 12px auto 0;
+  }
+  .sheet-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 400;
+    color: var(--deep); padding: 16px 20px 0;
+  }
+
+  .cart-items { padding: 12px 20px; }
+  .cart-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--ivory);
+  }
+  .cart-item-emoji { font-size: 28px; }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-size: 14px; color: var(--dark); margin-bottom: 2px; }
+  .cart-item-price { font-size: 12px; color: var(--muted); }
+  .cart-item-controls {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .qty-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1.5px solid var(--blush);
+    background: white; color: var(--dark);
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .qty-btn:active { background: var(--blush); }
+  .qty-num { font-size: 14px; font-weight: 500; min-width: 16px; text-align: center; }
+
+  .cart-empty {
+    text-align: center; padding: 32px 20px;
+    color: var(--muted); font-size: 14px;
+  }
+  .cart-empty-icon { font-size: 40px; margin-bottom: 8px; }
+
+  .cart-total {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 14px 20px;
+    border-top: 1px solid var(--blush); margin-top: 4px;
+  }
+  .cart-total-label { font-size: 14px; color: var(--muted); }
+  .cart-total-sum {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; color: var(--deep); font-weight: 600;
+  }
+
+  .order-btn {
+    margin: 8px 20px 0;
+    width: calc(100% - 40px);
+    background: var(--deep); border: none;
+    border-radius: 14px; padding: 16px;
+    color: white; font-family: 'Jost', sans-serif;
+    font-size: 15px; font-weight: 400;
+    letter-spacing: 0.04em; cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+  }
+  .order-btn:active { opacity: 0.85; transform: scale(0.99); }
+  .order-btn:disabled { background: var(--blush); cursor: default; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--dark); color: white;
+    border-radius: 24px; padding: 10px 20px;
+    font-size: 13px; white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s; z-index: 300;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ШАПКА -->
+<header class="header">
+  <div class="logo">
+    <span class="logo-icon">🌹</span>
+    Роза и Шип
+  </div>
+  <button class="cart-btn" onclick="openCart()">
+    🛒 Корзина
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+</header>
+
+<!-- ГЕРОЙ -->
+<div class="hero">
+  <div class="hero-tag">Свежие цветы · Минск</div>
+  <h1 class="hero-title">Букеты,<br>от которых<br><em>замирает сердце</em></h1>
+  <p class="hero-sub">Составим идеальный букет под ваш повод и бюджет</p>
+  <div class="hero-badges">
+    <div class="badge">🕘 9:00–21:00</div>
+    <div class="badge">🚚 Доставка от 50 BYN</div>
+    <div class="badge">🌱 Свежие ежедневно</div>
+  </div>
+</div>
+
+<!-- КАТЕГОРИИ -->
+<div class="section-title">Каталог</div>
+<div class="cats" id="cats"></div>
+
+<!-- ТОВАРЫ -->
+<div class="grid" id="grid"></div>
+
+<!-- ОВЕРЛЕЙ -->
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+
+<!-- КОРЗИНА -->
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Ваш букет 🌸</div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-total" id="cartTotal" style="display:none">
+    <span class="cart-total-label">Итого</span>
+    <span class="cart-total-sum" id="cartSum"></span>
+  </div>
+  <button class="order-btn" id="orderBtn" onclick="sendOrder()">Оформить заявку</button>
+</div>
+
+<!-- ТОСТ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── ИНИЦИАЛИЗАЦИЯ TELEGRAM ────────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Подстраиваем цвета под тему Telegram
+  document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#1a1410' : '#faf7f2');
+}
+
+// ── КАТАЛОГ ──────────────────────────────────────────────────────────────────
+const catalog = [
+  // Букеты
+  { id:1, cat:'Букеты',      name:'Нежность',       emoji:'🌸', desc:'Пионы, эустома, лизиантус',    price:65,  popular:true  },
+  { id:2, cat:'Букеты',      name:'Классика',        emoji:'🌹', desc:'25 красных роз',               price:85,  popular:false },
+  { id:3, cat:'Букеты',      name:'Пастель',         emoji:'🌷', desc:'Тюльпаны, ранункулюсы',        price:55,  popular:true  },
+  { id:4, cat:'Букеты',      name:'Лесная сказка',   emoji:'🌿', desc:'Полевые цветы и зелень',       price:45,  popular:false },
+  // На свадьбу
+  { id:5, cat:'Свадьба',     name:'Невеста',         emoji:'💐', desc:'Белые пионы и розы',           price:120, popular:true  },
+  { id:6, cat:'Свадьба',     name:'Бутоньерка',      emoji:'🤵', desc:'Роза и лаванда',               price:25,  popular:false },
+  { id:7, cat:'Свадьба',     name:'Оформление стола',emoji:'🕯️', desc:'Композиция с свечами',         price:180, popular:false },
+  // Горшечные
+  { id:8, cat:'Растения',    name:'Орхидея',         emoji:'🌺', desc:'Фаленопсис белый, 2 ветки',    price:40,  popular:true  },
+  { id:9, cat:'Растения',    name:'Суккуленты',      emoji:'🌵', desc:'Набор 3 шт. в кашпо',          price:30,  popular:false },
+  {id:10, cat:'Растения',    name:'Антуриум',        emoji:'❤️', desc:'Красный, в декор. горшке',     price:50,  popular:false },
+  // Подарки
+  {id:11, cat:'Подарки',     name:'Мыльные розы',    emoji:'🧼', desc:'Корзина из 19 роз',            price:35,  popular:false },
+  {id:12, cat:'Подарки',     name:'Цветы + конфеты', emoji:'🍫', desc:'Букет + Raffaello 150г',       price:75,  popular:true  },
+];
+
+const categories = ['Все', ...new Set(catalog.map(p => p.cat))];
+let activecat = 'Все';
+let cart = {};  // { id: qty }
+
+// ── РЕНДЕР КАТЕГОРИЙ ──────────────────────────────────────────────────────────
+function renderCats() {
+  const el = document.getElementById('cats');
+  el.innerHTML = categories.map(c => `
+    <div class="cat ${c === activecat ? 'active' : ''}" onclick="selectCat('${c}')">
+      ${c}
+    </div>
+  `).join('');
+}
+
+function selectCat(cat) {
+  activecat = cat;
+  renderCats();
+  renderGrid();
+}
+
+// ── РЕНДЕР ТОВАРОВ ────────────────────────────────────────────────────────────
+function renderGrid() {
+  const items = activecat === 'Все' ? catalog : catalog.filter(p => p.cat === activecat);
+  const el = document.getElementById('grid');
+
+  el.innerHTML = items.map((p, i) => {
+    const inCart = cart[p.id] > 0;
+    return `
+    <div class="card" style="animation-delay:${i * 0.05}s">
+      <div class="card-img" style="font-size:54px; display:flex; align-items:center; justify-content:center; aspect-ratio:1; background: linear-gradient(135deg,#f5e6d8,#ede0d4)">
+        ${p.emoji}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-footer">
+          <div class="card-price">${p.price} <span>BYN</span></div>
+          <button class="add-btn ${inCart ? 'added' : ''}" onclick="addToCart(${p.id})" id="btn-${p.id}">
+            ${inCart ? '✓' : '+'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── КОРЗИНА ───────────────────────────────────────────────────────────────────
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCartUI();
+
+  // Анимация кнопки
+  const btn = document.getElementById(`btn-${id}`);
+  if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
+
+  const item = catalog.find(p => p.id === id);
+  showToast(`${item.emoji} ${item.name} добавлен`);
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  updateCartUI();
+  renderCartSheet();
+
+  // Обновляем кнопку на карточке
+  const btn = document.getElementById(`btn-${id}`);
+  if (btn) {
+    const inCart = cart[id] > 0;
+    btn.classList.toggle('added', inCart);
+    btn.textContent = inCart ? '✓' : '+';
+  }
+}
+
+function updateCartUI() {
+  const total = Object.values(cart).reduce((s, q) => s + q, 0);
+  const countEl = document.getElementById('cartCount');
+  countEl.textContent = total;
+  countEl.classList.toggle('visible', total > 0);
+}
+
+function renderCartSheet() {
+  const ids = Object.keys(cart).map(Number);
+  const itemsEl  = document.getElementById('cartItems');
+  const totalEl  = document.getElementById('cartTotal');
+  const sumEl    = document.getElementById('cartSum');
+  const orderBtn = document.getElementById('orderBtn');
+
+  if (ids.length === 0) {
+    itemsEl.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🌿</div>
+        Корзина пустая<br>Добавьте что-нибудь из каталога
+      </div>`;
+    totalEl.style.display = 'none';
+    orderBtn.disabled = true;
+    return;
+  }
+
+  orderBtn.disabled = false;
+  let sum = 0;
+
+  itemsEl.innerHTML = ids.map(id => {
+    const p = catalog.find(p => p.id === id);
+    const qty = cart[id];
+    sum += p.price * qty;
+    return `
+    <div class="cart-item">
+      <div class="cart-item-emoji">${p.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.name}</div>
+        <div class="cart-item-price">${p.price} BYN × ${qty} = ${p.price * qty} BYN</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
+        <span class="qty-num">${qty}</span>
+        <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  totalEl.style.display = 'flex';
+  sumEl.textContent = sum + ' BYN';
+}
+
+function openCart() {
+  renderCartSheet();
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('sheet').classList.add('open');
+}
+
+function closeCart() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+}
+
+// ── ОФОРМЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────────
+function sendOrder() {
+  const ids = Object.keys(cart).map(Number);
+  if (ids.length === 0) return;
+
+  // Формируем текст заявки
+  let sum = 0;
+  const lines = ids.map(id => {
+    const p = catalog.find(p => p.id === id);
+    const qty = cart[id];
+    sum += p.price * qty;
+    return `• ${p.emoji} ${p.name} × ${qty} = ${p.price * qty} BYN`;
+  });
+
+  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} BYN`;
+
+  // Отправляем данные в бот через Telegram WebApp API
+  if (tg) {
+    tg.sendData(JSON.stringify({
+      type: 'catalog_order',
+      items: ids.map(id => ({
+        id,
+        name: catalog.find(p => p.id === id).name,
+        qty: cart[id],
+        price: catalog.find(p => p.id === id).price,
+      })),
+      total: sum,
+      text: orderText,
+    }));
+  } else {
+    // Режим разработки — просто показываем
+    alert(orderText);
+  }
+
+  closeCart();
+  showToast('✅ Заявка отправлена!');
+  cart = {};
+  updateCartUI();
+  renderGrid();
+}
+
+// ── ТОСТ ──────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── СТАРТ ─────────────────────────────────────────────────────────────────────
+renderCats();
+renderGrid();
+</script>
+</body>
+</html>
