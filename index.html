@@ -48,24 +48,34 @@
     display: flex; align-items: center; gap: 8px;
   }
   .logo-icon { font-size: 18px; }
-  .cart-btn {
-    position: relative;
-    background: var(--rose); border: none;
-    border-radius: 50px; padding: 8px 16px;
-    color: white; font-family: 'Jost', sans-serif;
-    font-size: 13px; font-weight: 400;
-    cursor: pointer; display: flex; align-items: center; gap: 6px;
-    transition: all 0.2s; letter-spacing: 0.03em;
+  /* ── FAB КОРЗИНА ── */
+  .fab {
+    position: fixed; bottom: 24px; right: 20px; z-index: 150;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: var(--deep); border: none;
+    box-shadow: 0 4px 20px rgba(42,31,26,0.35);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .cart-btn:active { transform: scale(0.96); }
-  .cart-count {
-    background: white; color: var(--rose);
-    border-radius: 50%; width: 18px; height: 18px;
-    font-size: 11px; font-weight: 500;
-    display: flex; align-items: center; justify-content: center;
-    display: none;
+  .fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(42,31,26,0.25); }
+  .fab-bump { animation: bump 0.3s cubic-bezier(0.36,0.07,0.19,0.97); }
+  @keyframes bump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.22); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
   }
-  .cart-count.visible { display: flex; }
+  .fab-badge {
+    position: absolute; top: 2px; right: 2px;
+    background: var(--rose); color: white;
+    border-radius: 50%; width: 20px; height: 20px;
+    font-size: 11px; font-weight: 600;
+    display: none; align-items: center; justify-content: center;
+    border: 2px solid var(--cream);
+    font-family: 'Jost', sans-serif;
+  }
+  .fab-badge.visible { display: flex; }
 
   /* ── ГЕРОЙ ── */
   .hero {
@@ -288,10 +298,7 @@
     <span class="logo-icon">🌹</span>
     Роза и Шип
   </div>
-  <button class="cart-btn" onclick="openCart()">
-    🛒 Корзина
-    <span class="cart-count" id="cartCount">0</span>
-  </button>
+
 </header>
 
 <!-- ГЕРОЙ -->
@@ -312,6 +319,12 @@
 
 <!-- ТОВАРЫ -->
 <div class="grid" id="grid"></div>
+
+<!-- FAB КОРЗИНА -->
+<button class="fab" id="fab" onclick="openCart()">
+  🛒
+  <span class="fab-badge" id="cartCount">0</span>
+</button>
 
 <!-- ОВЕРЛЕЙ -->
 <div class="overlay" id="overlay" onclick="closeCart()"></div>
@@ -437,9 +450,14 @@ function changeQty(id, delta) {
 
 function updateCartUI() {
   const total = Object.values(cart).reduce((s, q) => s + q, 0);
-  const countEl = document.getElementById('cartCount');
-  countEl.textContent = total;
-  countEl.classList.toggle('visible', total > 0);
+  const badge = document.getElementById('cartCount');
+  badge.textContent = total;
+  badge.classList.toggle('visible', total > 0);
+  // Анимация FAB при добавлении товара
+  const fab = document.getElementById('fab');
+  fab.classList.remove('fab-bump');
+  void fab.offsetWidth; // reflow для перезапуска анимации
+  fab.classList.add('fab-bump');
 }
 
 function renderCartSheet() {
