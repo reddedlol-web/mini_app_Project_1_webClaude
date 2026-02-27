@@ -112,31 +112,13 @@
     box-shadow: 0 1px 8px rgba(0,0,0,0.06);
   }
 
-  /* ── КАТЕГОРИИ ── */
+  /* ── КАТАЛОГ ЗАГОЛОВОК ── */
   .section-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 22px; font-weight: 400;
     color: var(--deep); padding: 20px 20px 4px;
     letter-spacing: 0.01em;
   }
-  .cats {
-    display: flex; gap: 8px;
-    padding: 12px 20px; overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .cats::-webkit-scrollbar { display: none; }
-  .cat {
-    flex-shrink: 0;
-    background: white; border: 1.5px solid var(--blush);
-    border-radius: 24px; padding: 7px 16px;
-    font-size: 13px; color: var(--muted);
-    cursor: pointer; transition: all 0.2s; white-space: nowrap;
-  }
-  .cat.active {
-    background: var(--deep); border-color: var(--deep);
-    color: white;
-  }
-  .cat:active { transform: scale(0.95); }
 
   /* ── СЕТКА ТОВАРОВ ── */
   .grid {
@@ -422,14 +404,13 @@
   </div>
 </div>
 
-<!-- КАТЕГОРИИ -->
+<!-- КАТАЛОГ -->
 <div class="section-title">Каталог</div>
 <div class="filters">
   <div class="filter-row" id="occasionFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
 </div>
 <div class="presets" id="presets"></div>
-<div class="cats" id="cats"></div>
 
 <!-- ТОВАРЫ -->
 <div class="grid" id="grid"></div>
@@ -508,8 +489,6 @@ const catalog = [
   { id:12, cat:'Подарки',  name:'Цветы + конфеты', img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет + Raffaello 150г',      price:75, occasions:['quick','birthday','wow'], isAddon:true },
 ];
 
-const categories = ['Все', ...new Set(catalog.map(p => p.cat))];
-let activecat = 'Все';
 let activeOccasion = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
@@ -606,24 +585,9 @@ function applyPreset(id) {
   openCart();
 }
 
-function renderCats() {
-  const el = document.getElementById('cats');
-  el.innerHTML = categories.map(c => `
-    <div class="cat ${c === activecat ? 'active' : ''}" onclick="selectCat('${c}')">
-      ${c}
-    </div>
-  `).join('');
-}
-
-function selectCat(cat) {
-  activecat = cat;
-  renderCats();
-  renderGrid();
-}
-
 // ── РЕНДЕР ТОВАРОВ ────────────────────────────────────────────────────────────
 function renderGrid() {
-  let items = activecat === 'Все' ? catalog : catalog.filter(p => p.cat === activecat);
+  let items = catalog;
 
   if (activeOccasion !== 'any') {
     items = items.filter(p => !p.occasions || p.occasions.includes(activeOccasion));
@@ -908,7 +872,6 @@ function showToast(msg) {
 renderOccasionFilters();
 renderBudgetFilters();
 renderPresets();
-renderCats();
 renderGrid();
 </script>
 </body>
