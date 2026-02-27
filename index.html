@@ -632,6 +632,12 @@ function addToCart(id) {
   cart[id] = (cart[id] || 0) + 1;
   updateCartUI();
 
+  // Если корзина открыта — перерисовываем список и сумму
+  const sheet = document.getElementById('sheet');
+  if (sheet && sheet.classList.contains('open')) {
+    renderCartSheet();
+  }
+
   // Анимация кнопки
   const btn = document.getElementById(`btn-${id}`);
   if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
