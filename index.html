@@ -161,9 +161,7 @@
   .card-img {
     width: 100%; aspect-ratio: 1;
     object-fit: cover; display: block;
-    background: linear-gradient(135deg, var(--ivory), var(--blush));
-    font-size: 52px; display: flex;
-    align-items: center; justify-content: center;
+    background: var(--ivory);
   }
   .card-body { padding: 10px 12px 12px; }
   .card-name {
@@ -229,7 +227,6 @@
     display: flex; align-items: center; gap: 12px;
     padding: 10px 0; border-bottom: 1px solid var(--ivory);
   }
-  .cart-item-emoji { font-size: 28px; }
   .cart-item-info { flex: 1; }
   .cart-item-name { font-size: 14px; color: var(--dark); margin-bottom: 2px; }
   .cart-item-price { font-size: 12px; color: var(--muted); }
@@ -262,6 +259,43 @@
   .cart-total-sum {
     font-family: 'Cormorant Garamond', serif;
     font-size: 22px; color: var(--deep); font-weight: 600;
+  }
+
+  .contact-form {
+    padding: 12px 20px 0;
+    display: none;
+  }
+  .contact-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .contact-field {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .contact-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .contact-field input,
+  .contact-field textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--blush);
+    padding: 10px 12px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    background: #fff;
+    resize: vertical;
+    min-height: 40px;
+  }
+  .contact-confirm {
+    font-size: 13px;
+    color: var(--dark);
+    margin: 6px 0 0;
   }
 
   .order-btn {
@@ -338,7 +372,23 @@
     <span class="cart-total-label">Итого</span>
     <span class="cart-total-sum" id="cartSum"></span>
   </div>
-  <button class="order-btn" id="orderBtn" onclick="sendOrder()">Оформить заявку</button>
+  <div class="contact-form" id="contactForm">
+    <p class="contact-label">Заполните данные для оформления заказа.</p>
+    <div class="contact-field">
+      <label for="contactName">Имя</label>
+      <input id="contactName" type="text" placeholder="Как к вам обращаться">
+    </div>
+    <div class="contact-field">
+      <label for="contactPhone">Телефон</label>
+      <input id="contactPhone" type="tel" placeholder="+375 29 000-00-00">
+    </div>
+    <div class="contact-field">
+      <label for="contactWishes">Пожелания к заказу</label>
+      <textarea id="contactWishes" placeholder="Цветы, цвета, дата и время доставки"></textarea>
+    </div>
+    <p class="contact-confirm">Ваши введённые данные верны?</p>
+  </div>
+  <button class="order-btn" id="orderBtn" onclick="onOrderClick()">Оформить заявку</button>
 </div>
 
 <!-- ТОСТ -->
@@ -356,27 +406,28 @@ if (tg) {
 
 // ── КАТАЛОГ ──────────────────────────────────────────────────────────────────
 const catalog = [
-  // Букеты
-  { id:1, cat:'Букеты',      name:'Нежность',       emoji:'🌸', desc:'Пионы, эустома, лизиантус',    price:65,  popular:true  },
-  { id:2, cat:'Букеты',      name:'Классика',        emoji:'🌹', desc:'25 красных роз',               price:85,  popular:false },
-  { id:3, cat:'Букеты',      name:'Пастель',         emoji:'🌷', desc:'Тюльпаны, ранункулюсы',        price:55,  popular:true  },
-  { id:4, cat:'Букеты',      name:'Лесная сказка',   emoji:'🌿', desc:'Полевые цветы и зелень',       price:45,  popular:false },
-  // На свадьбу
-  { id:5, cat:'Свадьба',     name:'Невеста',         emoji:'💐', desc:'Белые пионы и розы',           price:120, popular:true  },
-  { id:6, cat:'Свадьба',     name:'Бутоньерка',      emoji:'🤵', desc:'Роза и лаванда',               price:25,  popular:false },
-  { id:7, cat:'Свадьба',     name:'Оформление стола',emoji:'🕯️', desc:'Композиция с свечами',         price:180, popular:false },
-  // Горшечные
-  { id:8, cat:'Растения',    name:'Орхидея',         emoji:'🌺', desc:'Фаленопсис белый, 2 ветки',    price:40,  popular:true  },
-  { id:9, cat:'Растения',    name:'Суккуленты',      emoji:'🌵', desc:'Набор 3 шт. в кашпо',          price:30,  popular:false },
-  {id:10, cat:'Растения',    name:'Антуриум',        emoji:'❤️', desc:'Красный, в декор. горшке',     price:50,  popular:false },
+  // Букеты — фото с Unsplash (бесплатно, без ограничений)
+  { id:1,  cat:'Букеты',   name:'Нежность',        img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы, эустома, лизиантус',  price:65  },
+  { id:2,  cat:'Букеты',   name:'Классика',         img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'25 красных роз',              price:85  },
+  { id:3,  cat:'Букеты',   name:'Пастель',          img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны, ранункулюсы',      price:55  },
+  { id:4,  cat:'Букеты',   name:'Лесная сказка',    img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Полевые цветы и зелень',     price:45  },
+  // Свадьба
+  { id:5,  cat:'Свадьба',  name:'Невеста',          img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120 },
+  { id:6,  cat:'Свадьба',  name:'Бутоньерка',       img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25  },
+  { id:7,  cat:'Свадьба',  name:'Стол невесты',     img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180 },
+  // Растения
+  { id:8,  cat:'Растения', name:'Орхидея',          img:'https://images.unsplash.com/photo-1566907225472-514215c9d88b?w=400&q=80', desc:'Фаленопсис белый, 2 ветки', price:40  },
+  { id:9,  cat:'Растения', name:'Суккуленты',       img:'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80', desc:'Набор 3 шт. в кашпо',        price:30  },
+  { id:10, cat:'Растения', name:'Антуриум',         img:'https://images.unsplash.com/photo-1516048015710-7a3b4c86be43?w=400&q=80', desc:'Красный, в декор. горшке',   price:50  },
   // Подарки
-  {id:11, cat:'Подарки',     name:'Мыльные розы',    emoji:'🧼', desc:'Корзина из 19 роз',            price:35,  popular:false },
-  {id:12, cat:'Подарки',     name:'Цветы + конфеты', emoji:'🍫', desc:'Букет + Raffaello 150г',       price:75,  popular:true  },
+  { id:11, cat:'Подарки',  name:'Мыльные розы',     img:'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80', desc:'Корзина из 19 роз',          price:35  },
+  { id:12, cat:'Подарки',  name:'Цветы + конфеты',  img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет + Raffaello 150г',      price:75  },
 ];
 
 const categories = ['Все', ...new Set(catalog.map(p => p.cat))];
 let activecat = 'Все';
 let cart = {};  // { id: qty }
+let contactStep = false; // false — корзина, true — форма контактов
 
 // ── РЕНДЕР КАТЕГОРИЙ ──────────────────────────────────────────────────────────
 function renderCats() {
@@ -403,9 +454,14 @@ function renderGrid() {
     const inCart = cart[p.id] > 0;
     return `
     <div class="card" style="animation-delay:${i * 0.05}s">
-      <div class="card-img" style="font-size:54px; display:flex; align-items:center; justify-content:center; aspect-ratio:1; background: linear-gradient(135deg,#f5e6d8,#ede0d4)">
-        ${p.emoji}
-      </div>
+      <img
+        class="card-img"
+        src="${p.img}"
+        alt="${p.name}"
+        loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+      />
+      <div class="card-img-fallback" style="display:none;aspect-ratio:1;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#f5e6d8,#ede0d4)">🌸</div>
       <div class="card-body">
         <div class="card-name">${p.name}</div>
         <div class="card-desc">${p.desc}</div>
@@ -466,6 +522,7 @@ function renderCartSheet() {
   const totalEl  = document.getElementById('cartTotal');
   const sumEl    = document.getElementById('cartSum');
   const orderBtn = document.getElementById('orderBtn');
+  const contactForm = document.getElementById('contactForm');
 
   if (ids.length === 0) {
     itemsEl.innerHTML = `
@@ -475,6 +532,8 @@ function renderCartSheet() {
       </div>`;
     totalEl.style.display = 'none';
     orderBtn.disabled = true;
+    contactForm.style.display = 'none';
+    contactStep = false;
     return;
   }
 
@@ -487,7 +546,7 @@ function renderCartSheet() {
     sum += p.price * qty;
     return `
     <div class="cart-item">
-      <div class="cart-item-emoji">${p.emoji}</div>
+      <img src="${p.img}" alt="${p.name}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--ivory)"/>
       <div class="cart-item-info">
         <div class="cart-item-name">${p.name}</div>
         <div class="cart-item-price">${p.price} BYN × ${qty} = ${p.price * qty} BYN</div>
@@ -513,10 +572,58 @@ function openCart() {
 function closeCart() {
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
+  // Сброс шага контактов при закрытии
+  const contactForm = document.getElementById('contactForm');
+  const orderBtn = document.getElementById('orderBtn');
+  if (contactForm && orderBtn) {
+    contactForm.style.display = 'none';
+    orderBtn.textContent = 'Оформить заявку';
+    contactStep = false;
+  }
 }
 
 // ── ОФОРМЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────────
-function sendOrder() {
+
+function onOrderClick() {
+  const ids = Object.keys(cart).map(Number);
+  if (ids.length === 0) return;
+
+  const contactForm = document.getElementById('contactForm');
+  const orderBtn = document.getElementById('orderBtn');
+
+  // Первый шаг — показать форму контактов
+  if (!contactStep) {
+    contactStep = true;
+    contactForm.style.display = 'block';
+    orderBtn.textContent = 'Отправить заявку';
+    return;
+  }
+
+  // Второй шаг — проверяем, что все поля заполнены, и отправляем
+  const nameEl = document.getElementById('contactName');
+  const phoneEl = document.getElementById('contactPhone');
+  const wishesEl = document.getElementById('contactWishes');
+
+  const name = nameEl.value.trim();
+  const phone = phoneEl.value.trim();
+  const wishes = wishesEl.value.trim();
+
+  if (!name || !phone || !wishes) {
+    showToast('Пожалуйста, заполните все поля.');
+    return;
+  }
+
+  // Простая проверка телефона (форматы +375 / +7 / 80)
+  const phoneRe = /(\+375|\+7|80)\s?\d{2,3}\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
+  if (!phoneRe.test(phone)) {
+    showToast('Проверьте правильность телефона.');
+    return;
+  }
+
+  sendOrder(name, phone, wishes);
+}
+
+function sendOrder(name, phone, wishes) {
   const ids = Object.keys(cart).map(Number);
   if (ids.length === 0) return;
 
@@ -529,7 +636,7 @@ function sendOrder() {
     return `• ${p.emoji} ${p.name} × ${qty} = ${p.price * qty} BYN`;
   });
 
-  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} BYN`;
+  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} BYN\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n✏️ Пожелания: ${wishes}`;
 
   // Отправляем данные в бот через Telegram WebApp API
   if (tg) {
@@ -543,6 +650,9 @@ function sendOrder() {
       })),
       total: sum,
       text: orderText,
+      name,
+      phone,
+      wishes,
     }));
   } else {
     // Режим разработки — просто показываем
