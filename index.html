@@ -261,6 +261,79 @@
     font-size: 22px; color: var(--deep); font-weight: 600;
   }
 
+  /* ── ФИЛЬТРЫ ПОВОД/БЮДЖЕТ ── */
+  .filters {
+    padding: 10px 20px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0;
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 11px;
+    border: 1px solid var(--blush);
+    color: var(--muted);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-chip.active {
+    background: var(--deep);
+    border-color: var(--deep);
+    color: #fff;
+  }
+
+  /* ── ГОТОВЫЕ НАБОРЫ ── */
+  .presets {
+    padding: 6px 20px 8px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .presets::-webkit-scrollbar { display: none; }
+  .preset-card {
+    flex-shrink: 0;
+    min-width: 180px;
+    max-width: 220px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 10px rgba(42,31,26,0.08);
+    border: 1px solid var(--ivory);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .preset-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 6px rgba(42,31,26,0.12);
+  }
+  .preset-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--deep);
+    margin-bottom: 2px;
+  }
+  .preset-tag {
+    font-size: 11px;
+    color: var(--rose);
+    margin-bottom: 6px;
+  }
+  .preset-desc {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
   .contact-form {
     padding: 12px 20px 0;
     display: none;
@@ -351,6 +424,11 @@
 
 <!-- КАТЕГОРИИ -->
 <div class="section-title">Каталог</div>
+<div class="filters">
+  <div class="filter-row" id="occasionFilters"></div>
+  <div class="filter-row" id="budgetFilters"></div>
+</div>
+<div class="presets" id="presets"></div>
 <div class="cats" id="cats"></div>
 
 <!-- ТОВАРЫ -->
@@ -413,29 +491,121 @@ if (tg) {
 // ── КАТАЛОГ ──────────────────────────────────────────────────────────────────
 const catalog = [
   // Букеты — фото с Unsplash (бесплатно, без ограничений)
-  { id:1,  cat:'Букеты',   name:'Нежность',        img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы, эустома, лизиантус',  price:65  },
-  { id:2,  cat:'Букеты',   name:'Классика',         img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'25 красных роз',              price:85  },
-  { id:3,  cat:'Букеты',   name:'Пастель',          img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны, ранункулюсы',      price:55  },
-  { id:4,  cat:'Букеты',   name:'Лесная сказка',    img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Полевые цветы и зелень',     price:45  },
+  { id:1,  cat:'Букеты',   name:'Нежность',        img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы, эустома, лизиантус',  price:65, occasions:['birthday','anniversary','march8','justbecause'] },
+  { id:2,  cat:'Букеты',   name:'Классика',        img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'25 красных роз',              price:85, occasions:['birthday','anniversary','wow'] },
+  { id:3,  cat:'Букеты',   name:'Пастель',         img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны, ранункулюсы',      price:55, occasions:['birthday','anniversary','march8','graduation'] },
+  { id:4,  cat:'Букеты',   name:'Лесная сказка',   img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Полевые цветы и зелень',     price:45, occasions:['justbecause','condolences','graduation'] },
   // Свадьба
-  { id:5,  cat:'Свадьба',  name:'Невеста',          img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120 },
-  { id:6,  cat:'Свадьба',  name:'Бутоньерка',       img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25  },
-  { id:7,  cat:'Свадьба',  name:'Стол невесты',     img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180 },
+  { id:5,  cat:'Свадьба',  name:'Невеста',         img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120, occasions:['wedding','wow'] },
+  { id:6,  cat:'Свадьба',  name:'Бутоньерка',      img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25, occasions:['wedding'] },
+  { id:7,  cat:'Свадьба',  name:'Стол невесты',    img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180, occasions:['wedding','wow'] },
   // Растения
-  { id:8,  cat:'Растения', name:'Орхидея',          img:'https://images.unsplash.com/photo-1566907225472-514215c9d88b?w=400&q=80', desc:'Фаленопсис белый, 2 ветки', price:40  },
-  { id:9,  cat:'Растения', name:'Суккуленты',       img:'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80', desc:'Набор 3 шт. в кашпо',        price:30  },
-  { id:10, cat:'Растения', name:'Антуриум',         img:'https://images.unsplash.com/photo-1516048015710-7a3b4c86be43?w=400&q=80', desc:'Красный, в декор. горшке',   price:50  },
+  { id:8,  cat:'Растения', name:'Орхидея',         img:'https://images.unsplash.com/photo-1566907225472-514215c9d88b?w=400&q=80', desc:'Фаленопсис белый, 2 ветки', price:40,  occasions:['justbecause','condolences'] },
+  { id:9,  cat:'Растения', name:'Суккуленты',      img:'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80', desc:'Набор 3 шт. в кашпо',        price:30,  occasions:['justbecause','office'] },
+  { id:10, cat:'Растения', name:'Антуриум',        img:'https://images.unsplash.com/photo-1516048015710-7a3b4c86be43?w=400&q=80', desc:'Красный, в декор. горшке',   price:50,  occasions:['justbecause','anniversary'] },
   // Подарки
-  { id:11, cat:'Подарки',  name:'Мыльные розы',     img:'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80', desc:'Корзина из 19 роз',          price:35  },
-  { id:12, cat:'Подарки',  name:'Цветы + конфеты',  img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет + Raffaello 150г',      price:75  },
+  { id:11, cat:'Подарки',  name:'Мыльные розы',    img:'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80', desc:'Корзина из 19 роз',          price:35, occasions:['quick','birthday','anniversary'], isAddon:true },
+  { id:12, cat:'Подарки',  name:'Цветы + конфеты', img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет + Raffaello 150г',      price:75, occasions:['quick','birthday','wow'], isAddon:true },
 ];
 
 const categories = ['Все', ...new Set(catalog.map(p => p.cat))];
 let activecat = 'Все';
+let activeOccasion = 'any';
+let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let contactStep = false; // false — корзина, true — форма контактов
 
+// Поводы и бюджеты для фильтров
+const occasions = [
+  { id:'any',        label:'Любой повод' },
+  { id:'birthday',   label:'День рождения' },
+  { id:'wedding',    label:'Свадьба' },
+  { id:'anniversary',label:'Годовщина' },
+  { id:'march8',     label:'8 марта' },
+  { id:'condolences',label:'Соболезнования' },
+  { id:'justbecause',label:'Просто так' },
+];
+
+const budgets = [
+  { id:'any',   label:'Любой бюджет', min:0,   max:Infinity },
+  { id:'to50',  label:'До 50 BYN',    min:0,   max:50 },
+  { id:'50_100',label:'50–100 BYN',   min:50,  max:100 },
+  { id:'100+',  label:'100+ BYN',     min:100, max:Infinity },
+];
+
+// Готовые наборы
+const presets = [
+  {
+    id:'quick',
+    title:'Быстрый подарок',
+    tag:'до 50 BYN',
+    desc:'Когда нужно порадовать «прямо сейчас».',
+    items:[{id:4, qty:1}, {id:11, qty:1}],
+  },
+  {
+    id:'wow',
+    title:'Вау‑эффект',
+    tag:'от 100 BYN',
+    desc:'Большой букет, который точно запомнят.',
+    items:[{id:2, qty:1}, {id:12, qty:1}],
+  },
+];
+
 // ── РЕНДЕР КАТЕГОРИЙ ──────────────────────────────────────────────────────────
+function renderOccasionFilters() {
+  const el = document.getElementById('occasionFilters');
+  el.innerHTML = occasions.map(o => `
+    <button class="filter-chip ${o.id === activeOccasion ? 'active' : ''}" onclick="selectOccasion('${o.id}')">
+      ${o.label}
+    </button>
+  `).join('');
+}
+
+function renderBudgetFilters() {
+  const el = document.getElementById('budgetFilters');
+  el.innerHTML = budgets.map(b => `
+    <button class="filter-chip ${b.id === activeBudget ? 'active' : ''}" onclick="selectBudget('${b.id}')">
+      ${b.label}
+    </button>
+  `).join('');
+}
+
+function selectOccasion(id) {
+  activeOccasion = id;
+  renderOccasionFilters();
+  renderGrid();
+}
+
+function selectBudget(id) {
+  activeBudget = id;
+  renderBudgetFilters();
+  renderGrid();
+}
+
+function renderPresets() {
+  const el = document.getElementById('presets');
+  el.innerHTML = presets.map(p => `
+    <div class="preset-card" onclick="applyPreset('${p.id}')">
+      <div class="preset-title">${p.title}</div>
+      <div class="preset-tag">${p.tag}</div>
+      <div class="preset-desc">${p.desc}</div>
+    </div>
+  `).join('');
+}
+
+function applyPreset(id) {
+  const preset = presets.find(p => p.id === id);
+  if (!preset) return;
+
+  cart = {};
+  preset.items.forEach(it => {
+    cart[it.id] = (cart[it.id] || 0) + it.qty;
+  });
+  updateCartUI();
+  renderGrid();
+  openCart();
+}
+
 function renderCats() {
   const el = document.getElementById('cats');
   el.innerHTML = categories.map(c => `
@@ -453,7 +623,18 @@ function selectCat(cat) {
 
 // ── РЕНДЕР ТОВАРОВ ────────────────────────────────────────────────────────────
 function renderGrid() {
-  const items = activecat === 'Все' ? catalog : catalog.filter(p => p.cat === activecat);
+  let items = activecat === 'Все' ? catalog : catalog.filter(p => p.cat === activecat);
+
+  if (activeOccasion !== 'any') {
+    items = items.filter(p => !p.occasions || p.occasions.includes(activeOccasion));
+  }
+
+  if (activeBudget !== 'any') {
+    const b = budgets.find(b => b.id === activeBudget);
+    if (b) {
+      items = items.filter(p => p.price >= b.min && p.price <= b.max);
+    }
+  }
   const el = document.getElementById('grid');
 
   el.innerHTML = items.map((p, i) => {
@@ -567,6 +748,44 @@ function renderCartSheet() {
 
   totalEl.style.display = 'flex';
   sumEl.textContent = sum + ' BYN';
+
+  renderCartUpsell();
+}
+
+function renderCartUpsell() {
+  let upsellEl = document.getElementById('cartUpsell');
+  if (!upsellEl) {
+    const sheet = document.getElementById('sheet');
+    upsellEl = document.createElement('div');
+    upsellEl.id = 'cartUpsell';
+    upsellEl.style.padding = '4px 20px 0';
+    upsellEl.style.fontSize = '12px';
+    sheet.insertBefore(upsellEl, document.getElementById('orderBtn'));
+  }
+
+  const addonItems = catalog.filter(p => p.isAddon);
+  const available = addonItems.filter(p => !cart[p.id]);
+  if (available.length === 0) {
+    upsellEl.innerHTML = '';
+    return;
+  }
+
+  const rows = available.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:${getComputedStyle(document.documentElement).getPropertyValue('--dark') || '#2a1f1a'}">${p.name}</div>
+        <div style="font-size:11px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted') || '#9e8c82'}">${p.price} BYN · дополнение к заказу</div>
+      </div>
+      <button class="qty-btn" onclick="addToCart(${p.id})">+</button>
+    </div>
+  `).join('');
+
+  upsellEl.innerHTML = `
+    <div style="margin-top:6px;border-top:1px dashed var(--blush);padding-top:6px;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Можно добавить к заказу:</div>
+      ${rows}
+    </div>
+  `;
 }
 
 function openCart() {
@@ -686,6 +905,9 @@ function showToast(msg) {
 }
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
+renderOccasionFilters();
+renderBudgetFilters();
+renderPresets();
 renderCats();
 renderGrid();
 </script>
