@@ -289,6 +289,8 @@
     font-family: 'Jost', sans-serif;
     font-size: 13px;
     background: #fff;
+    color: var(--dark);
+    caret-color: var(--dark);
     resize: vertical;
     min-height: 40px;
   }
@@ -383,8 +385,12 @@
       <input id="contactPhone" type="tel" placeholder="+375 29 000-00-00">
     </div>
     <div class="contact-field">
-      <label for="contactWishes">Пожелания к заказу</label>
-      <textarea id="contactWishes" placeholder="Цветы, цвета, дата и время доставки"></textarea>
+      <label for="contactDatetime">Дата и время доставки</label>
+      <input id="contactDatetime" type="text" placeholder="Например: 8 марта, 18:00">
+    </div>
+    <div class="contact-field">
+      <label for="contactWishes">Цвета и дополнительные пожелания</label>
+      <textarea id="contactWishes" placeholder="Желаемые оттенки, формат букета, другие детали"></textarea>
     </div>
     <p class="contact-confirm">Ваши введённые данные верны?</p>
   </div>
@@ -602,13 +608,15 @@ function onOrderClick() {
   // Второй шаг — проверяем, что все поля заполнены, и отправляем
   const nameEl = document.getElementById('contactName');
   const phoneEl = document.getElementById('contactPhone');
+  const datetimeEl = document.getElementById('contactDatetime');
   const wishesEl = document.getElementById('contactWishes');
 
   const name = nameEl.value.trim();
   const phone = phoneEl.value.trim();
+  const datetime = datetimeEl.value.trim();
   const wishes = wishesEl.value.trim();
 
-  if (!name || !phone || !wishes) {
+  if (!name || !phone || !datetime || !wishes) {
     showToast('Пожалуйста, заполните все поля.');
     return;
   }
@@ -620,7 +628,8 @@ function onOrderClick() {
     return;
   }
 
-  sendOrder(name, phone, wishes);
+  const fullWishes = `Дата и время: ${datetime}. Пожелания: ${wishes}`;
+  sendOrder(name, phone, fullWishes);
 }
 
 function sendOrder(name, phone, wishes) {
