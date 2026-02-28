@@ -613,15 +613,17 @@ function renderStorePicker() {
 
   if (!listEl) return;
 
+  if (pickerEl) pickerEl.style.display = 'block';
+
   if (!API_BASE) {
-    if (pickerEl) pickerEl.style.display = 'none';
+    listEl.innerHTML = '<div class="store-empty">🏪 Витрина по магазинам включена в приложении. Чтобы видеть список магазинов и остатки, запустите бэкенд (python main.py) и укажите его адрес в &lt;meta name="api-base" content="http://localhost:5000"&gt; или в настройках хостинга. Пока каталог показывает все букеты.</div>';
+    updatedEl.style.display = 'none';
     if (placeholderEl) placeholderEl.style.display = 'none';
     return;
   }
-  if (pickerEl) pickerEl.style.display = 'block';
 
   if (stores.length === 0) {
-    listEl.innerHTML = '<div class="store-empty">Магазины загружаются с сервера. Если вы видите это сообщение, проверьте настройку API.</div>';
+    listEl.innerHTML = '<div class="store-empty">Магазины загружаются с сервера… Добавьте листы «Магазины» и «Остатки» в Google Таблицу (см. docs/CLIENT_REQUIREMENTS.md).</div>';
     updatedEl.style.display = 'none';
     if (placeholderEl) placeholderEl.style.display = 'none';
     return;
