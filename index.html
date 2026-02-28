@@ -562,8 +562,25 @@ let selectedStoreId = null;
 let inStockBouquetIds = new Set(); // id букетов в наличии в выбранном магазине
 let lastUpdated = null;
 
+// Демо-данные для показа клиенту (работают без бэкенда и таблицы)
+var demoStores = [
+  { id: '1', name: 'Пастель Цветы — Центр', address: 'ул. Ленина 5, Минск' },
+  { id: '2', name: 'Пастель Цветы — Дражня', address: 'пр. Независимости 45, Минск' },
+  { id: '3', name: 'Пастель Цветы — Уручье', address: 'ул. Калиновского 82, Минск' },
+];
+// По магазинам: какие id букетов (из каталога) есть в наличии. Остальные скрыты.
+var demoStock = {
+  '1': [1, 2, 3, 4, 8, 9, 11],      // Центр: букеты 1–4, орхидея, суккуленты, мыльные розы
+  '2': [2, 3, 5, 6, 7, 10, 12],     // Дражня: классика, пастель, свадьба, антуриум, цветы+конфеты
+  '3': [1, 4, 5, 8, 11, 12],        // Уручье: нежность, лесная сказка, невеста, орхидея, подарки
+};
+
 async function fetchStores() {
-  if (!API_BASE) return;
+  if (!API_BASE) {
+    stores = demoStores.slice();
+    lastUpdated = '28.02.2025';
+    return Promise.resolve();
+  }
   try {
     const r = await fetch(API_BASE + '/api/stores');
     if (!r.ok) return;
@@ -587,8 +604,13 @@ async function fetchUpdates() {
 }
 
 async function fetchStock(storeId) {
-  if (!API_BASE) return;
   inStockBouquetIds = new Set();
+  if (!API_BASE) {
+    var ids = demoStock[storeId];
+    if (ids) ids.forEach(function(id) { inStockBouquetIds.add(id); });
+    renderGrid();
+    return;
+  }
   try {
     const r = await fetch(API_BASE + '/api/stock?store_id=' + encodeURIComponent(storeId));
     if (!r.ok) return;
@@ -615,10 +637,23 @@ function renderStorePicker() {
 
   if (pickerEl) pickerEl.style.display = 'block';
 
-  if (!API_BASE) {
-    listEl.innerHTML = '<div class="store-empty">🏪 Витрина по магазинам включена в приложении. Чтобы видеть список магазинов и остатки, запустите бэкенд (python main.py) и укажите его адрес в &lt;meta name="api-base" content="http://localhost:5000"&gt; или в настройках хостинга. Пока каталог показывает все букеты.</div>';
-    updatedEl.style.display = 'none';
-    if (placeholderEl) placeholderEl.style.display = 'none';
+  if (!API_BASE && stores.length > 0) {
+    lastUpdated = lastUpdated || '28.02.2025';
+    listEl.innerHTML = stores.map(function(s) {
+      var isSelected = selectedStoreId === s.id;
+      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
+    }).join('');
+    if (lastUpdated) {
+      updatedEl.textContent = 'Обновлено: ' + lastUpdated;
+      updatedEl.style.display = 'block';
+    } else { updatedEl.style.display = 'none'; }
+    var subtitleEl = document.getElementById('catalogSubtitle');
+    if (subtitleEl && selectedStoreId) {
+      var s = stores.find(function(x) { return x.id === selectedStoreId; });
+      subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
+      subtitleEl.style.display = s ? 'block' : 'none';
+    }
+    if (placeholderEl) placeholderEl.style.display = selectedStoreId ? 'none' : 'block';
     return;
   }
 
