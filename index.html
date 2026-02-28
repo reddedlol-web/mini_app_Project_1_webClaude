@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="api-base" content="">
 <title>Роза и Шип</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -379,6 +380,75 @@
     transition: all 0.3s; z-index: 300;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── ВЫБОР МАГАЗИНА ── */
+  .store-picker {
+    padding: 20px 20px 16px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--blush);
+  }
+  .store-picker-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 400;
+    color: var(--deep); margin-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+  .store-list {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .store-card {
+    display: block;
+    width: 100%; text-align: left;
+    padding: 14px 16px;
+    background: var(--cream);
+    border: 2px solid var(--blush);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Jost', sans-serif;
+  }
+  .store-card:hover, .store-card:active {
+    border-color: var(--rose);
+    background: var(--ivory);
+  }
+  .store-card.selected {
+    border-color: var(--deep);
+    background: linear-gradient(135deg, #f5e6d8 0%, #ede0d4 100%);
+    box-shadow: 0 2px 12px rgba(122,69,53,0.12);
+  }
+  .store-card-name { font-size: 15px; font-weight: 500; color: var(--deep); margin-bottom: 4px; }
+  .store-card-address { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .store-updated {
+    font-size: 11px; color: var(--muted);
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed var(--blush);
+  }
+  .store-empty {
+    padding: 20px; text-align: center;
+    font-size: 14px; color: var(--muted);
+    background: var(--ivory);
+    border-radius: 14px;
+  }
+  .catalog-subtitle {
+    font-size: 13px; color: var(--rose);
+    padding: 0 20px 8px;
+    font-weight: 500;
+  }
+  .catalog-placeholder {
+    padding: 24px 20px; text-align: center;
+    font-size: 14px; color: var(--muted);
+    background: var(--ivory);
+    border-radius: 14px;
+    margin: 0 20px 16px;
+  }
+  .grid-empty {
+    padding: 32px 20px; text-align: center;
+    font-size: 14px; color: var(--muted);
+    background: var(--ivory);
+    border-radius: 14px;
+    margin: 0 20px 20px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -404,8 +474,17 @@
   </div>
 </div>
 
+<!-- ВЫБОР МАГАЗИНА -->
+<section class="store-picker" id="storePicker">
+  <div class="store-picker-title">Выберите магазин</div>
+  <div class="store-list" id="storeList"></div>
+  <div class="store-updated" id="storeUpdated" style="display:none"></div>
+</section>
+
 <!-- КАТАЛОГ -->
-<div class="section-title">Каталог</div>
+<div class="section-title" id="catalogSectionTitle">Каталог</div>
+<div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
+<div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">Выберите магазин выше, чтобы увидеть букеты в наличии</div>
 <div class="filters">
   <div class="filter-row" id="occasionFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
@@ -467,6 +546,124 @@ if (tg) {
   tg.expand();
   // Подстраиваем цвета под тему Telegram
   document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#1a1410' : '#faf7f2');
+}
+
+// ── API (магазины и остатки) ───────────────────────────────────────────────────
+// Базовый URL API: задайте в <meta name="api-base" content="https://..."> или window.API_BASE
+const API_BASE = (function() {
+  var meta = document.querySelector('meta[name="api-base"]');
+  if (meta && meta.getAttribute('content')) return meta.getAttribute('content').trim();
+  if (typeof window !== 'undefined' && window.API_BASE) return window.API_BASE;
+  return '';
+})();
+
+let stores = [];
+let selectedStoreId = null;
+let inStockBouquetIds = new Set(); // id букетов в наличии в выбранном магазине
+let lastUpdated = null;
+
+async function fetchStores() {
+  if (!API_BASE) return;
+  try {
+    const r = await fetch(API_BASE + '/api/stores');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (Array.isArray(data.stores)) stores = data.stores;
+    fetchUpdates();
+  } catch (e) {
+    console.warn('Stores API unavailable', e);
+  }
+}
+
+async function fetchUpdates() {
+  if (!API_BASE) return;
+  try {
+    const r = await fetch(API_BASE + '/api/updates');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.last_updated) lastUpdated = data.last_updated;
+    renderStorePicker();
+  } catch (e) {}
+}
+
+async function fetchStock(storeId) {
+  if (!API_BASE) return;
+  inStockBouquetIds = new Set();
+  try {
+    const r = await fetch(API_BASE + '/api/stock?store_id=' + encodeURIComponent(storeId));
+    if (!r.ok) return;
+    const data = await r.json();
+    if (Array.isArray(data.items)) {
+      data.items.forEach(function(it) {
+        if (it.in_stock && it.bouquet_id) inStockBouquetIds.add(Number(it.bouquet_id));
+      });
+    }
+  } catch (e) {
+    console.warn('Stock API unavailable', e);
+  }
+  renderGrid();
+}
+
+function renderStorePicker() {
+  const pickerEl = document.getElementById('storePicker');
+  const listEl = document.getElementById('storeList');
+  const updatedEl = document.getElementById('storeUpdated');
+  const placeholderEl = document.getElementById('catalogPlaceholder');
+  const catalogTitle = document.getElementById('catalogSectionTitle');
+
+  if (!listEl) return;
+
+  if (!API_BASE) {
+    if (pickerEl) pickerEl.style.display = 'none';
+    if (placeholderEl) placeholderEl.style.display = 'none';
+    return;
+  }
+  if (pickerEl) pickerEl.style.display = 'block';
+
+  if (stores.length === 0) {
+    listEl.innerHTML = '<div class="store-empty">Магазины загружаются с сервера. Если вы видите это сообщение, проверьте настройку API.</div>';
+    updatedEl.style.display = 'none';
+    if (placeholderEl) placeholderEl.style.display = 'none';
+    return;
+  }
+
+  listEl.innerHTML = stores.map(function(s) {
+    const isSelected = selectedStoreId === s.id;
+    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
+  }).join('');
+
+  if (lastUpdated) {
+    updatedEl.textContent = 'Обновлено: ' + lastUpdated;
+    updatedEl.style.display = 'block';
+  } else {
+    updatedEl.style.display = 'none';
+  }
+
+  var subtitleEl = document.getElementById('catalogSubtitle');
+  if (subtitleEl) {
+    if (selectedStoreId) {
+      var s = stores.find(function(x) { return x.id === selectedStoreId; });
+      subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
+      subtitleEl.style.display = s ? 'block' : 'none';
+    } else {
+      subtitleEl.style.display = 'none';
+    }
+  }
+
+  if (placeholderEl && catalogTitle) {
+    if (!selectedStoreId) {
+      placeholderEl.style.display = 'block';
+      document.getElementById('grid').innerHTML = '';
+    } else {
+      placeholderEl.style.display = 'none';
+    }
+  }
+}
+
+function selectStore(storeId) {
+  selectedStoreId = storeId;
+  renderStorePicker();
+  fetchStock(storeId);
 }
 
 // ── КАТАЛОГ ──────────────────────────────────────────────────────────────────
@@ -599,7 +796,36 @@ function renderGrid() {
       items = items.filter(p => p.price >= b.min && p.price <= b.max);
     }
   }
+
+  // Если включена витрина по магазинам — показываем каталог только после выбора магазина
+  if (stores.length > 0 && !selectedStoreId) {
+    items = [];
+  }
+  // Фильтр по наличию в выбранном магазине (данные из API)
+  if (selectedStoreId) {
+    if (inStockBouquetIds.size > 0) {
+      items = items.filter(p => inStockBouquetIds.has(p.id));
+    } else {
+      items = [];
+    }
+  }
+
   const el = document.getElementById('grid');
+  const placeholderEl = document.getElementById('catalogPlaceholder');
+  if (placeholderEl && selectedStoreId && items.length === 0 && stores.length > 0) {
+    placeholderEl.style.display = 'block';
+    placeholderEl.textContent = 'В выбранном магазине пока нет букетов в наличии. Остатки обновляются ежедневно.';
+  }
+  if (placeholderEl && !selectedStoreId && stores.length > 0) {
+    placeholderEl.style.display = 'block';
+    placeholderEl.textContent = 'Выберите магазин выше, чтобы увидеть букеты в наличии';
+  }
+  if (placeholderEl && items.length > 0) placeholderEl.style.display = 'none';
+
+  if (items.length === 0 && selectedStoreId && inStockBouquetIds.size > 0) {
+    el.innerHTML = '<div class="grid-empty">По вашим критериям ничего не найдено. Попробуйте изменить повод или бюджет.</div>';
+    return;
+  }
 
   el.innerHTML = items.map((p, i) => {
     const inCart = cart[p.id] > 0;
@@ -643,7 +869,7 @@ function addToCart(id) {
   if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
 
   const item = catalog.find(p => p.id === id);
-  showToast(`${item.emoji} ${item.name} добавлен`);
+  showToast(`${(item && item.emoji) || '🌸'} ${item ? item.name : ''} добавлен`);
 }
 
 function changeQty(id, delta) {
@@ -817,11 +1043,16 @@ function onOrderClick() {
     return;
   }
 
-  const fullWishes = `Дата и время: ${datetime}. Пожелания: ${wishes}`;
-  sendOrder(name, phone, fullWishes);
+  var storeLine = selectedStoreId ? (function() {
+    var s = stores.find(function(x) { return x.id === selectedStoreId; });
+    return s ? ' Магазин: ' + s.name + ', ' + s.address + '.' : '';
+  })() : '';
+  const fullWishes = `Дата и время: ${datetime}. Пожелания: ${wishes}${storeLine}`;
+  sendOrder(name, phone, fullWishes, datetime);
 }
 
-function sendOrder(name, phone, wishes) {
+function sendOrder(name, phone, wishes, datetime) {
+  datetime = datetime || '';
   const ids = Object.keys(cart).map(Number);
   if (ids.length === 0) return;
 
@@ -831,10 +1062,15 @@ function sendOrder(name, phone, wishes) {
     const p = catalog.find(p => p.id === id);
     const qty = cart[id];
     sum += p.price * qty;
-    return `• ${p.emoji} ${p.name} × ${qty} = ${p.price * qty} BYN`;
+    return `• ${(p.emoji || '🌸')} ${p.name} × ${qty} = ${p.price * qty} BYN`;
   });
 
   const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} BYN\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n✏️ Пожелания: ${wishes}`;
+
+  var storeInfo = selectedStoreId ? (function() {
+    var s = stores.find(function(x) { return x.id === selectedStoreId; });
+    return { store_id: selectedStoreId, store_name: s ? s.name : '', store_address: s ? s.address : '' };
+  })() : {};
 
   // Отправляем данные в бот через Telegram WebApp API
   if (tg) {
@@ -851,6 +1087,10 @@ function sendOrder(name, phone, wishes) {
       name,
       phone,
       wishes,
+      datetime: datetime || '',
+      store_id: storeInfo.store_id || '',
+      store_name: storeInfo.store_name || '',
+      store_address: storeInfo.store_address || '',
     }));
   } else {
     // Режим разработки — просто показываем
@@ -878,7 +1118,12 @@ function showToast(msg) {
 renderOccasionFilters();
 renderBudgetFilters();
 renderPresets();
+renderStorePicker();
 renderGrid();
+fetchStores().then(function() {
+  renderStorePicker();
+  renderGrid();
+});
 </script>
 </body>
 </html>
