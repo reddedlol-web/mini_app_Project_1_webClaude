@@ -384,15 +384,14 @@
   /* ── ВЫБОР МАГАЗИНА ── */
   .store-picker {
     padding: 20px 20px 16px;
-    background: linear-gradient(180deg, #f5ebe0 0%, var(--card-bg) 100%);
-    border-bottom: 2px solid var(--rose);
-    border-top: 1px solid var(--blush);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--blush);
   }
   .store-picker-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 22px; font-weight: 600;
+    font-size: 20px; font-weight: 400;
     color: var(--deep); margin-bottom: 12px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
   }
   .store-list {
     display: flex; flex-direction: column; gap: 10px;
@@ -417,7 +416,8 @@
     background: linear-gradient(135deg, #f5e6d8 0%, #ede0d4 100%);
     box-shadow: 0 2px 12px rgba(122,69,53,0.12);
   }
-  .store-card-address { font-size: 14px; font-weight: 500; color: var(--deep); line-height: 1.4; }
+  .store-card-name { font-size: 15px; font-weight: 500; color: var(--deep); margin-bottom: 4px; }
+  .store-card-address { font-size: 12px; color: var(--muted); line-height: 1.4; }
   .store-updated {
     font-size: 11px; color: var(--muted);
     margin-top: 10px; padding-top: 10px;
@@ -476,7 +476,7 @@
 
 <!-- ВЫБОР МАГАЗИНА -->
 <section class="store-picker" id="storePicker">
-  <div class="store-picker-title">Выберите магазин <span style="font-size:14px;font-weight:400;color:var(--muted)">· в наличии</span></div>
+  <div class="store-picker-title">Выберите магазин</div>
   <div class="store-list" id="storeList"></div>
   <div class="store-updated" id="storeUpdated" style="display:none"></div>
 </section>
@@ -557,25 +557,26 @@ const API_BASE = (function() {
   return '';
 })();
 
+let stores = [];
+let selectedStoreId = null;
+let inStockBouquetIds = new Set(); // id букетов в наличии в выбранном магазине
+let lastUpdated = null;
+
 // Демо-данные для показа клиенту (работают без бэкенда и таблицы)
 var demoStores = [
   { id: '1', name: 'Пастель Цветы — Центр', address: 'ул. Ленина 5, Минск' },
   { id: '2', name: 'Пастель Цветы — Дражня', address: 'пр. Независимости 45, Минск' },
   { id: '3', name: 'Пастель Цветы — Уручье', address: 'ул. Калиновского 82, Минск' },
 ];
+// По магазинам: какие id букетов (из каталога) есть в наличии. Остальные скрыты.
 var demoStock = {
-  '1': [1, 2, 3, 4, 8, 9, 11],
-  '2': [2, 3, 5, 6, 7, 10, 12],
-  '3': [1, 4, 5, 8, 11, 12],
+  '1': [1, 2, 3, 4, 8, 9, 11],      // Центр: букеты 1–4, орхидея, суккуленты, мыльные розы
+  '2': [2, 3, 5, 6, 7, 10, 12],     // Дражня: классика, пастель, свадьба, антуриум, цветы+конфеты
+  '3': [1, 4, 5, 8, 11, 12],        // Уручье: нежность, лесная сказка, невеста, орхидея, подарки
 };
 
-// Если API не настроен — сразу подставляем демо-магазины, чтобы было что показать
-let stores = API_BASE ? [] : demoStores.slice();
-let selectedStoreId = null;
-let inStockBouquetIds = new Set();
-let lastUpdated = API_BASE ? null : '28.02.2025';
-
 async function fetchStores() {
+  if (!API_BASE) return;
   if (!API_BASE) {
     stores = demoStores.slice();
     lastUpdated = '28.02.2025';
@@ -604,6 +605,7 @@ async function fetchUpdates() {
 }
 
 async function fetchStock(storeId) {
+  if (!API_BASE) return;
   inStockBouquetIds = new Set();
   if (!API_BASE) {
     var ids = demoStock[storeId];
@@ -637,11 +639,15 @@ function renderStorePicker() {
 
   if (pickerEl) pickerEl.style.display = 'block';
 
+  if (!API_BASE) {
+    listEl.innerHTML = '<div class="store-empty">🏪 Витрина по магазинам включена в приложении. Чтобы видеть список магазинов и остатки, запустите бэкенд (python main.py) и укажите его адрес в &lt;meta name="api-base" content="http://localhost:5000"&gt; или в настройках хостинга. Пока каталог показывает все букеты.</div>';
+    updatedEl.style.display = 'none';
+    if (placeholderEl) placeholderEl.style.display = 'none';
   if (!API_BASE && stores.length > 0) {
     lastUpdated = lastUpdated || '28.02.2025';
     listEl.innerHTML = stores.map(function(s) {
       var isSelected = selectedStoreId === s.id;
-      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
     }).join('');
     if (lastUpdated) {
       updatedEl.textContent = 'Обновлено: ' + lastUpdated;
@@ -666,7 +672,7 @@ function renderStorePicker() {
 
   listEl.innerHTML = stores.map(function(s) {
     const isSelected = selectedStoreId === s.id;
-    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
   }).join('');
 
   if (lastUpdated) {
