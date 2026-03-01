@@ -16,9 +16,10 @@
     --blush:   #e8d5c4;
     --rose:    #c9856a;
     --deep:    #7a4535;
-    --green:   #5a6e4e;
+    --green:   #4a5d3e;
     --dark:    #2a1f1a;
-    --muted:   #9e8c82;
+    --muted:   #5c524a;
+    --muted-soft: #6b5d54;
     --card-bg: #fffcf8;
   }
 
@@ -69,9 +70,9 @@
   }
   .fab-badge {
     position: absolute; top: 2px; right: 2px;
-    background: var(--rose); color: white;
+    background: var(--deep); color: #fff;
     border-radius: 50%; width: 20px; height: 20px;
-    font-size: 11px; font-weight: 600;
+    font-size: 11px; font-weight: 700;
     display: none; align-items: center; justify-content: center;
     border: 2px solid var(--cream);
     font-family: 'Jost', sans-serif;
@@ -101,14 +102,14 @@
   }
   .hero-title em { font-style: italic; color: var(--rose); }
   .hero-sub {
-    font-size: 13px; color: var(--muted); line-height: 1.5;
+    font-size: 13px; color: var(--deep); line-height: 1.5;
   }
   .hero-badges {
     display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
   }
   .badge {
     background: white; border-radius: 20px;
-    padding: 5px 12px; font-size: 12px; color: var(--deep);
+    padding: 5px 12px; font-size: 12px; font-weight: 500; color: var(--dark);
     display: flex; align-items: center; gap: 4px;
     box-shadow: 0 1px 8px rgba(0,0,0,0.06);
   }
@@ -116,8 +117,8 @@
   /* ── КАТАЛОГ ЗАГОЛОВОК ── */
   .section-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 22px; font-weight: 400;
-    color: var(--deep); padding: 20px 20px 4px;
+    font-size: 22px; font-weight: 600;
+    color: var(--dark); padding: 20px 20px 4px;
     letter-spacing: 0.01em;
   }
 
@@ -149,20 +150,20 @@
   .card-body { padding: 10px 12px 12px; }
   .card-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 16px; font-weight: 400;
+    font-size: 16px; font-weight: 600;
     color: var(--dark); line-height: 1.2; margin-bottom: 3px;
   }
   .card-desc {
-    font-size: 11px; color: var(--muted);
+    font-size: 12px; font-weight: 500; color: var(--deep);
     line-height: 1.4; margin-bottom: 8px;
   }
   .card-footer {
     display: flex; align-items: center; justify-content: space-between;
   }
   .card-price {
-    font-size: 16px; font-weight: 500; color: var(--deep);
+    font-size: 16px; font-weight: 600; color: var(--dark);
   }
-  .card-price span { font-size: 11px; font-weight: 300; color: var(--muted); }
+  .card-price span { font-size: 12px; font-weight: 500; color: var(--deep); }
   .add-btn {
     width: 30px; height: 30px; border-radius: 50%;
     background: var(--rose); border: none;
@@ -202,43 +203,43 @@
   .sheet-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 24px; font-weight: 400;
-    color: var(--deep); padding: 16px 20px 0;
+    color: var(--dark); padding: 16px 20px 0;
   }
 
   .cart-items { padding: 12px 20px; }
   .cart-item {
     display: flex; align-items: center; gap: 12px;
-    padding: 10px 0; border-bottom: 1px solid var(--ivory);
+    padding: 10px 0; border-bottom: 1px solid var(--blush);
   }
   .cart-item-info { flex: 1; }
-  .cart-item-name { font-size: 14px; color: var(--dark); margin-bottom: 2px; }
-  .cart-item-price { font-size: 12px; color: var(--muted); }
+  .cart-item-name { font-size: 14px; font-weight: 500; color: var(--dark); margin-bottom: 2px; }
+  .cart-item-price { font-size: 13px; color: var(--deep); }
   .cart-item-controls {
     display: flex; align-items: center; gap: 10px;
   }
   .qty-btn {
     width: 26px; height: 26px; border-radius: 50%;
-    border: 1.5px solid var(--blush);
+    border: 1.5px solid var(--deep);
     background: white; color: var(--dark);
-    font-size: 16px; cursor: pointer;
+    font-size: 16px; font-weight: 600; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
   }
-  .qty-btn:active { background: var(--blush); }
-  .qty-num { font-size: 14px; font-weight: 500; min-width: 16px; text-align: center; }
+  .qty-btn:active { background: var(--blush); color: var(--dark); }
+  .qty-num { font-size: 14px; font-weight: 600; min-width: 16px; text-align: center; color: var(--dark); }
 
   .cart-empty {
     text-align: center; padding: 32px 20px;
-    color: var(--muted); font-size: 14px;
+    color: var(--deep); font-size: 14px; line-height: 1.5;
   }
   .cart-empty-icon { font-size: 40px; margin-bottom: 8px; }
 
   .cart-total {
     display: flex; justify-content: space-between;
     align-items: center; padding: 14px 20px;
-    border-top: 1px solid var(--blush); margin-top: 4px;
+    border-top: 2px solid var(--blush); margin-top: 4px;
   }
-  .cart-total-label { font-size: 14px; color: var(--muted); }
+  .cart-total-label { font-size: 14px; font-weight: 500; color: var(--dark); }
   .cart-total-sum {
     font-family: 'Cormorant Garamond', serif;
     font-size: 22px; color: var(--deep); font-weight: 600;
@@ -262,13 +263,14 @@
     flex-shrink: 0;
     border-radius: 20px;
     padding: 5px 10px;
-    font-size: 11px;
-    border: 1px solid var(--blush);
-    color: var(--muted);
+    font-size: 12px;
+    border: 1.5px solid var(--blush);
+    color: var(--dark);
     background: #fff;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    font-weight: 500;
   }
   .filter-chip.active {
     background: var(--deep);
@@ -304,17 +306,20 @@
   .preset-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 17px;
-    color: var(--deep);
+    font-weight: 600;
+    color: var(--dark);
     margin-bottom: 2px;
   }
   .preset-tag {
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--rose);
     margin-bottom: 6px;
   }
   .preset-desc {
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 12px;
+    color: var(--deep);
+    line-height: 1.4;
   }
 
   .contact-form {
@@ -322,8 +327,9 @@
     display: none;
   }
   .contact-label {
-    font-size: 13px;
-    color: var(--muted);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dark);
     margin-bottom: 8px;
   }
   .contact-field {
@@ -332,18 +338,19 @@
   }
   .contact-field label {
     display: block;
-    font-size: 12px;
-    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--deep);
     margin-bottom: 4px;
   }
   .contact-field input,
   .contact-field textarea {
     width: 100%;
     border-radius: 10px;
-    border: 1px solid var(--blush);
+    border: 1.5px solid var(--blush);
     padding: 10px 12px;
     font-family: 'Jost', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     background: #fff;
     color: var(--dark);
     caret-color: var(--dark);
@@ -351,7 +358,8 @@
     min-height: 40px;
   }
   .contact-confirm {
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 500;
     color: var(--dark);
     margin: 6px 0 0;
   }
@@ -361,21 +369,37 @@
     width: calc(100% - 40px);
     background: var(--deep); border: none;
     border-radius: 14px; padding: 16px;
-    color: white; font-family: 'Jost', sans-serif;
-    font-size: 15px; font-weight: 400;
+    color: #fff; font-family: 'Jost', sans-serif;
+    font-size: 16px; font-weight: 600;
     letter-spacing: 0.04em; cursor: pointer;
     transition: all 0.2s;
     display: block;
   }
-  .order-btn:active { opacity: 0.85; transform: scale(0.99); }
-  .order-btn:disabled { background: var(--blush); cursor: default; }
+  .order-btn:active { opacity: 0.9; transform: scale(0.99); }
+  .order-btn:disabled { background: var(--blush); color: var(--dark); cursor: default; }
+
+  .cart-upsell {
+    margin-top: 6px;
+    border-top: 1px dashed var(--blush);
+    padding-top: 6px;
+  }
+  .cart-upsell-title {
+    font-size: 13px; font-weight: 600; color: var(--dark);
+    margin-bottom: 6px;
+  }
+  .cart-upsell-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .cart-upsell-name { font-size: 14px; font-weight: 600; color: var(--dark); flex: 1; min-width: 0; }
+  .cart-upsell-meta { font-size: 12px; font-weight: 500; color: var(--deep); margin-top: 2px; }
 
   /* ── TOAST ── */
   .toast {
     position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--dark); color: white;
+    background: var(--dark); color: #fff;
     border-radius: 24px; padding: 10px 20px;
-    font-size: 13px; white-space: nowrap;
+    font-size: 14px; font-weight: 500; white-space: nowrap;
     opacity: 0; pointer-events: none;
     transition: all 0.3s; z-index: 300;
   }
@@ -384,14 +408,15 @@
   /* ── ВЫБОР МАГАЗИНА ── */
   .store-picker {
     padding: 20px 20px 16px;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--blush);
+    background: linear-gradient(180deg, #f5ebe0 0%, var(--card-bg) 100%);
+    border-bottom: 2px solid var(--rose);
+    border-top: 1px solid var(--blush);
   }
   .store-picker-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 20px; font-weight: 400;
-    color: var(--deep); margin-bottom: 12px;
-    letter-spacing: 0.01em;
+    font-size: 22px; font-weight: 600;
+    color: var(--dark); margin-bottom: 12px;
+    letter-spacing: 0.02em;
   }
   .store-list {
     display: flex; flex-direction: column; gap: 10px;
@@ -416,34 +441,34 @@
     background: linear-gradient(135deg, #f5e6d8 0%, #ede0d4 100%);
     box-shadow: 0 2px 12px rgba(122,69,53,0.12);
   }
-  .store-card-name { font-size: 15px; font-weight: 500; color: var(--deep); margin-bottom: 4px; }
-  .store-card-address { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .store-card-address { font-size: 14px; font-weight: 600; color: var(--dark); line-height: 1.4; }
   .store-updated {
-    font-size: 11px; color: var(--muted);
+    font-size: 12px; font-weight: 500; color: var(--deep);
     margin-top: 10px; padding-top: 10px;
     border-top: 1px dashed var(--blush);
   }
   .store-empty {
     padding: 20px; text-align: center;
-    font-size: 14px; color: var(--muted);
+    font-size: 14px; font-weight: 500; color: var(--deep);
     background: var(--ivory);
     border-radius: 14px;
+    line-height: 1.5;
   }
   .catalog-subtitle {
-    font-size: 13px; color: var(--rose);
+    font-size: 13px; font-weight: 600; color: var(--rose);
     padding: 0 20px 8px;
-    font-weight: 500;
   }
   .catalog-placeholder {
     padding: 24px 20px; text-align: center;
-    font-size: 14px; color: var(--muted);
+    font-size: 14px; font-weight: 500; color: var(--deep);
     background: var(--ivory);
     border-radius: 14px;
     margin: 0 20px 16px;
+    line-height: 1.5;
   }
   .grid-empty {
     padding: 32px 20px; text-align: center;
-    font-size: 14px; color: var(--muted);
+    font-size: 14px; font-weight: 500; color: var(--dark);
     background: var(--ivory);
     border-radius: 14px;
     margin: 0 20px 20px;
@@ -476,7 +501,7 @@
 
 <!-- ВЫБОР МАГАЗИНА -->
 <section class="store-picker" id="storePicker">
-  <div class="store-picker-title">Выберите магазин</div>
+  <div class="store-picker-title">Выберите магазин <span style="font-size:14px;font-weight:500;color:var(--deep)">· в наличии</span></div>
   <div class="store-list" id="storeList"></div>
   <div class="store-updated" id="storeUpdated" style="display:none"></div>
 </section>
@@ -557,23 +582,23 @@ const API_BASE = (function() {
   return '';
 })();
 
-let stores = [];
-let selectedStoreId = null;
-let inStockBouquetIds = new Set(); // id букетов в наличии в выбранном магазине
-let lastUpdated = null;
-
 // Демо-данные для показа клиенту (работают без бэкенда и таблицы)
 var demoStores = [
   { id: '1', name: 'Пастель Цветы — Центр', address: 'ул. Ленина 5, Минск' },
   { id: '2', name: 'Пастель Цветы — Дражня', address: 'пр. Независимости 45, Минск' },
   { id: '3', name: 'Пастель Цветы — Уручье', address: 'ул. Калиновского 82, Минск' },
 ];
-// По магазинам: какие id букетов (из каталога) есть в наличии. Остальные скрыты.
 var demoStock = {
-  '1': [1, 2, 3, 4, 8, 9, 11],      // Центр: букеты 1–4, орхидея, суккуленты, мыльные розы
-  '2': [2, 3, 5, 6, 7, 10, 12],     // Дражня: классика, пастель, свадьба, антуриум, цветы+конфеты
-  '3': [1, 4, 5, 8, 11, 12],        // Уручье: нежность, лесная сказка, невеста, орхидея, подарки
+  '1': [1, 2, 3, 4, 8, 9, 11],
+  '2': [2, 3, 5, 6, 7, 10, 12],
+  '3': [1, 4, 5, 8, 11, 12],
 };
+
+// Если API не настроен — сразу подставляем демо-магазины, чтобы было что показать
+let stores = API_BASE ? [] : demoStores.slice();
+let selectedStoreId = null;
+let inStockBouquetIds = new Set();
+let lastUpdated = API_BASE ? null : '28.02.2025';
 
 async function fetchStores() {
   if (!API_BASE) {
@@ -641,7 +666,7 @@ function renderStorePicker() {
     lastUpdated = lastUpdated || '28.02.2025';
     listEl.innerHTML = stores.map(function(s) {
       var isSelected = selectedStoreId === s.id;
-      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
+      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
     }).join('');
     if (lastUpdated) {
       updatedEl.textContent = 'Обновлено: ' + lastUpdated;
@@ -666,7 +691,7 @@ function renderStorePicker() {
 
   listEl.innerHTML = stores.map(function(s) {
     const isSelected = selectedStoreId === s.id;
-    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-name">' + (s.name || 'Магазин') + '</div><div class="store-card-address">' + (s.address || '') + '</div></button>';
+    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
   }).join('');
 
   if (lastUpdated) {
@@ -992,7 +1017,6 @@ function renderCartUpsell() {
     upsellEl = document.createElement('div');
     upsellEl.id = 'cartUpsell';
     upsellEl.style.padding = '4px 20px 0';
-    upsellEl.style.fontSize = '12px';
     sheet.insertBefore(upsellEl, document.getElementById('orderBtn'));
   }
 
@@ -1004,18 +1028,18 @@ function renderCartUpsell() {
   }
 
   const rows = available.map(p => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;">
+    <div class="cart-upsell-row">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:${getComputedStyle(document.documentElement).getPropertyValue('--dark') || '#2a1f1a'}">${p.name}</div>
-        <div style="font-size:11px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted') || '#9e8c82'}">${p.price} BYN · дополнение к заказу</div>
+        <div class="cart-upsell-name">${p.name}</div>
+        <div class="cart-upsell-meta">${p.price} BYN · дополнение к заказу</div>
       </div>
       <button class="qty-btn" onclick="addToCart(${p.id})">+</button>
     </div>
   `).join('');
 
   upsellEl.innerHTML = `
-    <div style="margin-top:6px;border-top:1px dashed var(--blush);padding-top:6px;">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Можно добавить к заказу:</div>
+    <div class="cart-upsell">
+      <div class="cart-upsell-title">Можно добавить к заказу:</div>
       ${rows}
     </div>
   `;
