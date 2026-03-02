@@ -255,9 +255,30 @@
     display: flex;
     gap: 6px;
     overflow-x: auto;
-    scrollbar-width: none;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blush) transparent;
+    padding-right: 20px;
+    margin-right: -20px;
+    -webkit-overflow-scrolling: touch;
   }
-  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-row::-webkit-scrollbar { height: 6px; }
+  .filter-row::-webkit-scrollbar-track { background: transparent; }
+  .filter-row::-webkit-scrollbar-thumb { background: var(--blush); border-radius: 3px; }
+  .filters-scroll-hint { position: relative; }
+  .filters-scroll-hint::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
+    background: linear-gradient(to right, transparent, var(--cream));
+    pointer-events: none;
+  }
+  .presets-wrap { position: relative; }
+  .presets-scroll-hint::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 28px;
+    background: linear-gradient(to right, transparent, var(--cream));
+    pointer-events: none;
+  }
   .filter-chip {
     flex-shrink: 0;
     border-radius: 20px;
@@ -277,14 +298,22 @@
   }
 
   /* ── ГОТОВЫЕ НАБОРЫ ── */
+  .presets-wrap { padding: 6px 0 8px; }
   .presets {
     padding: 6px 20px 8px;
+    margin-right: -20px;
+    padding-right: 20px;
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    scrollbar-width: none;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blush) transparent;
+    -webkit-overflow-scrolling: touch;
   }
-  .presets::-webkit-scrollbar { display: none; }
+  .presets::-webkit-scrollbar { height: 6px; }
+  .presets::-webkit-scrollbar-track { background: transparent; }
+  .presets::-webkit-scrollbar-thumb { background: var(--blush); border-radius: 3px; }
   .preset-card {
     flex-shrink: 0;
     min-width: 180px;
@@ -485,11 +514,13 @@
 <div class="section-title" id="catalogSectionTitle">Каталог</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">Выберите магазин выше, чтобы увидеть букеты в наличии</div>
-<div class="filters">
+<div class="filters filters-scroll-hint">
   <div class="filter-row" id="occasionFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
 </div>
-<div class="presets" id="presets"></div>
+<div class="presets-wrap presets-scroll-hint">
+  <div class="presets" id="presets"></div>
+</div>
 
 <!-- ТОВАРЫ -->
 <div class="grid" id="grid"></div>
@@ -1150,6 +1181,20 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
+
+// ── ПРОКРУТКА КОЛЁСИКОМ (ПК) ─────────────────────────────────────────────────
+function setupWheelScroll(el) {
+  if (!el) return;
+  el.addEventListener('wheel', function(e) {
+    if (e.deltaY === 0) return;
+    var maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  }, { passive: false });
+}
+document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
+setupWheelScroll(document.querySelector('.presets'));
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderOccasionFilters();
