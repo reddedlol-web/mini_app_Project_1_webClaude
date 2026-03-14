@@ -899,13 +899,16 @@
 // Кастомизация под магазин: измените значения (валюта подставится в цены и корзину)
 const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн-вс 10:00 - 21:00', deliveryCostMinsk: '15', deliveryTime: '10:30–21:30' };
 
-// ── ИНИЦИАЛИЗАЦИЯ TELEGRAM ────────────────────────────────────────────────────
-const tg = window.Telegram?.WebApp;
+// ── ИНИЦИАЛИЗАЦИЯ TELEGRAM (без optional chaining — старые WebView не поддерживают) ──
+var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 if (tg) {
-  tg.ready();
-  tg.expand();
-  // Подстраиваем цвета под тему Telegram
-  document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#1a1410' : '#faf7f2');
+  try {
+    tg.ready();
+    tg.expand();
+    if (tg.colorScheme) {
+      document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#1a1410' : '#faf7f2');
+    }
+  } catch (e) {}
 }
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
@@ -1134,12 +1137,12 @@ const presets = (function() {
 
 // ── РЕНДЕР КАТЕГОРИЙ (как на сайте) ────────────────────────────────────────────
 function renderCategoryFilters() {
-  const el = document.getElementById('categoryFilters');
+  var el = document.getElementById('categoryFilters');
   if (!el) return;
-  el.innerHTML = categories.map((c, i) => {
-    const key = c.altId || c.id;
-    const isActive = (key === 'по поводу' && activeCategory === 'По поводу') || activeCategory === c.id;
-    return `<button class="filter-chip ${isActive ? 'active' : ''}" onclick="selectCategory('${(c.altId || c.id).replace(/'/g, "\\'")}')">${c.label}</button>`;
+  el.innerHTML = categories.map(function(c, i) {
+    var key = c.altId || c.id;
+    var isActive = (key === 'по поводу' && activeCategory === 'По поводу') || activeCategory === c.id;
+    return '<button class="filter-chip ' + (isActive ? 'active' : '') + '" onclick="selectCategory(\'' + String(key).replace(/'/g, "\\'") + '\')">' + c.label + '</button>';
   }).join('');
 }
 
@@ -1150,21 +1153,19 @@ function selectCategory(id) {
 }
 
 function renderOccasionFilters() {
-  const el = document.getElementById('occasionFilters');
-  el.innerHTML = occasions.map(o => `
-    <button class="filter-chip ${o.id === activeOccasion ? 'active' : ''}" onclick="selectOccasion('${o.id}')">
-      ${o.label}
-    </button>
-  `).join('');
+  var el = document.getElementById('occasionFilters');
+  if (!el) return;
+  el.innerHTML = occasions.map(function(o) {
+    return '<button class="filter-chip ' + (o.id === activeOccasion ? 'active' : '') + '" onclick="selectOccasion(\'' + o.id + '\')">' + o.label + '</button>';
+  }).join('');
 }
 
 function renderBudgetFilters() {
-  const el = document.getElementById('budgetFilters');
-  el.innerHTML = budgets.map(b => `
-    <button class="filter-chip ${b.id === activeBudget ? 'active' : ''}" onclick="selectBudget('${b.id}')">
-      ${b.label}
-    </button>
-  `).join('');
+  var el = document.getElementById('budgetFilters');
+  if (!el) return;
+  el.innerHTML = budgets.map(function(b) {
+    return '<button class="filter-chip ' + (b.id === activeBudget ? 'active' : '') + '" onclick="selectBudget(\'' + b.id + '\')">' + b.label + '</button>';
+  }).join('');
 }
 
 function selectOccasion(id) {
@@ -1180,14 +1181,11 @@ function selectBudget(id) {
 }
 
 function renderPresets() {
-  const el = document.getElementById('presets');
-  el.innerHTML = presets.map(p => `
-    <div class="preset-card" onclick="applyPreset('${p.id}')">
-      <div class="preset-title">${p.title}</div>
-      <div class="preset-tag">${p.tag}</div>
-      <div class="preset-desc">${p.desc}</div>
-    </div>
-  `).join('');
+  var el = document.getElementById('presets');
+  if (!el) return;
+  el.innerHTML = presets.map(function(p) {
+    return '<div class="preset-card" onclick="applyPreset(\'' + p.id + '\')"><div class="preset-title">' + p.title + '</div><div class="preset-tag">' + p.tag + '</div><div class="preset-desc">' + p.desc + '</div></div>';
+  }).join('');
 }
 
 function applyPreset(id) {
@@ -1572,7 +1570,8 @@ function setupWheelScroll(el) {
     el.scrollLeft += e.deltaY;
   }, { passive: false });
 }
-document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
+var filterRows = document.querySelectorAll('.filter-row');
+for (var i = 0; i < filterRows.length; i++) setupWheelScroll(filterRows[i]);
 setupWheelScroll(document.querySelector('.presets'));
 
 // ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
@@ -1653,17 +1652,25 @@ document.getElementById('btnSubSubmit') && document.getElementById('btnSubSubmit
   if (document.getElementById('subWishes')) document.getElementById('subWishes').value = '';
 });
 
-// ── СТАРТ ─────────────────────────────────────────────────────────────────────
-renderCategoryFilters();
-renderOccasionFilters();
-renderBudgetFilters();
-renderPresets();
-renderStorePicker();
-renderGrid();
-fetchStores().then(function() {
+// ── СТАРТ (в try/catch чтобы одна ошибка не давала серый экран) ───────────────
+try {
+  renderCategoryFilters();
+  renderOccasionFilters();
+  renderBudgetFilters();
+  renderPresets();
   renderStorePicker();
   renderGrid();
-});
+  fetchStores().then(function() {
+    renderStorePicker();
+    renderGrid();
+  });
+} catch (err) {
+  if (document.body) document.body.style.background = '#f5f5f5';
+  var msg = document.createElement('p');
+  msg.style.cssText = 'padding:20px;font-family:sans-serif;color:#333;';
+  msg.textContent = 'Ошибка загрузки. Обновите страницу.';
+  document.body && document.body.appendChild(msg);
+}
 </script>
 </body>
 </html>
