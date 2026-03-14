@@ -21,8 +21,8 @@
     --bg-hero:      #f5efe8;
     --bg-card:      #ffffff;
     /* Акценты: пыльная роза, терракотовый (кнопки, ссылки, актив) */
-    --accent:       #c96ab4;
-    --accent-deep:  #ff61ffa9;
+    --accent:       #c98b6a;
+    --accent-deep:  #a66b4a;
     --accent-soft:  #e8d5c9;
     /* Текст */
     --text:         #3d3028;
@@ -720,7 +720,7 @@
   <h2 class="block-title">Подписка на цветы</h2>
   <p class="block-text">Уникальный сервис доставки цветов на дом 1 раз в неделю. Регулярно в оговоренный день недели и время вас будут радовать свежие сезонные цветы, состав которых, мы можем согласовывать индивидуально.</p>
   <p class="block-text">Это идеальный подарок для себя или ваших близких.</p>
-  <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="block-cta" id="linkTariff">Выбрать тариф</a>
+  <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="block-cta">Выбрать тариф</a>
 </section>
 
 <!-- ОТЗЫВЫ КЛИЕНТОВ -->
@@ -1549,28 +1549,18 @@ setupWheelScroll(document.querySelector('.presets'));
 })();
 
 // ── Получить 5 вариантов (как на сайте) ────────────────────────────────────────
-(function() {
-  var btn = document.getElementById('btnFiveVariants');
-  if (btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      showToast('Напишите в чат бота: «Хочу 5 вариантов под бюджет» — мы пришлём на ваш номер. Или позвоните: +375 (29) 200-98-80');
-    });
-  }
-})();
+document.getElementById('btnFiveVariants') && document.getElementById('btnFiveVariants').addEventListener('click', function() {
+  showToast('Напишите в чат бота: «Хочу 5 вариантов под бюджет» — мы пришлём на ваш номер. Или позвоните: +375 (29) 200-98-80');
+});
 
-// Открыть внешние ссылки во внешнем браузере из Telegram (мини-ап не уходит со страницы)
-function openExternalInTelegram(linkEl, url) {
-  if (!linkEl) return;
-  linkEl.addEventListener('click', function(e) {
-    if (tg && typeof tg.openLink === 'function') {
-      e.preventDefault();
-      tg.openLink(url);
-    }
+// Открыть «Собрать букет» во внешнем браузере из Telegram
+var linkSoberi = document.getElementById('linkSoberiSam');
+if (linkSoberi && tg && tg.openLink) {
+  linkSoberi.addEventListener('click', function(e) {
+    e.preventDefault();
+    tg.openLink('https://pastelflowers.by/soberi-svoj-buket/');
   });
 }
-openExternalInTelegram(document.getElementById('linkSoberiSam'), 'https://pastelflowers.by/soberi-svoj-buket/');
-openExternalInTelegram(document.getElementById('linkTariff'), 'https://pastelflowers.by/subscription/');
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
