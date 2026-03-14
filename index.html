@@ -90,28 +90,48 @@
     font-size: 120px; opacity: 0.12;
     transform: rotate(-20deg);
   }
-  .hero-tag {
-    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--rose); font-weight: 500; margin-bottom: 8px;
-  }
   .hero-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 34px; font-weight: 300; line-height: 1.1;
     color: var(--deep); margin-bottom: 8px;
   }
-  .hero-title em { font-style: italic; color: var(--rose); }
-  .hero-sub {
-    font-size: 13px; color: var(--muted); line-height: 1.5;
+  .hero-title--site {
+    font-size: 28px; text-transform: lowercase; letter-spacing: 0.02em;
   }
-  .hero-badges {
-    display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+  .hero-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 400; color: var(--deep);
+    margin-bottom: 16px; line-height: 1.3;
   }
-  .hero-contact { margin-top: 14px; }
-  .hero-phone {
-    font-size: 15px; font-weight: 500; color: var(--deep);
-    text-decoration: none; letter-spacing: 0.02em;
+  .hero-cta {
+    display: inline-block;
+    background: var(--deep); color: white;
+    padding: 12px 24px; border-radius: 24px;
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    margin-bottom: 20px; transition: opacity 0.2s;
   }
-  .hero-phone:active { opacity: 0.85; }
+  .hero-cta:active { opacity: 0.9; }
+  .hero-addresses {
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+  }
+  .hero-address-item {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  }
+  .hero-address-text { font-size: 14px; font-weight: 500; color: var(--deep); }
+  .hero-address-hours { font-size: 12px; color: var(--muted); }
+  .hero-five-variants {
+    padding-top: 16px; border-top: 1px solid rgba(122,69,53,0.15);
+  }
+  .hero-five-btn {
+    display: block; width: 100%;
+    background: white; color: var(--deep); border: 2px solid var(--rose);
+    padding: 12px 20px; border-radius: 14px;
+    font-family: 'Jost', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; margin-bottom: 10px;
+  }
+  .hero-five-btn:active { background: var(--ivory); }
+  .hero-five-desc { font-size: 13px; color: var(--dark); margin-bottom: 4px; }
+  .hero-five-note { font-size: 12px; color: var(--muted); font-style: italic; }
   .badge {
     background: white; border-radius: 20px;
     padding: 5px 12px; font-size: 12px; color: var(--deep);
@@ -385,10 +405,15 @@
     resize: vertical;
     min-height: 40px;
   }
-  .contact-confirm {
-    font-size: 13px;
-    color: var(--dark);
-    margin: 6px 0 0;
+  .contact-radio, .contact-time-slots, .contact-addons {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .contact-radio label, .contact-time-slots label, .contact-addons label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--dark); cursor: pointer;
+  }
+  .contact-radio input, .contact-time-slots input, .contact-addons input {
+    width: auto; margin: 0;
   }
 
   .order-btn {
@@ -484,6 +509,47 @@
     margin: 0 20px 20px;
     line-height: 1.5;
   }
+
+  /* Блоки как на сайте: Собери сам, Подписка, Отзывы, Доставка, Контакты, FAQ */
+  .block { padding: 28px 20px; }
+  .block--alt { background: linear-gradient(180deg, #f5ebe0 0%, var(--card-bg) 100%); }
+  .block-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px; font-weight: 600; color: var(--deep);
+    margin-bottom: 14px; letter-spacing: 0.02em;
+  }
+  .block-text {
+    font-size: 14px; color: var(--dark); line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .block-cta {
+    display: inline-block;
+    background: var(--deep); color: white;
+    padding: 12px 24px; border-radius: 24px;
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    margin-top: 8px; transition: opacity 0.2s;
+  }
+  .block-cta:active { opacity: 0.9; }
+  .section-title--caps { text-transform: lowercase; }
+  .faq-item {
+    border-bottom: 1px solid var(--ivory);
+    padding: 14px 0;
+  }
+  .faq-q {
+    font-size: 14px; font-weight: 500; color: var(--deep);
+    margin-bottom: 6px;
+  }
+  .faq-a { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .footer-legal {
+    font-size: 11px; color: var(--muted);
+    padding: 24px 20px; line-height: 1.5;
+  }
+  .order-disclaimer {
+    font-size: 12px; color: var(--muted);
+    line-height: 1.5; margin: 12px 20px 0;
+    padding: 12px; background: var(--ivory);
+    border-radius: 10px;
+  }
 </style>
 </head>
 <body>
@@ -497,33 +563,50 @@
 
 </header>
 
-<!-- ГЕРОЙ -->
+<!-- ГЕРОЙ (как на pastelflowers.by) -->
 <div class="hero">
-  <div class="hero-tag">Свежие цветы · Минск</div>
-  <h1 class="hero-title">Свежие цветы<br>и букеты<br><em>в Минске</em></h1>
-  <p class="hero-sub">Подберём букет на любой бюджет и доставим в течение 1 часа</p>
-  <div class="hero-badges">
-    <div class="badge" id="badgeHours">🕘 пн–вс 10:00–21:00</div>
-    <div class="badge" id="badgeDelivery">🚚 Доставка от 50 BYN</div>
-    <div class="badge">🌸 Еженедельная поставка</div>
+  <h1 class="hero-title hero-title--site">свежие цветы и букеты в минске</h1>
+  <h2 class="hero-subtitle">Подберем букет на любой бюджет и доставим в течение 1 часа</h2>
+  <a href="tel:+375292009880" class="hero-cta">Заказать звонок</a>
+  <div class="hero-addresses">
+    <div class="hero-address-item">
+      <span class="hero-address-text">Минск, Скрипникова, 11А</span>
+      <span class="hero-address-hours">пн-вс 10:00 - 21:00</span>
+    </div>
+    <div class="hero-address-item">
+      <span class="hero-address-text">Минск, Сурганова 31</span>
+      <span class="hero-address-hours">пн-вс 10:00 - 21:00</span>
+    </div>
   </div>
-  <div class="hero-contact">
-    <a href="tel:+375292009880" class="hero-phone">+375 (29) 200-98-80</a>
+  <div class="hero-five-variants">
+    <button type="button" class="hero-five-btn" id="btnFiveVariants">Получить 5 вариантов</button>
+    <p class="hero-five-desc">На какой номер прислать 5 вариантов свежих букетов под ваш бюджет?</p>
+    <p class="hero-five-note">С быстрой доставкой по Минску</p>
   </div>
 </div>
 
-<!-- ВЫБОР МАГАЗИНА -->
+<!-- СОБЕРИ САМ (текст с pastelflowers.by) -->
+<section class="block block--alt" id="sectionSoberiSam">
+  <h2 class="block-title">Собери сам</h2>
+  <p class="block-text">У нас вы можете собрать индивидуальный букет по своим пожеланиям. Букет, которого нет на сайте. Букет, который никто никогда не видел и не получал.</p>
+  <p class="block-text">Воспользуйтесь удобным конструктором, чтобы воплотить фантазию в жизнь. А дальше дело за нами, мы создадим букет, который превзойдет ожидания.</p>
+  <a href="https://pastelflowers.by/soberi-svoj-buket/" target="_blank" rel="noopener" class="block-cta" id="linkSoberiSam">Собрать букет</a>
+</section>
+
+<!-- ВЫБОР МАГАЗИНА / АДРЕСА -->
 <section class="store-picker" id="storePicker">
-  <div class="store-picker-title">Выберите магазин <span style="font-size:14px;font-weight:400;color:var(--muted)">· в наличии</span></div>
+  <div class="store-picker-title">Адреса магазинов <span style="font-size:14px;font-weight:400;color:var(--muted)">· в наличии</span></div>
   <div class="store-list" id="storeList"></div>
   <div class="store-updated" id="storeUpdated" style="display:none"></div>
 </section>
 
-<!-- КАТАЛОГ -->
-<div class="section-title" id="catalogSectionTitle">Каталог цветов</div>
+<!-- ХИТЫ ПРОДАЖ + КАТАЛОГ -->
+<div class="section-title section-title--caps" id="catalogSectionTitle">Хиты продаж</div>
+<div class="section-title" id="catalogSectionTitle2">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">Выберите магазин выше, чтобы увидеть букеты в наличии</div>
 <div class="filters filters-scroll-hint">
+  <div class="filter-row" id="categoryFilters"></div>
   <div class="filter-row" id="occasionFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
 </div>
@@ -533,6 +616,71 @@
 
 <!-- ТОВАРЫ -->
 <div class="grid" id="grid"></div>
+
+<!-- ПОДПИСКА НА ЦВЕТЫ (pastelflowers.by) -->
+<section class="block block--alt" id="sectionSubscription">
+  <h2 class="block-title">Подписка на цветы</h2>
+  <p class="block-text">Уникальный сервис доставки цветов на дом 1 раз в неделю. Регулярно в оговоренный день недели и время вас будут радовать свежие сезонные цветы, состав которых, мы можем согласовывать индивидуально.</p>
+  <p class="block-text">Это идеальный подарок для себя или ваших близких.</p>
+  <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="block-cta">Выбрать тариф</a>
+</section>
+
+<!-- ОТЗЫВЫ КЛИЕНТОВ -->
+<section class="block" id="sectionReviews">
+  <h2 class="block-title">отзывы клиентов</h2>
+  <a href="https://www.instagram.com/pastel_flowers_minsk/" target="_blank" rel="noopener" class="block-cta">Больше отзывов в Instagram</a>
+</section>
+
+<!-- ДОСТАВКА И ОПЛАТА -->
+<section class="block block--alt" id="sectionDelivery">
+  <h2 class="block-title">Доставка и оплата</h2>
+  <p class="block-text"><strong>Доставка</strong> — ежедневно с 10:30 до 21:30 к нужному времени. Доставка в другое время обсуждается индивидуально.</p>
+  <p class="block-text"><strong>Стоимость доставки:</strong> по г. Минску — 15 BYN; за пределы МКАД — рассчитывается индивидуально.</p>
+  <p class="block-text"><strong>Оплата:</strong> ЕРИП (код услуги «1545484»), онлайн на сайте, в магазине.</p>
+</section>
+
+<!-- КОНТАКТЫ -->
+<section class="block" id="sectionContacts">
+  <h2 class="block-title">Контакты</h2>
+  <p class="block-text">Приобрести цветы можно на сайте или в наших магазинах. Если у вас остались вопросы, свяжитесь с нами:</p>
+  <p class="block-text">
+    <a href="tel:+375339189880" style="color:var(--deep);font-weight:500;">+375 33 918 98 80</a><br>
+    <a href="tel:+375292009880" style="color:var(--deep);font-weight:500;">+375 29 200 98 80</a><br>
+    <a href="mailto:pastel.flowers@mail.ru" style="color:var(--deep);">pastel.flowers@mail.ru</a>
+  </p>
+  <p class="block-text"><strong>Магазины:</strong><br>Минск, ул. Скрипникова, 11А — Пн-Вс 10:00–21:00<br>Минск, ул. Сурганова, 31 — Пн-Вс 10:00–21:00</p>
+</section>
+
+<!-- FAQ -->
+<section class="block block--alt" id="sectionFaq">
+  <h2 class="block-title">Faq</h2>
+  <div class="faq-item">
+    <div class="faq-q">Сможете ли вы доставить к определенному времени?</div>
+    <div class="faq-a">Да, конечно. Мы доставим в удобное для вас время. С условиями доставки можно ознакомиться на странице Оплата и доставка.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Можете ли вы сами уточнить адрес и время доставки у получателя?</div>
+    <div class="faq-a">Да. При оформлении заказа в комментариях укажите номер телефона или профиль в Инстаграм получателя. Мы сами все уточним и напишем вам, как букет будет доставлен.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Как долго букет будет стоять?</div>
+    <div class="faq-a">Все зависит от ухода. Цветы в букете свежие — это значит, что дальнейшая его судьба в ваших руках. Советуем ежедневно менять воду, подрезать стебли, мыть вазу, наливать достаточное количество холодной воды в вазу и правильно подбирать ее по размеру. Не ставить букет около отопительных приборов, на сквозняках, рядом с фруктами, под прямыми солнечными лучами.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">В каталоге все, что у вас есть?</div>
+    <div class="faq-a">В каталоге представлен весь актуальный ассортимент, но если вам надо что-то конкретное и вы не нашли это у нас на сайте — свяжитесь с нами (+375 29 200 98 80). Мы постараемся подобрать для вас альтернативу или заказать то, что вам нужно, если позволяет время.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">А цветы свежие?</div>
+    <div class="faq-a">Каждую неделю мы получаем свежую поставку. Мы стараемся заказывать такие объемы, чтобы цветы не оставались на следующую неделю, т.е. у нас происходит еженедельное обновление холодильника. Все цветы с одной поставки и одинаковой свежести.</div>
+  </div>
+</section>
+
+<!-- ФУТЕР -->
+<footer class="footer-legal">
+  ООО «Пастель Флауверс». УНП 192852592. Телефон +375 29 200 98 80. E-mail: pastel.flowers@mail.ru. Юридический адрес: 220013, ул. Сурганова, 31-13, г. Минск, Республика Беларусь.<br>
+  © Pastel Flowers 2024
+</footer>
 
 <!-- FAB КОРЗИНА -->
 <button class="fab" id="fab" onclick="openCart()">
@@ -553,26 +701,61 @@
     <span class="cart-total-sum" id="cartSum"></span>
   </div>
   <div class="contact-form" id="contactForm">
-    <p class="contact-label">Заполните данные для оформления заказа. Доставка по Минску в течение 1 часа.</p>
+    <p class="contact-label">ДАННЫЕ ЗАКАЗЧИКА И ПОЛУЧАТЕЛЯ</p>
     <div class="contact-field">
-      <label for="contactName">Имя</label>
-      <input id="contactName" type="text" placeholder="Как к вам обращаться">
-    </div>
-    <div class="contact-field">
-      <label for="contactPhone">Телефон</label>
+      <label for="contactPhone">Номер телефона заказчика *</label>
       <input id="contactPhone" type="tel" placeholder="+375 29 000-00-00">
     </div>
     <div class="contact-field">
-      <label for="contactDatetime">Дата и время доставки</label>
-      <input id="contactDatetime" type="text" placeholder="Например: 8 марта, 18:00">
+      <label for="contactReceiverPhone">Номер телефона получателя *</label>
+      <input id="contactReceiverPhone" type="tel" placeholder="+375 29 000-00-00">
     </div>
     <div class="contact-field">
-      <label for="contactWishes">Цвета и дополнительные пожелания</label>
-      <textarea id="contactWishes" placeholder="Желаемые оттенки, формат букета, другие детали"></textarea>
+      <label>Вариант доставки *</label>
+      <div class="contact-radio">
+        <label><input type="radio" name="deliveryType" value="pickup"> Самовывоз (с 10:00 до 21:00)</label>
+        <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (с 11:00 до 21:30)</label>
+      </div>
     </div>
-    <p class="contact-confirm">Ваши введённые данные верны?</p>
+    <div class="contact-field" id="fieldStore">
+      <label>Адрес магазина</label>
+      <div class="contact-radio">
+        <label><input type="radio" name="store" value="surganova"> Ул. Сурганова, 31</label>
+        <label><input type="radio" name="store" value="skripnikova"> Ул. Скрипникова, 11А</label>
+      </div>
+    </div>
+    <div class="contact-field">
+      <label for="contactDate">Дата получения *</label>
+      <input id="contactDate" type="text" placeholder="Например: 8 марта">
+    </div>
+    <div class="contact-field">
+      <label>Время получения *</label>
+      <div class="contact-time-slots">
+        <label><input type="radio" name="timeSlot" value="8-11"> 8:00 – 11:00</label>
+        <label><input type="radio" name="timeSlot" value="11-14"> 11:00 – 14:00</label>
+        <label><input type="radio" name="timeSlot" value="14-17"> 14:00 – 17:00</label>
+        <label><input type="radio" name="timeSlot" value="17-20"> 17:00 – 20:00</label>
+        <label><input type="radio" name="timeSlot" value="20-23"> 20:00 – 23:00</label>
+      </div>
+    </div>
+    <div class="contact-field">
+      <label for="contactAddress">Адрес доставки или «Уточнить у получателя»</label>
+      <input id="contactAddress" type="text" placeholder="Адрес или оставьте пустым для уточнения у получателя">
+    </div>
+    <div class="contact-field">
+      <label>Дополнения</label>
+      <div class="contact-addons">
+        <label><input type="checkbox" id="addonPack"> Упаковка в фирменном стиле (+5 BYN)</label>
+        <label><input type="checkbox" id="addonRibbon"> Лента (+2 BYN)</label>
+        <label><input type="checkbox" id="addonCard"> Открытка тематическая (+2 BYN)</label>
+        <label><input type="checkbox" id="addonNote"> Записка на фирменной карточке</label>
+      </div>
+    </div>
+    <div class="order-disclaimer">
+      Дорогие клиенты! Мы работаем с живыми цветами — не все букеты возможно воспроизвести точь-в-точь как на фото. Для точного повторения букета с двумя и более составляющими заказ лучше делать за неделю. При отсутствии нужных цветов предложим замену; изменения согласуем с вами.
+    </div>
   </div>
-  <button class="order-btn" id="orderBtn" onclick="onOrderClick()">Оформить заявку</button>
+  <button class="order-btn" id="orderBtn" onclick="onOrderClick()">Заказать</button>
 </div>
 
 <!-- ТОСТ -->
@@ -580,7 +763,7 @@
 
 <script>
 // Кастомизация под магазин: измените значения (валюта подставится в цены и корзину)
-const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн–вс 10:00–21:00', freeDeliveryFrom: '50' };
+const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн-вс 10:00 - 21:00', deliveryCostMinsk: '15', deliveryTime: '10:30–21:30' };
 
 // ── ИНИЦИАЛИЗАЦИЯ TELEGRAM ────────────────────────────────────────────────────
 const tg = window.Telegram?.WebApp;
@@ -768,10 +951,22 @@ const catalog = [
   { id:15, cat:'Дополнения', name:'Открытка тематическая', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN', price:2, occasions:['birthday','anniversary'], isAddon:true },
 ];
 
+let activeCategory = 'any';
 let activeOccasion = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let contactStep = false; // false — корзина, true — форма контактов
+
+// Категории как на pastelflowers.by
+const categories = [
+  { id: 'any', label: 'Все цветы' },
+  { id: 'Букеты', label: 'Букеты' },
+  { id: 'Композиции', label: 'композиции' },
+  { id: 'По поводу', label: 'Цветы поштучно' },
+  { id: 'По поводу', label: 'цветы по поводу', altId: 'по поводу' },
+  { id: 'Свадебные', label: 'свадебные букеты' },
+  { id: 'Дополнения', label: 'Дополнения' },
+];
 
 // Поводы и бюджеты для фильтров
 const occasions = [
@@ -803,7 +998,23 @@ const presets = (function() {
   ];
 })();
 
-// ── РЕНДЕР КАТЕГОРИЙ ──────────────────────────────────────────────────────────
+// ── РЕНДЕР КАТЕГОРИЙ (как на сайте) ────────────────────────────────────────────
+function renderCategoryFilters() {
+  const el = document.getElementById('categoryFilters');
+  if (!el) return;
+  el.innerHTML = categories.map((c, i) => {
+    const key = c.altId || c.id;
+    const isActive = (key === 'по поводу' && activeCategory === 'По поводу') || activeCategory === c.id;
+    return `<button class="filter-chip ${isActive ? 'active' : ''}" onclick="selectCategory('${(c.altId || c.id).replace(/'/g, "\\'")}')">${c.label}</button>`;
+  }).join('');
+}
+
+function selectCategory(id) {
+  activeCategory = id === 'по поводу' ? 'По поводу' : id;
+  renderCategoryFilters();
+  renderGrid();
+}
+
 function renderOccasionFilters() {
   const el = document.getElementById('occasionFilters');
   el.innerHTML = occasions.map(o => `
@@ -861,6 +1072,10 @@ function applyPreset(id) {
 // ── РЕНДЕР ТОВАРОВ ────────────────────────────────────────────────────────────
 function renderGrid() {
   let items = catalog;
+
+  if (activeCategory !== 'any') {
+    items = items.filter(p => p.cat === activeCategory);
+  }
 
   if (activeOccasion !== 'any') {
     items = items.filter(p => !p.occasions || p.occasions.includes(activeOccasion));
@@ -1074,7 +1289,7 @@ function closeCart() {
   const orderBtn = document.getElementById('orderBtn');
   if (contactForm && orderBtn) {
     contactForm.style.display = 'none';
-    orderBtn.textContent = 'Оформить заявку';
+    orderBtn.textContent = 'Заказать';
     contactStep = false;
   }
 }
@@ -1088,68 +1303,89 @@ function onOrderClick() {
   const contactForm = document.getElementById('contactForm');
   const orderBtn = document.getElementById('orderBtn');
 
-  // Первый шаг — показать форму контактов
+  // Первый шаг — показать форму контактов (как на сайте)
   if (!contactStep) {
     contactStep = true;
     contactForm.style.display = 'block';
-    orderBtn.textContent = 'Отправить заявку';
+    orderBtn.textContent = 'Заказать';
     return;
   }
 
-  // Второй шаг — проверяем, что все поля заполнены, и отправляем
-  const nameEl = document.getElementById('contactName');
   const phoneEl = document.getElementById('contactPhone');
-  const datetimeEl = document.getElementById('contactDatetime');
-  const wishesEl = document.getElementById('contactWishes');
+  const receiverPhoneEl = document.getElementById('contactReceiverPhone');
+  const dateEl = document.getElementById('contactDate');
+  const addressEl = document.getElementById('contactAddress');
+  const deliveryType = document.querySelector('input[name="deliveryType"]:checked');
+  const storeRadio = document.querySelector('input[name="store"]:checked');
+  const timeSlot = document.querySelector('input[name="timeSlot"]:checked');
 
-  const name = nameEl.value.trim();
-  const phone = phoneEl.value.trim();
-  const datetime = datetimeEl.value.trim();
-  const wishes = wishesEl.value.trim();
+  const phone = (phoneEl && phoneEl.value) ? phoneEl.value.trim() : '';
+  const receiverPhone = (receiverPhoneEl && receiverPhoneEl.value) ? receiverPhoneEl.value.trim() : '';
+  const date = (dateEl && dateEl.value) ? dateEl.value.trim() : '';
+  const address = (addressEl && addressEl.value) ? addressEl.value.trim() : '';
 
-  if (!name || !phone || !datetime || !wishes) {
-    showToast('Пожалуйста, заполните все поля.');
+  if (!phone || !receiverPhone || !date) {
+    showToast('Заполните телефон заказчика, телефон получателя и дату получения.');
+    return;
+  }
+  if (!deliveryType) {
+    showToast('Выберите вариант доставки.');
+    return;
+  }
+  if (!timeSlot) {
+    showToast('Выберите время получения.');
     return;
   }
 
-  // Простая проверка телефона (форматы +375 / +7 / 80)
   const phoneRe = /(\+375|\+7|80)\s?\d{2,3}\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
-  if (!phoneRe.test(phone)) {
-    showToast('Проверьте правильность телефона.');
+  if (!phoneRe.test(phone) || !phoneRe.test(receiverPhone)) {
+    showToast('Проверьте правильность телефонов.');
     return;
   }
 
-  var storeLine = selectedStoreId ? (function() {
-    var s = stores.find(function(x) { return x.id === selectedStoreId; });
-    return s ? ' Магазин: ' + s.name + ', ' + s.address + '.' : '';
-  })() : '';
-  const fullWishes = `Дата и время: ${datetime}. Пожелания: ${wishes}${storeLine}`;
-  sendOrder(name, phone, fullWishes, datetime);
+  var addons = [];
+  if (document.getElementById('addonPack') && document.getElementById('addonPack').checked) addons.push({ name: 'Упаковка в фирменном стиле', price: 5 });
+  if (document.getElementById('addonRibbon') && document.getElementById('addonRibbon').checked) addons.push({ name: 'Лента', price: 2 });
+  if (document.getElementById('addonCard') && document.getElementById('addonCard').checked) addons.push({ name: 'Открытка тематическая', price: 2 });
+  if (document.getElementById('addonNote') && document.getElementById('addonNote').checked) addons.push({ name: 'Записка на фирменной карточке', price: 0 });
+
+  const deliveryLabel = deliveryType.value === 'pickup' ? 'Самовывоз (10:00–21:00)' : 'Доставка курьером (11:00–21:30)';
+  const storeLabel = storeRadio ? (storeRadio.value === 'surganova' ? 'Ул. Сурганова, 31' : 'Ул. Скрипникова, 11А') : '';
+  const timeLabel = timeSlot ? timeSlot.value.replace('-', ' – ') : '';
+
+  var wishesParts = ['Дата: ' + date, 'Время: ' + timeLabel, 'Доставка: ' + deliveryLabel];
+  if (storeLabel) wishesParts.push('Магазин: ' + storeLabel);
+  if (address) wishesParts.push('Адрес: ' + address); else wishesParts.push('Адрес: уточнить у получателя');
+  if (addons.length) wishesParts.push('Дополнения: ' + addons.map(function(a) { return a.name + (a.price ? ' +' + a.price + ' BYN' : ''); }).join(', '));
+
+  sendOrder(phone, receiverPhone, wishesParts.join('. '), date, addons);
 }
 
-function sendOrder(name, phone, wishes, datetime) {
-  datetime = datetime || '';
+function sendOrder(phone, receiverPhone, wishes, date, addons) {
+  addons = addons || [];
   const ids = Object.keys(cart).map(Number);
   if (ids.length === 0) return;
 
-  // Формируем текст заявки
   let sum = 0;
   const lines = ids.map(id => {
     const p = catalog.find(p => p.id === id);
     const qty = cart[id];
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
-    return `• ${(p.emoji || '🌸')} ${p.name} × ${qty} = ${p.price * qty} ${cur}`;
+    return '• ' + (p.emoji || '🌸') + ' ' + p.name + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur;
+  });
+  addons.forEach(function(a) {
+    sum += a.price || 0;
+    if (a.price > 0) lines.push('• ' + a.name + ' = ' + a.price + ' ' + SHOP_CONFIG.currency);
   });
 
-  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} ${SHOP_CONFIG.currency}\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n✏️ Пожелания: ${wishes}`;
+  const orderText = '🛒 Заказ из каталога:\n' + lines.join('\n') + '\n\n💰 Итого: ' + sum + ' ' + SHOP_CONFIG.currency + '\n\n📞 Телефон заказчика: ' + phone + '\n📞 Телефон получателя: ' + receiverPhone + '\n✏️ ' + wishes;
 
   var storeInfo = selectedStoreId ? (function() {
     var s = stores.find(function(x) { return x.id === selectedStoreId; });
     return { store_id: selectedStoreId, store_name: s ? s.name : '', store_address: s ? s.address : '' };
   })() : {};
 
-  // Отправляем данные в бот через Telegram WebApp API
   if (tg) {
     tg.sendData(JSON.stringify({
       type: 'catalog_order',
@@ -1159,18 +1395,18 @@ function sendOrder(name, phone, wishes, datetime) {
         qty: cart[id],
         price: catalog.find(p => p.id === id).price,
       })),
+      addons: addons,
       total: sum,
       text: orderText,
-      name,
-      phone,
-      wishes,
-      datetime: datetime || '',
+      phone: phone,
+      receiver_phone: receiverPhone,
+      wishes: wishes,
+      date: date || '',
       store_id: storeInfo.store_id || '',
       store_name: storeInfo.store_name || '',
       store_address: storeInfo.store_address || '',
     }));
   } else {
-    // Режим разработки — просто показываем
     alert(orderText);
   }
 
@@ -1205,20 +1441,31 @@ function setupWheelScroll(el) {
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
 
-// ── Подстановка названия и режима из SHOP_CONFIG ───────────────────────────────
+// ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
 (function() {
   var c = SHOP_CONFIG;
   var t = document.getElementById('pageTitle');
-  if (t) t.textContent = c.name;
+  if (t) t.textContent = c.name + ' — свежие цветы и букеты в Минске';
   var logo = document.getElementById('shopLogo');
   if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span>' + c.name;
-  var h = document.getElementById('badgeHours');
-  if (h) h.textContent = '🕘 ' + c.workingHours;
-  var d = document.getElementById('badgeDelivery');
-  if (d) d.textContent = '🚚 Доставка от ' + c.freeDeliveryFrom + ' ' + c.currency;
 })();
 
+// ── Получить 5 вариантов (как на сайте) ────────────────────────────────────────
+document.getElementById('btnFiveVariants') && document.getElementById('btnFiveVariants').addEventListener('click', function() {
+  showToast('Напишите в чат бота: «Хочу 5 вариантов под бюджет» — мы пришлём на ваш номер. Или позвоните: +375 (29) 200-98-80');
+});
+
+// Открыть «Собрать букет» во внешнем браузере из Telegram
+var linkSoberi = document.getElementById('linkSoberiSam');
+if (linkSoberi && tg && tg.openLink) {
+  linkSoberi.addEventListener('click', function(e) {
+    e.preventDefault();
+    tg.openLink('https://pastelflowers.by/soberi-svoj-buket/');
+  });
+}
+
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
+renderCategoryFilters();
 renderOccasionFilters();
 renderBudgetFilters();
 renderPresets();
