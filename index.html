@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="api-base" content="">
-<title id="pageTitle">Pastel Flowers — свежие цветы и букеты в Минске</title>
+<title id="pageTitle">Pastel Flowers — СВЕЖИЕ ЦВЕТЫ И БУКЕТЫ В МИНСКЕ<title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -149,6 +149,7 @@
     color: white;
     padding: 14px 28px;
     border-radius: 999px;
+    border: none;
     font-family: 'Jost', sans-serif;
     font-size: 14px; font-weight: 500;
     text-decoration: none;
@@ -156,6 +157,7 @@
     margin-bottom: 22px;
     transition: background 0.2s, transform 0.15s;
     box-shadow: 0 2px 10px var(--shadow);
+    cursor: pointer;
   }
   .hero-cta:active { background: var(--text); transform: scale(0.98); }
   .hero-addresses { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
@@ -620,6 +622,14 @@
     box-shadow: 0 2px 10px var(--shadow);
   }
   .block-cta:active { background: var(--text); transform: scale(0.98); }
+  button.block-cta { border: none; cursor: pointer; }
+  .inapp-form {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .inapp-form .contact-field { margin-bottom: 14px; }
+  .inapp-form .order-btn { margin-top: 8px; }
   .faq-item {
     border-bottom: 1px solid var(--border);
     padding: 16px 0;
@@ -665,7 +675,7 @@
 <div class="hero">
   <h1 class="hero-title hero-title--site">свежие цветы и букеты в минске</h1>
   <h2 class="hero-subtitle">Подберем букет на любой бюджет и доставим в течение 1 часа</h2>
-  <a href="tel:+375292009880" class="hero-cta">Заказать звонок</a>
+  <button type="button" class="hero-cta" id="btnOrderCall">Заказать звонок</button>
   <div class="hero-addresses">
     <div class="hero-address-item">
       <span class="hero-address-text">Минск, Скрипникова, 11А</span>
@@ -683,12 +693,27 @@
   </div>
 </div>
 
-<!-- СОБЕРИ САМ (текст с pastelflowers.by) -->
+<!-- СОБЕРИ САМ (форма в мини-апп) -->
 <section class="block block--alt" id="sectionSoberiSam">
   <h2 class="block-title">Собери сам</h2>
   <p class="block-text">У нас вы можете собрать индивидуальный букет по своим пожеланиям. Букет, которого нет на сайте. Букет, который никто никогда не видел и не получал.</p>
   <p class="block-text">Воспользуйтесь удобным конструктором, чтобы воплотить фантазию в жизнь. А дальше дело за нами, мы создадим букет, который превзойдет ожидания.</p>
-  <a href="https://pastelflowers.by/soberi-svoj-buket/" target="_blank" rel="noopener" class="block-cta" id="linkSoberiSam">Собрать букет</a>
+  <button type="button" class="block-cta" id="btnSoberiSam">Собрать букет</button>
+  <div class="inapp-form" id="formSoberiSam" style="display:none;">
+    <div class="contact-field">
+      <label for="soberiWishes">Опишите букет: цветы, цвета, повод</label>
+      <textarea id="soberiWishes" placeholder="Например: нежные пионы и эустома, пастельные тона, на день рождения" rows="3"></textarea>
+    </div>
+    <div class="contact-field">
+      <label for="soberiBudget">Примерный бюджет (BYN)</label>
+      <input id="soberiBudget" type="text" placeholder="Например: 60–80">
+    </div>
+    <div class="contact-field">
+      <label for="soberiPhone">Ваш телефон *</label>
+      <input id="soberiPhone" type="tel" placeholder="+375 29 000-00-00">
+    </div>
+    <button type="button" class="order-btn" id="btnSoberiSubmit">Отправить заявку</button>
+  </div>
 </section>
 
 <!-- ВЫБОР МАГАЗИНА / АДРЕСА -->
@@ -715,12 +740,23 @@
 <!-- ТОВАРЫ -->
 <div class="grid" id="grid"></div>
 
-<!-- ПОДПИСКА НА ЦВЕТЫ (pastelflowers.by) -->
+<!-- ПОДПИСКА НА ЦВЕТЫ (форма в мини-апп) -->
 <section class="block block--alt" id="sectionSubscription">
   <h2 class="block-title">Подписка на цветы</h2>
   <p class="block-text">Уникальный сервис доставки цветов на дом 1 раз в неделю. Регулярно в оговоренный день недели и время вас будут радовать свежие сезонные цветы, состав которых, мы можем согласовывать индивидуально.</p>
   <p class="block-text">Это идеальный подарок для себя или ваших близких.</p>
-  <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="block-cta">Выбрать тариф</a>
+  <button type="button" class="block-cta" id="btnSubscription">Выбрать тариф</button>
+  <div class="inapp-form" id="formSubscription" style="display:none;">
+    <div class="contact-field">
+      <label for="subPhone">Ваш телефон *</label>
+      <input id="subPhone" type="tel" placeholder="+375 29 000-00-00">
+    </div>
+    <div class="contact-field">
+      <label for="subWishes">Пожелания: день недели, время, адрес доставки</label>
+      <textarea id="subWishes" placeholder="Например: понедельник, после 18:00, ул. Примерная 1" rows="2"></textarea>
+    </div>
+    <button type="button" class="order-btn" id="btnSubSubmit">Оставить заявку на подписку</button>
+  </div>
 </section>
 
 <!-- ОТЗЫВЫ КЛИЕНТОВ -->
@@ -1548,19 +1584,74 @@ setupWheelScroll(document.querySelector('.presets'));
   if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span>' + c.name;
 })();
 
+// ── Заказать звонок (tel: в Telegram Mini App через openLink) ───────────────────
+document.getElementById('btnOrderCall') && document.getElementById('btnOrderCall').addEventListener('click', function() {
+  var phone = 'tel:+375292009880';
+  if (tg && tg.openLink) {
+    tg.openLink(phone);
+  } else {
+    window.location.href = phone;
+  }
+});
+
 // ── Получить 5 вариантов (как на сайте) ────────────────────────────────────────
 document.getElementById('btnFiveVariants') && document.getElementById('btnFiveVariants').addEventListener('click', function() {
   showToast('Напишите в чат бота: «Хочу 5 вариантов под бюджет» — мы пришлём на ваш номер. Или позвоните: +375 (29) 200-98-80');
 });
 
-// Открыть «Собрать букет» во внешнем браузере из Telegram
-var linkSoberi = document.getElementById('linkSoberiSam');
-if (linkSoberi && tg && tg.openLink) {
-  linkSoberi.addEventListener('click', function(e) {
-    e.preventDefault();
-    tg.openLink('https://pastelflowers.by/soberi-svoj-buket/');
-  });
-}
+// ── Собери букет: показать форму в мини-апп ────────────────────────────────────
+document.getElementById('btnSoberiSam') && document.getElementById('btnSoberiSam').addEventListener('click', function() {
+  var form = document.getElementById('formSoberiSam');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    form.style.display = 'none';
+  }
+});
+document.getElementById('btnSoberiSubmit') && document.getElementById('btnSoberiSubmit').addEventListener('click', function() {
+  var phone = (document.getElementById('soberiPhone') && document.getElementById('soberiPhone').value) ? document.getElementById('soberiPhone').value.trim() : '';
+  var wishes = (document.getElementById('soberiWishes') && document.getElementById('soberiWishes').value) ? document.getElementById('soberiWishes').value.trim() : '';
+  var budget = (document.getElementById('soberiBudget') && document.getElementById('soberiBudget').value) ? document.getElementById('soberiBudget').value.trim() : '';
+  if (!phone) { showToast('Укажите телефон'); return; }
+  var phoneRe = /(\+375|\+7|80)\s?\d{2,3}\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
+  if (!phoneRe.test(phone)) { showToast('Проверьте номер телефона'); return; }
+  var text = 'Заявка «Собери сам»: ' + (wishes ? 'Пожелания: ' + wishes + '. ' : '') + (budget ? 'Бюджет: ' + budget + ' BYN. ' : '') + 'Телефон: ' + phone;
+  if (tg) {
+    tg.sendData(JSON.stringify({ type: 'custom_bouquet', phone: phone, wishes: wishes, budget: budget, text: text }));
+  }
+  showToast('Заявка отправлена! Мы свяжемся с вами.');
+  document.getElementById('formSoberiSam').style.display = 'none';
+  if (document.getElementById('soberiPhone')) document.getElementById('soberiPhone').value = '';
+  if (document.getElementById('soberiWishes')) document.getElementById('soberiWishes').value = '';
+  if (document.getElementById('soberiBudget')) document.getElementById('soberiBudget').value = '';
+});
+
+// ── Выбрать тариф (подписка): форма в мини-апп ─────────────────────────────────
+document.getElementById('btnSubscription') && document.getElementById('btnSubscription').addEventListener('click', function() {
+  var form = document.getElementById('formSubscription');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    form.style.display = 'none';
+  }
+});
+document.getElementById('btnSubSubmit') && document.getElementById('btnSubSubmit').addEventListener('click', function() {
+  var phone = (document.getElementById('subPhone') && document.getElementById('subPhone').value) ? document.getElementById('subPhone').value.trim() : '';
+  var wishes = (document.getElementById('subWishes') && document.getElementById('subWishes').value) ? document.getElementById('subWishes').value.trim() : '';
+  if (!phone) { showToast('Укажите телефон'); return; }
+  var phoneRe = /(\+375|\+7|80)\s?\d{2,3}\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
+  if (!phoneRe.test(phone)) { showToast('Проверьте номер телефона'); return; }
+  var text = 'Заявка на подписку на цветы. Телефон: ' + phone + (wishes ? '. Пожелания: ' + wishes : '');
+  if (tg) {
+    tg.sendData(JSON.stringify({ type: 'subscription', phone: phone, wishes: wishes, text: text }));
+  }
+  showToast('Заявка отправлена! Мы свяжемся с вами.');
+  document.getElementById('formSubscription').style.display = 'none';
+  if (document.getElementById('subPhone')) document.getElementById('subPhone').value = '';
+  if (document.getElementById('subWishes')) document.getElementById('subWishes').value = '';
+});
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
