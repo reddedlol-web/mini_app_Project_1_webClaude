@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="api-base" content="">
-<title>Роза и Шип</title>
+<title id="pageTitle">Pastel Flowers — свежие цветы и букеты в Минске</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -106,6 +106,12 @@
   .hero-badges {
     display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
   }
+  .hero-contact { margin-top: 14px; }
+  .hero-phone {
+    font-size: 15px; font-weight: 500; color: var(--deep);
+    text-decoration: none; letter-spacing: 0.02em;
+  }
+  .hero-phone:active { opacity: 0.85; }
   .badge {
     background: white; border-radius: 20px;
     padding: 5px 12px; font-size: 12px; color: var(--deep);
@@ -484,9 +490,9 @@
 
 <!-- ШАПКА -->
 <header class="header">
-  <div class="logo">
-    <span class="logo-icon">🌹</span>
-    Роза и Шип
+  <div class="logo" id="shopLogo">
+    <span class="logo-icon">🌸</span>
+    Pastel Flowers
   </div>
 
 </header>
@@ -494,12 +500,15 @@
 <!-- ГЕРОЙ -->
 <div class="hero">
   <div class="hero-tag">Свежие цветы · Минск</div>
-  <h1 class="hero-title">Букеты,<br>от которых<br><em>замирает сердце</em></h1>
-  <p class="hero-sub">Составим идеальный букет под ваш повод и бюджет</p>
+  <h1 class="hero-title">Свежие цветы<br>и букеты<br><em>в Минске</em></h1>
+  <p class="hero-sub">Подберём букет на любой бюджет и доставим в течение 1 часа</p>
   <div class="hero-badges">
-    <div class="badge">🕘 9:00–21:00</div>
-    <div class="badge">🚚 Доставка от 50 BYN</div>
-    <div class="badge">🌱 Свежие ежедневно</div>
+    <div class="badge" id="badgeHours">🕘 пн–вс 10:00–21:00</div>
+    <div class="badge" id="badgeDelivery">🚚 Доставка от 50 BYN</div>
+    <div class="badge">🌸 Еженедельная поставка</div>
+  </div>
+  <div class="hero-contact">
+    <a href="tel:+375292009880" class="hero-phone">+375 (29) 200-98-80</a>
   </div>
 </div>
 
@@ -511,7 +520,7 @@
 </section>
 
 <!-- КАТАЛОГ -->
-<div class="section-title" id="catalogSectionTitle">Каталог</div>
+<div class="section-title" id="catalogSectionTitle">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">Выберите магазин выше, чтобы увидеть букеты в наличии</div>
 <div class="filters filters-scroll-hint">
@@ -537,14 +546,14 @@
 <!-- КОРЗИНА -->
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Ваш букет 🌸</div>
+  <div class="sheet-title">Ваш букет</div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-total" id="cartTotal" style="display:none">
     <span class="cart-total-label">Итого</span>
     <span class="cart-total-sum" id="cartSum"></span>
   </div>
   <div class="contact-form" id="contactForm">
-    <p class="contact-label">Заполните данные для оформления заказа.</p>
+    <p class="contact-label">Заполните данные для оформления заказа. Доставка по Минску в течение 1 часа.</p>
     <div class="contact-field">
       <label for="contactName">Имя</label>
       <input id="contactName" type="text" placeholder="Как к вам обращаться">
@@ -570,6 +579,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Кастомизация под магазин: измените значения (валюта подставится в цены и корзину)
+const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн–вс 10:00–21:00', freeDeliveryFrom: '50' };
+
 // ── ИНИЦИАЛИЗАЦИЯ TELEGRAM ────────────────────────────────────────────────────
 const tg = window.Telegram?.WebApp;
 if (tg) {
@@ -588,16 +600,14 @@ const API_BASE = (function() {
   return '';
 })();
 
-// Демо-данные для показа клиенту (работают без бэкенда и таблицы)
+// Демо-данные — адреса Pastel Flowers (pastelflowers.by)
 var demoStores = [
-  { id: '1', name: 'Пастель Цветы — Центр', address: 'ул. Ленина 5, Минск' },
-  { id: '2', name: 'Пастель Цветы — Дражня', address: 'пр. Независимости 45, Минск' },
-  { id: '3', name: 'Пастель Цветы — Уручье', address: 'ул. Калиновского 82, Минск' },
+  { id: '1', name: 'Pastel Flowers — Скрипникова', address: 'Минск, ул. Скрипникова, 11А' },
+  { id: '2', name: 'Pastel Flowers — Сурганова', address: 'Минск, ул. Сурганова, 31' },
 ];
 var demoStock = {
-  '1': [1, 2, 3, 4, 8, 9, 11],
-  '2': [2, 3, 5, 6, 7, 10, 12],
-  '3': [1, 4, 5, 8, 11, 12],
+  '1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  '2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 };
 
 // Если API не настроен — сразу подставляем демо-магазины, чтобы было что показать
@@ -734,24 +744,28 @@ function selectStore(storeId) {
   fetchStock(storeId);
 }
 
-// ── КАТАЛОГ ──────────────────────────────────────────────────────────────────
+// ── КАТАЛОГ (категории как на pastelflowers.by: букеты, композиции, цветы поштучно, по поводу, свадебные) ──
 const catalog = [
-  // Букеты — фото с Unsplash (бесплатно, без ограничений)
+  // Букеты
   { id:1,  cat:'Букеты',   name:'Нежность',        img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы, эустома, лизиантус',  price:65, occasions:['birthday','anniversary','march8','justbecause'] },
   { id:2,  cat:'Букеты',   name:'Классика',        img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'25 красных роз',              price:85, occasions:['birthday','anniversary','wow'] },
   { id:3,  cat:'Букеты',   name:'Пастель',         img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны, ранункулюсы',      price:55, occasions:['birthday','anniversary','march8','graduation'] },
   { id:4,  cat:'Букеты',   name:'Лесная сказка',   img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Полевые цветы и зелень',     price:45, occasions:['justbecause','condolences','graduation'] },
-  // Свадьба
-  { id:5,  cat:'Свадьба',  name:'Невеста',         img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120, occasions:['wedding','wow'] },
-  { id:6,  cat:'Свадьба',  name:'Бутоньерка',      img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25, occasions:['wedding'] },
-  { id:7,  cat:'Свадьба',  name:'Стол невесты',    img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180, occasions:['wedding','wow'] },
-  // Растения
-  { id:8,  cat:'Растения', name:'Орхидея',         img:'https://images.unsplash.com/photo-1566907225472-514215c9d88b?w=400&q=80', desc:'Фаленопсис белый, 2 ветки', price:40,  occasions:['justbecause','condolences'] },
-  { id:9,  cat:'Растения', name:'Суккуленты',      img:'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80', desc:'Набор 3 шт. в кашпо',        price:30,  occasions:['justbecause','office'] },
-  { id:10, cat:'Растения', name:'Антуриум',        img:'https://images.unsplash.com/photo-1516048015710-7a3b4c86be43?w=400&q=80', desc:'Красный, в декор. горшке',   price:50,  occasions:['justbecause','anniversary'] },
-  // Подарки
-  { id:11, cat:'Подарки',  name:'Мыльные розы',    img:'https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?w=400&q=80', desc:'Корзина из 19 роз',          price:35, occasions:['quick','birthday','anniversary'], isAddon:true },
-  { id:12, cat:'Подарки',  name:'Цветы + конфеты', img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет + Raffaello 150г',      price:75, occasions:['quick','birthday','wow'], isAddon:true },
+  // Композиции
+  { id:5,  cat:'Композиции', name:'В корзине',     img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Сезонные цветы в корзине',   price:70, occasions:['birthday','anniversary','wow'] },
+  { id:6,  cat:'Композиции', name:'Букет + конфеты', img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет и сладости',            price:75, occasions:['quick','birthday','wow'], isAddon:true },
+  // Свадебные букеты
+  { id:7,  cat:'Свадебные', name:'Невеста',        img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120, occasions:['wedding','wow'] },
+  { id:8,  cat:'Свадебные', name:'Бутоньерка',    img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25, occasions:['wedding'] },
+  { id:9,  cat:'Свадебные', name:'Стол невесты',   img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180, occasions:['wedding','wow'] },
+  // Цветы поштучно / по поводу
+  { id:10, cat:'По поводу', name:'Розы',           img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'Розы поштучно, от 3 шт.',   price:35, occasions:['birthday','anniversary','march8','justbecause'] },
+  { id:11, cat:'По поводу', name:'Тюльпаны',       img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны поштучно',         price:28, occasions:['march8','justbecause','graduation'] },
+  { id:12, cat:'По поводу', name:'Пионы',         img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы поштучно',             price:42, occasions:['birthday','anniversary','march8'] },
+  // Дополнения (упаковка, открытка — как на сайте)
+  { id:13, cat:'Дополнения', name:'Упаковка в фирменном стиле', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+5 BYN к заказу', price:5, occasions:['quick','birthday','anniversary'], isAddon:true },
+  { id:14, cat:'Дополнения', name:'Лента',        img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN',                     price:2, occasions:['quick'], isAddon:true },
+  { id:15, cat:'Дополнения', name:'Открытка тематическая', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN', price:2, occasions:['birthday','anniversary'], isAddon:true },
 ];
 
 let activeOccasion = 'any';
@@ -770,30 +784,24 @@ const occasions = [
   { id:'justbecause',label:'Просто так' },
 ];
 
-const budgets = [
-  { id:'any',   label:'Любой бюджет', min:0,   max:Infinity },
-  { id:'to50',  label:'До 50 BYN',    min:0,   max:50 },
-  { id:'50_100',label:'50–100 BYN',   min:50,  max:100 },
-  { id:'100+',  label:'100+ BYN',     min:100, max:Infinity },
-];
+const budgets = (function() {
+  const c = SHOP_CONFIG.currency;
+  return [
+    { id:'any',   label:'Любой бюджет', min:0,   max:Infinity },
+    { id:'to50',  label:'До 50 ' + c,    min:0,   max:50 },
+    { id:'50_100',label:'50–100 ' + c,   min:50,  max:100 },
+    { id:'100+',  label:'100+ ' + c,     min:100, max:Infinity },
+  ];
+})();
 
-// Готовые наборы
-const presets = [
-  {
-    id:'quick',
-    title:'Быстрый подарок',
-    tag:'до 50 BYN',
-    desc:'Когда нужно порадовать «прямо сейчас».',
-    items:[{id:4, qty:1}, {id:11, qty:1}],
-  },
-  {
-    id:'wow',
-    title:'Вау‑эффект',
-    tag:'от 100 BYN',
-    desc:'Большой букет, который точно запомнят.',
-    items:[{id:2, qty:1}, {id:12, qty:1}],
-  },
-];
+// Готовые наборы (как на сайте — «под любой бюджет», «хиты»)
+const presets = (function() {
+  const c = SHOP_CONFIG.currency;
+  return [
+    { id:'quick', title:'Быстрый подарок', tag:'до 50 ' + c, desc:'Порадовать «прямо сейчас» — букет и упаковка.', items:[{id:4, qty:1}, {id:13, qty:1}] },
+    { id:'wow', title:'Вау‑эффект', tag:'от 100 ' + c, desc:'Большой букет и дополнение — точно запомнят.', items:[{id:2, qty:1}, {id:6, qty:1}] },
+  ];
+})();
 
 // ── РЕНДЕР КАТЕГОРИЙ ──────────────────────────────────────────────────────────
 function renderOccasionFilters() {
@@ -911,7 +919,7 @@ function renderGrid() {
         <div class="card-name">${p.name}</div>
         <div class="card-desc">${p.desc}</div>
         <div class="card-footer">
-          <div class="card-price">${p.price} <span>BYN</span></div>
+          <div class="card-price">${p.price} <span>${SHOP_CONFIG.currency}</span></div>
           <button class="add-btn ${inCart ? 'added' : ''}" onclick="addToCart(${p.id})" id="btn-${p.id}">
             ${inCart ? '✓' : '+'}
           </button>
@@ -1000,7 +1008,7 @@ function renderCartSheet() {
       <img src="${p.img}" alt="${p.name}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--ivory)"/>
       <div class="cart-item-info">
         <div class="cart-item-name">${p.name}</div>
-        <div class="cart-item-price">${p.price} BYN × ${qty} = ${p.price * qty} BYN</div>
+        <div class="cart-item-price">${p.price} ${SHOP_CONFIG.currency} × ${qty} = ${p.price * qty} ${SHOP_CONFIG.currency}</div>
       </div>
       <div class="cart-item-controls">
         <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
@@ -1011,7 +1019,7 @@ function renderCartSheet() {
   }).join('');
 
   totalEl.style.display = 'flex';
-  sumEl.textContent = sum + ' BYN';
+  sumEl.textContent = sum + ' ' + SHOP_CONFIG.currency;
 
   renderCartUpsell();
 }
@@ -1038,7 +1046,7 @@ function renderCartUpsell() {
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;">
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;color:${getComputedStyle(document.documentElement).getPropertyValue('--dark') || '#2a1f1a'}">${p.name}</div>
-        <div style="font-size:11px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted') || '#9e8c82'}">${p.price} BYN · дополнение к заказу</div>
+        <div style="font-size:11px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted') || '#9e8c82'}">${p.price} ${SHOP_CONFIG.currency} · дополнение к заказу</div>
       </div>
       <button class="qty-btn" onclick="addToCart(${p.id})">+</button>
     </div>
@@ -1130,10 +1138,11 @@ function sendOrder(name, phone, wishes, datetime) {
     const p = catalog.find(p => p.id === id);
     const qty = cart[id];
     sum += p.price * qty;
-    return `• ${(p.emoji || '🌸')} ${p.name} × ${qty} = ${p.price * qty} BYN`;
+    const cur = SHOP_CONFIG.currency;
+    return `• ${(p.emoji || '🌸')} ${p.name} × ${qty} = ${p.price * qty} ${cur}`;
   });
 
-  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} BYN\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n✏️ Пожелания: ${wishes}`;
+  const orderText = `🛒 Заказ из каталога:\n${lines.join('\n')}\n\n💰 Итого: ${sum} ${SHOP_CONFIG.currency}\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n✏️ Пожелания: ${wishes}`;
 
   var storeInfo = selectedStoreId ? (function() {
     var s = stores.find(function(x) { return x.id === selectedStoreId; });
@@ -1195,6 +1204,19 @@ function setupWheelScroll(el) {
 }
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
+
+// ── Подстановка названия и режима из SHOP_CONFIG ───────────────────────────────
+(function() {
+  var c = SHOP_CONFIG;
+  var t = document.getElementById('pageTitle');
+  if (t) t.textContent = c.name;
+  var logo = document.getElementById('shopLogo');
+  if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span>' + c.name;
+  var h = document.getElementById('badgeHours');
+  if (h) h.textContent = '🕘 ' + c.workingHours;
+  var d = document.getElementById('badgeDelivery');
+  if (d) d.textContent = '🚚 Доставка от ' + c.freeDeliveryFrom + ' ' + c.currency;
+})();
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderOccasionFilters();
