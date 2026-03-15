@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+<script src="/catalog-embedded.js"></script>
 <style>
   /* ═══════════════════════════════════════════════════════════════════════════
      Pastel Flowers — дизайн под копирку с pastelflowers.by
@@ -1051,7 +1051,19 @@ function buildCategoriesFromCatalog() {
   categories = list;
 }
 async function fetchCatalog() {
+  // #region agent log
+  try {
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6cbd4'},body:JSON.stringify({sessionId:'a6cbd4',location:'index.html:fetchCatalog',message:'fetchCatalog entry',data:{API_BASE:API_BASE||'(empty)',hasApiBase:!!API_BASE},timestamp:Date.now(),hypothesisId:'H1'})}).catch(function(){});
+  } catch (_) {}
+  // #endregion
   if (!API_BASE) {
+    if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
+      catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
+      if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); }
+      var h = document.getElementById('catalogSourceHint');
+      if (h) { h.textContent = 'Каталог: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
+      return;
+    }
     var hint = document.getElementById('catalogSourceHint');
     if (hint) {
       hint.textContent = 'Демо-каталог. Чтобы загрузить каталог с сервера, откройте приложение через бота (кнопка «Открыть каталог»).';
@@ -1059,11 +1071,27 @@ async function fetchCatalog() {
     }
     return;
   }
+  var catalogUrl = API_BASE + '/api/catalog';
+  // #region agent log
   try {
-    var r = await fetch(API_BASE + '/api/catalog');
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6cbd4'},body:JSON.stringify({sessionId:'a6cbd4',location:'index.html:fetchCatalog',message:'before fetch',data:{url:catalogUrl},timestamp:Date.now(),hypothesisId:'H5'})}).catch(function(){});
+  } catch (_) {}
+  // #endregion
+  try {
+    var r = await fetch(catalogUrl);
     var data = r.ok ? await r.json() : { items: [] };
+    // #region agent log
+    try {
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6cbd4'},body:JSON.stringify({sessionId:'a6cbd4',location:'index.html:fetchCatalog',message:'after fetch',data:{ok:r.ok,status:r.status,itemsLength:(data.items&&data.items.length)||0},timestamp:Date.now(),hypothesisId:'H2'})}).catch(function(){});
+    } catch (_) {}
+    // #endregion
     if (data.items && data.items.length > 0) {
       catalog = data.items.map(normalizeCatalogItem).filter(function(p) { return p.id; });
+      // #region agent log
+      try {
+        fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6cbd4'},body:JSON.stringify({sessionId:'a6cbd4',location:'index.html:fetchCatalog',message:'after normalize',data:{catalogLength:catalog.length,rawItemsLength:data.items.length},timestamp:Date.now(),hypothesisId:'H4'})}).catch(function(){});
+      } catch (_) {}
+      // #endregion
       buildCategoriesFromCatalog();
       renderCategoryFilters();
       renderGrid();
@@ -1073,11 +1101,46 @@ async function fetchCatalog() {
         hintEl.style.display = 'block';
       }
     } else {
+      if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
+        catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
+        if (catalog.length) {
+          buildCategoriesFromCatalog();
+          renderCategoryFilters();
+          renderGrid();
+          var h = document.getElementById('catalogSourceHint');
+          if (h) { h.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
+          return;
+        }
+      }
       var hintEl = document.getElementById('catalogSourceHint');
-      if (hintEl) { hintEl.style.display = 'none'; }
-      showToast('Каталог с сервера пуст или недоступен. Показан демо-каталог.');
+      var reason = (data.catalog_empty_reason || '').trim();
+      var detail = (data.catalog_empty_detail || '').trim();
+      var msg = 'Каталог с сервера пуст или недоступен. Показан демо-каталог.';
+      if (reason === 'worksheet_not_found') {
+        msg = 'Лист «Каталог» не найден в таблице. Создайте лист с именем «Каталог» (или задайте CATALOG_SHEET_NAME в настройках сервера).';
+      } else if (reason === 'no_client') {
+        msg = 'Нет доступа к Google Таблице (проверьте credentials на сервере).';
+      } else if (reason === 'empty_sheet') {
+        msg = 'Лист «Каталог» пуст. Добавьте строку заголовков и данные.';
+      } else if (reason === 'bad_headers') {
+        msg = 'В первой строке листа «Каталог» должны быть колонки id и name. ' + (detail ? 'Сейчас: ' + detail : '');
+      } else if (reason === 'no_valid_rows') {
+        msg = 'В листе «Каталог» ни одна строка не подошла (заполните колонку id числами).';
+      } else if (reason === 'exception' && detail) {
+        msg = 'Ошибка чтения каталога: ' + detail;
+      } else if (reason && hintEl) {
+        hintEl.textContent = reason + (detail ? ': ' + detail : '');
+        hintEl.style.display = 'block';
+      }
+      if (hintEl && !reason) { hintEl.style.display = 'none'; }
+      showToast(msg);
     }
   } catch (e) {
+    // #region agent log
+    try {
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a6cbd4'},body:JSON.stringify({sessionId:'a6cbd4',location:'index.html:fetchCatalog',message:'catch',data:{err:String(e&&e.message||e)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(function(){});
+    } catch (_) {}
+    // #endregion
     console.warn('Catalog API unavailable', e);
     var hintEl = document.getElementById('catalogSourceHint');
     if (hintEl) { hintEl.style.display = 'none'; }
@@ -1104,6 +1167,12 @@ var BUILTIN_CATALOG = [
   { id:15, cat:'Дополнения', name:'Открытка тематическая', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN', price:2, occasions:['birthday','anniversary'], isAddon:true },
 ];
 var catalog = BUILTIN_CATALOG.slice();
+if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
+  try {
+    catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
+    if (catalog.length) buildCategoriesFromCatalog();
+  } catch (e) {}
+}
 
 let activeCategory = 'any';
 let activeOccasion = 'any';
