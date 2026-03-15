@@ -1216,8 +1216,6 @@ const presets = (function() {
 function renderCategoryFilters() {
   const el = document.getElementById('categoryFilters');
   if (!el) return;
-  // Всегда строим список категорий из текущего каталога, чтобы id совпадали с p.cat
-  if (catalog && catalog.length) buildCategoriesFromCatalog();
   el.innerHTML = categories.map((c, i) => {
     const key = c.altId || c.id;
     const isActive = (key === 'по поводу' && activeCategory === 'По поводу') || activeCategory === c.id;
@@ -1294,7 +1292,7 @@ function renderGrid() {
   }
 
   if (activeOccasion !== 'any') {
-    items = items.filter(p => !p.occasions || p.occasions.length === 0 || p.occasions.includes(activeOccasion));
+    items = items.filter(p => !p.occasions || p.occasions.includes(activeOccasion));
   }
 
   if (activeBudget !== 'any') {
@@ -1432,13 +1430,6 @@ function renderCartSheet() {
       </div>
     </div>`;
   }).join('');
-
-  // Учитываем дополнения (упаковка, лента, открытка) в итоге
-  var addonsSum = 0;
-  if (document.getElementById('addonPack') && document.getElementById('addonPack').checked) addonsSum += 5;
-  if (document.getElementById('addonRibbon') && document.getElementById('addonRibbon').checked) addonsSum += 2;
-  if (document.getElementById('addonCard') && document.getElementById('addonCard').checked) addonsSum += 2;
-  sum += addonsSum;
 
   totalEl.style.display = 'flex';
   sumEl.textContent = sum + ' ' + SHOP_CONFIG.currency;
@@ -1670,12 +1661,6 @@ if (linkSoberi && tg && tg.openLink) {
     tg.openLink('https://pastelflowers.by/soberi-svoj-buket/');
   });
 }
-
-// При изменении дополнений пересчитываем итог в корзине
-['addonPack', 'addonRibbon', 'addonCard', 'addonNote'].forEach(function(id) {
-  var el = document.getElementById(id);
-  if (el) el.addEventListener('change', function() { renderCartSheet(); });
-});
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
