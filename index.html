@@ -691,13 +691,6 @@
   <a href="https://pastelflowers.by/soberi-svoj-buket/" target="_blank" rel="noopener" class="block-cta" id="linkSoberiSam">Собрать букет</a>
 </section>
 
-<!-- ВЫБОР МАГАЗИНА / АДРЕСА -->
-<section class="store-picker" id="storePicker">
-  <div class="store-picker-title">Адреса магазинов <span style="font-size:14px;font-weight:400;color:var(--muted)">· в наличии</span></div>
-  <div class="store-list" id="storeList"></div>
-  <div class="store-updated" id="storeUpdated" style="display:none"></div>
-</section>
-
 <!-- ХИТЫ ПРОДАЖ + КАТАЛОГ -->
 <div class="section-title section-title--caps" id="catalogSectionTitle">Хиты продаж</div>
 <div class="section-title" id="catalogSectionTitle2">Каталог цветов</div>
@@ -848,6 +841,9 @@
         <label><input type="checkbox" id="addonRibbon"> Лента (+2 BYN)</label>
         <label><input type="checkbox" id="addonCard"> Открытка тематическая (+2 BYN)</label>
         <label><input type="checkbox" id="addonNote"> Записка на фирменной карточке</label>
+        <div class="contact-addon-note" style="margin-left:28px; margin-top:6px;">
+          <textarea id="addonNoteText" placeholder="Что написать на карточке (пожелание получателю)" rows="2" maxlength="500" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid var(--border, #e8e0d8); border-radius:10px; resize:vertical; min-height:52px;"></textarea>
+        </div>
       </div>
     </div>
     <div class="order-disclaimer">
@@ -1557,7 +1553,9 @@ function onOrderClick() {
   if (document.getElementById('addonPack') && document.getElementById('addonPack').checked) addons.push({ name: 'Упаковка в фирменном стиле', price: 5 });
   if (document.getElementById('addonRibbon') && document.getElementById('addonRibbon').checked) addons.push({ name: 'Лента', price: 2 });
   if (document.getElementById('addonCard') && document.getElementById('addonCard').checked) addons.push({ name: 'Открытка тематическая', price: 2 });
-  if (document.getElementById('addonNote') && document.getElementById('addonNote').checked) addons.push({ name: 'Записка на фирменной карточке', price: 0 });
+  var addonNoteEl = document.getElementById('addonNote');
+  var addonNoteTextEl = document.getElementById('addonNoteText');
+  if (addonNoteEl && addonNoteEl.checked) addons.push({ name: 'Записка на фирменной карточке', price: 0, note: (addonNoteTextEl && addonNoteTextEl.value) ? addonNoteTextEl.value.trim() : '' });
 
   const deliveryLabel = deliveryType.value === 'pickup' ? 'Самовывоз (10:00–21:00)' : 'Доставка курьером (11:00–21:30)';
   const storeLabel = storeRadio ? (storeRadio.value === 'surganova' ? 'Ул. Сурганова, 31' : 'Ул. Скрипникова, 11А') : '';
@@ -1566,7 +1564,7 @@ function onOrderClick() {
   var wishesParts = ['Дата: ' + date, 'Время: ' + timeLabel, 'Доставка: ' + deliveryLabel];
   if (storeLabel) wishesParts.push('Магазин: ' + storeLabel);
   if (address) wishesParts.push('Адрес: ' + address); else wishesParts.push('Адрес: уточнить у получателя');
-  if (addons.length) wishesParts.push('Дополнения: ' + addons.map(function(a) { return a.name + (a.price ? ' +' + a.price + ' BYN' : ''); }).join(', '));
+  if (addons.length) wishesParts.push('Дополнения: ' + addons.map(function(a) { return a.name + (a.price ? ' +' + a.price + ' BYN' : '') + (a.note ? ': «' + a.note + '»' : ''); }).join(', '));
 
   sendOrder(phone, receiverPhone, wishesParts.join('. '), date, addons);
 }
@@ -1587,15 +1585,28 @@ function sendOrder(phone, receiverPhone, wishes, date, addons) {
   addons.forEach(function(a) {
     sum += a.price || 0;
     if (a.price > 0) lines.push('• ' + a.name + ' = ' + a.price + ' ' + SHOP_CONFIG.currency);
+    if (a.note) lines.push('• Записка на карточке: ' + a.note);
   });
 
   const orderText = '🛒 Заказ из каталога:\n' + lines.join('\n') + '\n\n💰 Итого: ' + sum + ' ' + SHOP_CONFIG.currency + '\n\n📞 Телефон заказчика: ' + phone + '\n📞 Телефон получателя: ' + receiverPhone + '\n✏️ ' + wishes;
 
-  var storeInfo = selectedStoreId ? (function() {
-    var s = stores.find(function(x) { return x.id === selectedStoreId; });
-    return { store_id: selectedStoreId, store_name: s ? s.name : '', store_address: s ? s.address : '' };
-  })() : {};
+  // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Сурганова»/«Скрипникова»)
+  var storeInfo = (function() {
+    var id = selectedStoreId;
+    if (!id) {
+      var deliveryType = document.querySelector('input[name="deliveryType"]:checked');
+      var storeRadio = document.querySelector('input[name="store"]:checked');
+      if (deliveryType && deliveryType.value === 'pickup' && storeRadio) {
+        id = storeRadio.value === 'surganova' ? '2' : (storeRadio.value === 'skripnikova' ? '1' : null);
+      }
+    }
+    if (!id) return {};
+    var s = stores.find(function(x) { return x.id == id; });
+    return { store_id: String(id), store_name: s ? s.name : '', store_address: s ? s.address : '' };
+  })();
 
+  var cardNote = '';
+  addons.forEach(function(a) { if (a.note) cardNote = a.note; });
   if (tg) {
     tg.sendData(JSON.stringify({
       type: 'catalog_order',
@@ -1612,6 +1623,7 @@ function sendOrder(phone, receiverPhone, wishes, date, addons) {
       receiver_phone: receiverPhone,
       wishes: wishes,
       date: date || '',
+      card_note: cardNote,
       store_id: storeInfo.store_id || '',
       store_name: storeInfo.store_name || '',
       store_address: storeInfo.store_address || '',
