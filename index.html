@@ -1011,8 +1011,7 @@ function renderStorePicker() {
 
   if (placeholderEl && catalogTitle) {
     if (!selectedStoreId) {
-      placeholderEl.style.display = 'block';
-      document.getElementById('grid').innerHTML = '';
+      placeholderEl.style.display = 'none';
     } else {
       placeholderEl.style.display = 'none';
     }
@@ -1025,29 +1024,67 @@ function selectStore(storeId) {
   fetchStock(storeId);
 }
 
-// ── КАТАЛОГ (категории как на pastelflowers.by: букеты, композиции, цветы поштучно, по поводу, свадебные) ──
-const catalog = [
-  // Букеты
+// Загрузка каталога из API (лист «Каталог»); при ошибке или пустом ответе остаётся встроенный каталог
+function normalizeCatalogItem(it) {
+  var occ = it.occasions;
+  if (Array.isArray(occ)) occ = occ; else if (typeof occ === 'string' && occ) occ = occ.split(',').map(function(s) { return s.trim(); }); else occ = [];
+  var isAddon = /^(да|yes|д)$/i.test(String(it.is_addon || '').trim());
+  return {
+    id: Number(it.id) || 0,
+    cat: (it.category || '').trim(),
+    name: (it.name || '').trim(),
+    img: (it.image || '').trim(),
+    desc: (it.description || '').trim(),
+    price: parseFloat(it.price) || 0,
+    occasions: occ,
+    isAddon: isAddon,
+  };
+}
+function buildCategoriesFromCatalog() {
+  var seen = {};
+  var list = [{ id: 'any', label: 'Все цветы' }];
+  catalog.forEach(function(p) {
+    var c = p.cat || '';
+    if (c && !seen[c]) { seen[c] = true; list.push({ id: c, label: c }); }
+  });
+  categories = list;
+}
+async function fetchCatalog() {
+  if (!API_BASE) return;
+  try {
+    var r = await fetch(API_BASE + '/api/catalog');
+    if (!r.ok) return;
+    var data = await r.json();
+    if (data.items && data.items.length > 0) {
+      catalog = data.items.map(normalizeCatalogItem).filter(function(p) { return p.id; });
+      buildCategoriesFromCatalog();
+      renderCategoryFilters();
+      renderGrid();
+    }
+  } catch (e) {
+    console.warn('Catalog API unavailable', e);
+  }
+}
+
+// ── КАТАЛОГ (загружается из API или fallback на встроенный) ──
+var BUILTIN_CATALOG = [
   { id:1,  cat:'Букеты',   name:'Нежность',        img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы, эустома, лизиантус',  price:65, occasions:['birthday','anniversary','march8','justbecause'] },
   { id:2,  cat:'Букеты',   name:'Классика',        img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'25 красных роз',              price:85, occasions:['birthday','anniversary','wow'] },
   { id:3,  cat:'Букеты',   name:'Пастель',         img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны, ранункулюсы',      price:55, occasions:['birthday','anniversary','march8','graduation'] },
   { id:4,  cat:'Букеты',   name:'Лесная сказка',   img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Полевые цветы и зелень',     price:45, occasions:['justbecause','condolences','graduation'] },
-  // Композиции
   { id:5,  cat:'Композиции', name:'В корзине',     img:'https://images.unsplash.com/photo-1490750967868-88df5691cc46?w=400&q=80', desc:'Сезонные цветы в корзине',   price:70, occasions:['birthday','anniversary','wow'] },
   { id:6,  cat:'Композиции', name:'Букет + конфеты', img:'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=80', desc:'Букет и сладости',            price:75, occasions:['quick','birthday','wow'], isAddon:true },
-  // Свадебные букеты
   { id:7,  cat:'Свадебные', name:'Невеста',        img:'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&q=80', desc:'Белые пионы и розы',         price:120, occasions:['wedding','wow'] },
   { id:8,  cat:'Свадебные', name:'Бутоньерка',    img:'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400&q=80', desc:'Роза и лаванда',             price:25, occasions:['wedding'] },
   { id:9,  cat:'Свадебные', name:'Стол невесты',   img:'https://images.unsplash.com/photo-1478146059778-26028b07395a?w=400&q=80', desc:'Композиция со свечами',      price:180, occasions:['wedding','wow'] },
-  // Цветы поштучно / по поводу
   { id:10, cat:'По поводу', name:'Розы',           img:'https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?w=400&q=80', desc:'Розы поштучно, от 3 шт.',   price:35, occasions:['birthday','anniversary','march8','justbecause'] },
   { id:11, cat:'По поводу', name:'Тюльпаны',       img:'https://images.unsplash.com/photo-1457089328109-e5d9bd499191?w=400&q=80', desc:'Тюльпаны поштучно',         price:28, occasions:['march8','justbecause','graduation'] },
   { id:12, cat:'По поводу', name:'Пионы',         img:'https://images.unsplash.com/photo-1487530811015-780f4c7d3f95?w=400&q=80', desc:'Пионы поштучно',             price:42, occasions:['birthday','anniversary','march8'] },
-  // Дополнения (упаковка, открытка — как на сайте)
   { id:13, cat:'Дополнения', name:'Упаковка в фирменном стиле', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+5 BYN к заказу', price:5, occasions:['quick','birthday','anniversary'], isAddon:true },
   { id:14, cat:'Дополнения', name:'Лента',        img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN',                     price:2, occasions:['quick'], isAddon:true },
   { id:15, cat:'Дополнения', name:'Открытка тематическая', img:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400&q=80', desc:'+2 BYN', price:2, occasions:['birthday','anniversary'], isAddon:true },
 ];
+var catalog = BUILTIN_CATALOG.slice();
 
 let activeCategory = 'any';
 let activeOccasion = 'any';
@@ -1055,8 +1092,8 @@ let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let contactStep = false; // false — корзина, true — форма контактов
 
-// Категории как на pastelflowers.by
-const categories = [
+// Категории для фильтра (по умолчанию; при загрузке из API строятся из данных)
+var categories = [
   { id: 'any', label: 'Все цветы' },
   { id: 'Букеты', label: 'Букеты' },
   { id: 'Композиции', label: 'композиции' },
@@ -1186,32 +1223,16 @@ function renderGrid() {
     }
   }
 
-  // Если включена витрина по магазинам — показываем каталог только после выбора магазина
-  if (stores.length > 0 && !selectedStoreId) {
-    items = [];
-  }
-  // Фильтр по наличию в выбранном магазине (данные из API)
-  if (selectedStoreId) {
-    if (inStockBouquetIds.size > 0) {
-      items = items.filter(p => inStockBouquetIds.has(p.id));
-    } else {
-      items = [];
-    }
-  }
-
+  // Каталог показывается полностью без фильтра по остаткам; магазин выбирается при оформлении заказа
   const el = document.getElementById('grid');
   const placeholderEl = document.getElementById('catalogPlaceholder');
-  if (placeholderEl && selectedStoreId && items.length === 0 && stores.length > 0) {
-    placeholderEl.style.display = 'block';
-    placeholderEl.textContent = 'В выбранном магазине пока нет букетов в наличии. Остатки обновляются ежедневно.';
-  }
-  if (placeholderEl && !selectedStoreId && stores.length > 0) {
-    placeholderEl.style.display = 'block';
-    placeholderEl.textContent = 'Выберите магазин выше, чтобы увидеть букеты в наличии';
-  }
   if (placeholderEl && items.length > 0) placeholderEl.style.display = 'none';
+  if (placeholderEl && items.length === 0) {
+    placeholderEl.style.display = 'block';
+    placeholderEl.textContent = 'По вашим критериям ничего не найдено. Попробуйте изменить категорию, повод или бюджет.';
+  }
 
-  if (items.length === 0 && selectedStoreId && inStockBouquetIds.size > 0) {
+  if (items.length === 0) {
     el.innerHTML = '<div class="grid-empty">По вашим критериям ничего не найдено. Попробуйте изменить повод или бюджет.</div>';
     return;
   }
@@ -1573,6 +1594,7 @@ fetchStores().then(function() {
   renderStorePicker();
   renderGrid();
 });
+fetchCatalog();
 </script>
 </body>
 </html>
