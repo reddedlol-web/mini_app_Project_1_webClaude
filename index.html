@@ -702,7 +702,8 @@
 <div class="section-title section-title--caps" id="catalogSectionTitle">Хиты продаж</div>
 <div class="section-title" id="catalogSectionTitle2">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
-<div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">Выберите магазин выше, чтобы увидеть букеты в наличии</div>
+<div class="catalog-source-hint" id="catalogSourceHint" style="display:none; font-size:12px; color:var(--muted, #9e8c82); padding:0 20px 8px;"></div>
+<div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">По вашим критериям ничего не найдено.</div>
 <div class="filters filters-scroll-hint">
   <div class="filter-row" id="categoryFilters"></div>
   <div class="filter-row" id="occasionFilters"></div>
@@ -1050,19 +1051,37 @@ function buildCategoriesFromCatalog() {
   categories = list;
 }
 async function fetchCatalog() {
-  if (!API_BASE) return;
+  if (!API_BASE) {
+    var hint = document.getElementById('catalogSourceHint');
+    if (hint) {
+      hint.textContent = 'Демо-каталог. Чтобы загрузить каталог с сервера, откройте приложение через бота (кнопка «Открыть каталог»).';
+      hint.style.display = 'block';
+    }
+    return;
+  }
   try {
     var r = await fetch(API_BASE + '/api/catalog');
-    if (!r.ok) return;
-    var data = await r.json();
+    var data = r.ok ? await r.json() : { items: [] };
     if (data.items && data.items.length > 0) {
       catalog = data.items.map(normalizeCatalogItem).filter(function(p) { return p.id; });
       buildCategoriesFromCatalog();
       renderCategoryFilters();
       renderGrid();
+      var hintEl = document.getElementById('catalogSourceHint');
+      if (hintEl) {
+        hintEl.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров';
+        hintEl.style.display = 'block';
+      }
+    } else {
+      var hintEl = document.getElementById('catalogSourceHint');
+      if (hintEl) { hintEl.style.display = 'none'; }
+      showToast('Каталог с сервера пуст или недоступен. Показан демо-каталог.');
     }
   } catch (e) {
     console.warn('Catalog API unavailable', e);
+    var hintEl = document.getElementById('catalogSourceHint');
+    if (hintEl) { hintEl.style.display = 'none'; }
+    showToast('Каталог с сервера недоступен. Показан демо-каталог.');
   }
 }
 
