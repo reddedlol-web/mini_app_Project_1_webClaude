@@ -1069,10 +1069,7 @@ async function fetchCatalog() {
       return;
     }
     var hint = document.getElementById('catalogSourceHint');
-    if (hint) {
-      hint.textContent = 'Демо-каталог. В настройках бота (Railway) задайте MINI_APP_URL = https://ВАШ-СЕРВЕР.railway.app/mini-app (тот же хост, где крутится бот).';
-      hint.style.display = 'block';
-    }
+    if (hint) hint.style.display = 'none';
     return;
   }
   var catalogUrl = API_BASE + '/api/catalog';
@@ -1438,6 +1435,14 @@ function renderCartSheet() {
     </div>`;
   }).join('');
 
+  // Учитываем дополнения (чекбоксы) в итоговой сумме
+  const addonPack = document.getElementById('addonPack');
+  const addonRibbon = document.getElementById('addonRibbon');
+  const addonCard = document.getElementById('addonCard');
+  if (addonPack && addonPack.checked) sum += 5;
+  if (addonRibbon && addonRibbon.checked) sum += 2;
+  if (addonCard && addonCard.checked) sum += 2;
+
   totalEl.style.display = 'flex';
   sumEl.textContent = sum + ' ' + SHOP_CONFIG.currency;
 
@@ -1668,6 +1673,12 @@ if (linkSoberi && tg && tg.openLink) {
     tg.openLink('https://pastelflowers.by/soberi-svoj-buket/');
   });
 }
+
+// При изменении дополнений — пересчитываем итог в корзине
+['addonPack', 'addonRibbon', 'addonCard'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', function() { renderCartSheet(); });
+});
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
