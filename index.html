@@ -795,6 +795,14 @@
   <div class="contact-form" id="contactForm">
     <p class="contact-label">ДАННЫЕ ЗАКАЗЧИКА И ПОЛУЧАТЕЛЯ</p>
     <div class="contact-field">
+      <label for="contactName">Имя заказчика *</label>
+      <input id="contactName" type="text" placeholder="Например: Анна">
+    </div>
+    <div class="contact-field">
+      <label for="contactReceiverName">Имя получателя *</label>
+      <input id="contactReceiverName" type="text" placeholder="Например: Мария">
+    </div>
+    <div class="contact-field">
       <label for="contactPhone">Номер телефона заказчика *</label>
       <input id="contactPhone" type="tel" placeholder="+375 29 000-00-00">
     </div>
@@ -1517,6 +1525,8 @@ function onOrderClick() {
     return;
   }
 
+  const nameEl = document.getElementById('contactName');
+  const receiverNameEl = document.getElementById('contactReceiverName');
   const phoneEl = document.getElementById('contactPhone');
   const receiverPhoneEl = document.getElementById('contactReceiverPhone');
   const dateEl = document.getElementById('contactDate');
@@ -1525,13 +1535,15 @@ function onOrderClick() {
   const storeRadio = document.querySelector('input[name="store"]:checked');
   const timeSlot = document.querySelector('input[name="timeSlot"]:checked');
 
+  const name = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+  const receiverName = (receiverNameEl && receiverNameEl.value) ? receiverNameEl.value.trim() : '';
   const phone = (phoneEl && phoneEl.value) ? phoneEl.value.trim() : '';
   const receiverPhone = (receiverPhoneEl && receiverPhoneEl.value) ? receiverPhoneEl.value.trim() : '';
   const date = (dateEl && dateEl.value) ? dateEl.value.trim() : '';
   const address = (addressEl && addressEl.value) ? addressEl.value.trim() : '';
 
-  if (!phone || !receiverPhone || !date) {
-    showToast('Заполните телефон заказчика, телефон получателя и дату получения.');
+  if (!name || !receiverName || !phone || !receiverPhone || !date) {
+    showToast('Заполните имена и телефоны заказчика и получателя, а также дату получения.');
     return;
   }
   if (!deliveryType) {
@@ -1566,10 +1578,10 @@ function onOrderClick() {
   if (address) wishesParts.push('Адрес: ' + address); else wishesParts.push('Адрес: уточнить у получателя');
   if (addons.length) wishesParts.push('Дополнения: ' + addons.map(function(a) { return a.name + (a.price ? ' +' + a.price + ' BYN' : '') + (a.note ? ': «' + a.note + '»' : ''); }).join(', '));
 
-  sendOrder(phone, receiverPhone, wishesParts.join('. '), date, addons);
+  sendOrder(name, receiverName, phone, receiverPhone, wishesParts.join('. '), date, addons);
 }
 
-function sendOrder(phone, receiverPhone, wishes, date, addons) {
+function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addons) {
   addons = addons || [];
   const ids = Object.keys(cart).map(Number);
   if (ids.length === 0) return;
@@ -1588,7 +1600,14 @@ function sendOrder(phone, receiverPhone, wishes, date, addons) {
     if (a.note) lines.push('• Записка на карточке: ' + a.note);
   });
 
-  const orderText = '🛒 Заказ из каталога:\n' + lines.join('\n') + '\n\n💰 Итого: ' + sum + ' ' + SHOP_CONFIG.currency + '\n\n📞 Телефон заказчика: ' + phone + '\n📞 Телефон получателя: ' + receiverPhone + '\n✏️ ' + wishes;
+  const orderText =
+    '🛒 Заказ из каталога:\n' + lines.join('\n') +
+    '\n\n💰 Итого: ' + sum + ' ' + SHOP_CONFIG.currency +
+    '\n\n👤 Имя заказчика: ' + name +
+    '\n📞 Телефон заказчика: ' + phone +
+    '\n👤 Имя получателя: ' + receiverName +
+    '\n📞 Телефон получателя: ' + receiverPhone +
+    '\n✏️ ' + wishes;
 
   // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Сурганова»/«Скрипникова»)
   var storeInfo = (function() {
@@ -1619,7 +1638,10 @@ function sendOrder(phone, receiverPhone, wishes, date, addons) {
       addons: addons,
       total: sum,
       text: orderText,
+      name: name,
+      customer_name: name,
       phone: phone,
+      receiver_name: receiverName,
       receiver_phone: receiverPhone,
       wishes: wishes,
       date: date || '',
