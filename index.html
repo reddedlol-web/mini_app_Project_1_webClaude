@@ -1041,6 +1041,7 @@ function normalizeCatalogItem(it) {
     img: (it.image || '').trim(),
     desc: (it.description || '').trim(),
     price: parseFloat(it.price) || 0,
+    article: String(it.article || '').trim(),
     occasions: occ,
     isAddon: isAddon,
   };
@@ -1592,7 +1593,8 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     const qty = cart[id];
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
-    return '• ' + (p.emoji || '🌸') + ' ' + p.name + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur;
+    const art = (p.article && String(p.article).trim()) ? ' (арт. ' + String(p.article).trim() + ')' : '';
+    return '• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur;
   });
   addons.forEach(function(a) {
     sum += a.price || 0;
@@ -1632,6 +1634,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
       items: ids.map(id => ({
         id,
         name: catalog.find(p => p.id === id).name,
+        article: (catalog.find(p => p.id === id).article || '').trim ? (catalog.find(p => p.id === id).article || '').trim() : (catalog.find(p => p.id === id).article || ''),
         qty: cart[id],
         price: catalog.find(p => p.id === id).price,
       })),
