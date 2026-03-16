@@ -1590,10 +1590,22 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
   let sum = 0;
   const lines = ids.map(id => {
     const p = catalog.find(p => p.id === id);
+    // Артикул: сначала из текущего каталога (если API его даёт), иначе из EMBEDDED_CATALOG_RAW
+    var rawArticle = '';
+    try {
+      if (p.article && String(p.article).trim()) {
+        rawArticle = String(p.article).trim();
+      } else if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
+        var rawItem = EMBEDDED_CATALOG_RAW.find(function(x) { return Number(x.id) === id; });
+        if (rawItem && rawItem.article && String(rawItem.article).trim()) {
+          rawArticle = String(rawItem.article).trim();
+        }
+      }
+    } catch (e) {}
     const qty = cart[id];
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
-    const art = (p.article && String(p.article).trim()) ? ' (арт. ' + String(p.article).trim() + ')' : '';
+    const art = rawArticle ? ' (арт. ' + rawArticle + ')' : '';
     return '• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur;
   });
   addons.forEach(function(a) {
@@ -1631,13 +1643,27 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
   if (tg) {
     tg.sendData(JSON.stringify({
       type: 'catalog_order',
-      items: ids.map(id => ({
-        id,
-        name: catalog.find(p => p.id === id).name,
-        article: (catalog.find(p => p.id === id).article || '').trim ? (catalog.find(p => p.id === id).article || '').trim() : (catalog.find(p => p.id === id).article || ''),
-        qty: cart[id],
-        price: catalog.find(p => p.id === id).price,
-      })),
+      items: ids.map(id => {
+        const p = catalog.find(p => p.id === id) || {};
+        var art = '';
+        try {
+          if (p.article && String(p.article).trim()) {
+            art = String(p.article).trim();
+          } else if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
+            var rawItem = EMBEDDED_CATALOG_RAW.find(function(x) { return Number(x.id) === id; });
+            if (rawItem && rawItem.article && String(rawItem.article).trim()) {
+              art = String(rawItem.article).trim();
+            }
+          }
+        } catch (e) {}
+        return {
+          id: id,
+          name: p.name,
+          article: art,
+          qty: cart[id],
+          price: p.price,
+        };
+      }),
       addons: addons,
       total: sum,
       text: orderText,
