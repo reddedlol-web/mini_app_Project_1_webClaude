@@ -693,10 +693,17 @@
   }
   .builder-head {
     display:flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content:flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .builder-head-top {
+    display:flex;
     align-items:flex-start;
     justify-content:space-between;
-    gap: 14px;
-    margin-bottom: 14px;
+    gap: 12px;
   }
   .builder-title {
     font-family: 'Cormorant Garamond', serif;
@@ -715,10 +722,28 @@
   .builder-steps {
     display:flex;
     gap: 8px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items:center;
-    justify-content:flex-end;
-    margin-top: 2px;
+    justify-content:flex-start;
+    margin-top: 0;
+  }
+  .builder-collapsed .builder-panel,
+  .builder-collapsed .builder-footer {
+    display:none;
+  }
+  .builder-toggle {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--accent-deep);
+    border-radius: 999px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
   }
   .builder-step-pill {
     display:flex;
@@ -937,9 +962,12 @@
 <!-- СОБЕРИ СВОЙ БУКЕТ (3 шага) -->
 <section class="builder" id="bouquetBuilder">
   <div class="builder-head">
-    <div>
-      <div class="builder-title">Собери свой букет</div>
-      <div class="builder-subtitle">Выберите цветы и их количество, добавьте зелень (по желанию), затем упаковку и дополнения.</div>
+    <div class="builder-head-top">
+      <div style="flex:1; min-width: 0;">
+        <div class="builder-title">Собери свой букет</div>
+        <div class="builder-subtitle">Выберите цветы и их количество, добавьте зелень (по желанию), затем упаковку и дополнения.</div>
+      </div>
+      <button type="button" class="builder-toggle" id="builderToggleBtn">Открыть</button>
     </div>
     <div class="builder-steps" aria-label="Шаги конструктора">
       <div class="builder-step-pill active" id="builderStepPill1"><strong>1</strong> Цветы</div>
@@ -2009,6 +2037,7 @@ function showToast(msg) {
 // ── СОБЕРИ СВОЙ БУКЕТ (3 шага) ────────────────────────────────────────────────
 let builderStep = 1;
 let builderCart = {}; // { id: qty }
+let builderOpen = false;
 
 function normName(s) {
   return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -2086,6 +2115,17 @@ function builderSetStep(step) {
   }
 }
 
+function builderSetOpen(open) {
+  builderOpen = !!open;
+  const root = document.getElementById('bouquetBuilder');
+  if (root) root.classList.toggle('builder-collapsed', !builderOpen);
+
+  const toggle = document.getElementById('builderToggleBtn');
+  if (toggle) toggle.textContent = builderOpen ? 'Свернуть' : 'Открыть';
+
+  if (builderOpen) builderRender();
+}
+
 function builderSyncAddonsFromBuilderToOrderForm() {
   const map = [
     ['builderAddonPack', 'addonPack'],
@@ -2104,6 +2144,7 @@ function builderSyncAddonsFromBuilderToOrderForm() {
 }
 
 function builderRender() {
+  if (!builderOpen) return;
   const p1 = document.getElementById('builderPanel1');
   const p2 = document.getElementById('builderPanel2');
   const p3 = document.getElementById('builderPanel3');
@@ -2140,10 +2181,17 @@ function builderRender() {
 }
 
 function builderInit() {
+  // по умолчанию конструктор закрыт — нельзя собирать, пока не нажмут «Собрать букет»
+  builderSetOpen(false);
+
+  const toggle = document.getElementById('builderToggleBtn');
+  if (toggle) toggle.addEventListener('click', function() { builderSetOpen(!builderOpen); });
+
   const backBtn = document.getElementById('builderBackBtn');
   const nextBtn = document.getElementById('builderNextBtn');
   if (backBtn) backBtn.addEventListener('click', function() { builderSetStep(builderStep - 1); });
   if (nextBtn) nextBtn.addEventListener('click', function() {
+    if (!builderOpen) return;
     if (builderStep < 3) { builderSetStep(builderStep + 1); return; }
 
     Object.keys(builderCart).map(Number).forEach(function(id) {
@@ -2253,6 +2301,11 @@ if (linkSoberi) {
     var targetId = linkSoberi.getAttribute('data-scroll-target') || 'catalogSectionTitle';
     var target = document.getElementById(targetId) || document.getElementById('catalogSectionTitle');
     if (!target) return;
+
+    if (targetId === 'bouquetBuilder' && typeof builderSetOpen === 'function') {
+      builderSetOpen(true);
+      if (typeof builderSetStep === 'function') builderSetStep(1);
+    }
 
     try {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
