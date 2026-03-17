@@ -1602,6 +1602,11 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
         }
       }
     } catch (e) {}
+    // #region agent log
+    try {
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f8826'},body:JSON.stringify({sessionId:'6f8826',runId:'pre-fix',hypothesisId:'H1',location:'web/index.html:sendOrder.lines',message:'Resolved article for line',data:{id:id,pName:p&&p.name,pArticle:p&&p.article,rawArticle:rawArticle,embeddedType:typeof EMBEDDED_CATALOG_RAW,embeddedLen:(typeof EMBEDDED_CATALOG_RAW!=='undefined'&&EMBEDDED_CATALOG_RAW&&EMBEDDED_CATALOG_RAW.length)||0},timestamp:Date.now()})}).catch(()=>{});
+    } catch (_) {}
+    // #endregion
     const qty = cart[id];
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
@@ -1622,6 +1627,17 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     '\n👤 Имя получателя: ' + receiverName +
     '\n📞 Телефон получателя: ' + receiverPhone +
     '\n✏️ ' + wishes;
+  // #region agent log
+  try {
+    var embeddedSample = [];
+    try {
+      if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW && EMBEDDED_CATALOG_RAW.length) {
+        embeddedSample = EMBEDDED_CATALOG_RAW.slice(0, 5).map(function(x){ return {id:x.id,name:x.name,article:x.article}; });
+      }
+    } catch (_) {}
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f8826'},body:JSON.stringify({sessionId:'6f8826',runId:'pre-fix',hypothesisId:'H2',location:'web/index.html:sendOrder.orderText',message:'Order text built',data:{linesCount:lines.length,orderTextHead:String(orderText).slice(0,120),embeddedType:typeof EMBEDDED_CATALOG_RAW,embeddedLen:(typeof EMBEDDED_CATALOG_RAW!=='undefined'&&EMBEDDED_CATALOG_RAW&&EMBEDDED_CATALOG_RAW.length)||0,embeddedSample:embeddedSample},timestamp:Date.now()})}).catch(()=>{});
+  } catch (_) {}
+  // #endregion
 
   // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Сурганова»/«Скрипникова»)
   var storeInfo = (function() {
