@@ -1544,7 +1544,6 @@
     <div class="contact-field">
       <label>Время получения *</label>
       <div class="contact-time-slots">
-        <label><input type="radio" name="timeSlot" value="8-11"> 8:00 – 11:00</label>
         <label><input type="radio" name="timeSlot" value="11-14"> 11:00 – 14:00</label>
         <label><input type="radio" name="timeSlot" value="14-17"> 14:00 – 17:00</label>
         <label><input type="radio" name="timeSlot" value="17-20"> 17:00 – 20:00</label>
@@ -2189,9 +2188,9 @@ const budgets = (function() {
   const c = SHOP_CONFIG.currency;
   return [
     { id:'any',   label:'Любой бюджет', min:0,   max:Infinity },
-    { id:'to50',  label:'До 50 ' + c,    min:0,   max:50 },
-    { id:'50_100',label:'50–100 ' + c,   min:50,  max:100 },
-    { id:'100+',  label:'100-200 ' + c,     min:100, max:200  },
+    { id:'to100',  label:'До 100 ' + c,    min:0,   max:100 },
+    { id:'100_150',label:'100-150 ' + c,   min:100,  max:150 },
+    { id:'150_200',  label:'150-200 ' + c,     min:150, max:200  },
     { id:'200+',  label:'200+ ' + c,     min:200, max:Infinity }
   ];
 })();
