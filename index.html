@@ -967,7 +967,6 @@
         <div class="builder-title">Собери свой букет</div>
         <div class="builder-subtitle">Выберите цветы и их количество, добавьте зелень (по желанию), затем упаковку и дополнения.</div>
       </div>
-      <button type="button" class="builder-toggle" id="builderToggleBtn">Открыть</button>
     </div>
     <div class="builder-steps" aria-label="Шаги конструктора">
       <div class="builder-step-pill active" id="builderStepPill1"><strong>1</strong> Цветы</div>
@@ -2120,8 +2119,9 @@ function builderSetOpen(open) {
   const root = document.getElementById('bouquetBuilder');
   if (root) root.classList.toggle('builder-collapsed', !builderOpen);
 
-  const toggle = document.getElementById('builderToggleBtn');
-  if (toggle) toggle.textContent = builderOpen ? 'Свернуть' : 'Открыть';
+  // Главная кнопка «Собрать букет» также отвечает за сворачивание/разворачивание
+  const mainBtn = document.getElementById('linkSoberiSam');
+  if (mainBtn) mainBtn.textContent = builderOpen ? 'Свернуть конструктор' : 'Собрать букет';
 
   if (builderOpen) builderRender();
 }
@@ -2183,9 +2183,6 @@ function builderRender() {
 function builderInit() {
   // по умолчанию конструктор закрыт — нельзя собирать, пока не нажмут «Собрать букет»
   builderSetOpen(false);
-
-  const toggle = document.getElementById('builderToggleBtn');
-  if (toggle) toggle.addEventListener('click', function() { builderSetOpen(!builderOpen); });
 
   const backBtn = document.getElementById('builderBackBtn');
   const nextBtn = document.getElementById('builderNextBtn');
@@ -2303,8 +2300,9 @@ if (linkSoberi) {
     if (!target) return;
 
     if (targetId === 'bouquetBuilder' && typeof builderSetOpen === 'function') {
-      builderSetOpen(true);
-      if (typeof builderSetStep === 'function') builderSetStep(1);
+      var willOpen = (typeof builderOpen !== 'undefined') ? !builderOpen : true;
+      builderSetOpen(willOpen);
+      if (willOpen && typeof builderSetStep === 'function') builderSetStep(1);
     }
 
     try {
