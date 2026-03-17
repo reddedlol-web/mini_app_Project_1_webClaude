@@ -348,16 +348,34 @@
     padding: 4px 0 2px;
     -webkit-overflow-scrolling: touch;
   }
-  #fiveVariantsModal .chip-group label {
+  #fiveVariantsModal .chip {
     flex: 0 0 auto;
+    cursor: pointer;
+    user-select: none;
+  }
+  #fiveVariantsModal .chip input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+  #fiveVariantsModal .chip span {
+    display: inline-flex;
+    align-items: center;
     border-radius: 999px;
     border: 1px solid var(--border);
-    padding: 6px 10px;
+    padding: 7px 12px;
     font-size: 13px;
     background: var(--bg-card);
+    color: var(--text);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
   }
-  #fiveVariantsModal .chip-group input[type="radio"] {
-    margin-right: 4px;
+  #fiveVariantsModal .chip:active span { transform: scale(0.98); }
+  #fiveVariantsModal .chip input[type="radio"]:checked + span {
+    border-color: var(--accent-deep);
+    background: var(--accent-soft);
   }
 
   /* ── МОДАЛКА ТОВАРА ── */
@@ -1535,44 +1553,44 @@
     <div class="contact-field">
       <label>Цветы</label>
       <div class="chip-group" id="fiveFlowers">
-        <label><input type="radio" name="fiveFlowers" value="розы"> Розы</label>
-        <label><input type="radio" name="fiveFlowers" value="тюльпаны"> Тюльпаны</label>
-        <label><input type="radio" name="fiveFlowers" value="пионы"> Пионы</label>
-        <label><input type="radio" name="fiveFlowers" value="эустома"> Эустома</label>
-        <label><input type="radio" name="fiveFlowers" value="микс"> Микс</label>
-        <label><input type="radio" name="fiveFlowers" value="" checked> Не знаю</label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="розы"><span>Розы</span></label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="тюльпаны"><span>Тюльпаны</span></label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="пионы"><span>Пионы</span></label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="эустома"><span>Эустома</span></label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="микс"><span>Микс</span></label>
+        <label class="chip"><input type="radio" name="fiveFlowers" value="" checked><span>Не знаю</span></label>
       </div>
     </div>
     <div class="contact-field">
       <label>Цвета</label>
       <div class="chip-group" id="fiveColors">
-        <label><input type="radio" name="fiveColors" value="нежные"> Нежные</label>
-        <label><input type="radio" name="fiveColors" value="яркие"> Яркие</label>
-        <label><input type="radio" name="fiveColors" value="белые"> Белые</label>
-        <label><input type="radio" name="fiveColors" value="розовые"> Розовые</label>
-        <label><input type="radio" name="fiveColors" value="красные"> Красные</label>
-        <label><input type="radio" name="fiveColors" value="пастель"> Пастель</label>
-        <label><input type="radio" name="fiveColors" value="" checked> Не знаю</label>
+        <label class="chip"><input type="radio" name="fiveColors" value="нежные"><span>Нежные</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="яркие"><span>Яркие</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="белые"><span>Белые</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="розовые"><span>Розовые</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="красные"><span>Красные</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="пастель"><span>Пастель</span></label>
+        <label class="chip"><input type="radio" name="fiveColors" value="" checked><span>Не знаю</span></label>
       </div>
     </div>
     <div class="contact-field">
       <label>Размер</label>
       <div class="chip-group" id="fiveSize">
-        <label><input type="radio" name="fiveSize" value="мини"> Мини</label>
-        <label><input type="radio" name="fiveSize" value="средний"> Средний</label>
-        <label><input type="radio" name="fiveSize" value="большой"> Большой</label>
-        <label><input type="radio" name="fiveSize" value="" checked> Не знаю</label>
+        <label class="chip"><input type="radio" name="fiveSize" value="мини"><span>Мини</span></label>
+        <label class="chip"><input type="radio" name="fiveSize" value="средний"><span>Средний</span></label>
+        <label class="chip"><input type="radio" name="fiveSize" value="большой"><span>Большой</span></label>
+        <label class="chip"><input type="radio" name="fiveSize" value="" checked><span>Не знаю</span></label>
       </div>
     </div>
     <div class="contact-field">
       <label>Стиль</label>
       <div class="chip-group" id="fiveStyle">
-        <label><input type="radio" name="fiveStyle" value="классика"> Классика</label>
-        <label><input type="radio" name="fiveStyle" value="современный"> Современный</label>
-        <label><input type="radio" name="fiveStyle" value="моно"> Моно</label>
-        <label><input type="radio" name="fiveStyle" value="микс"> Микс</label>
-        <label><input type="radio" name="fiveStyle" value="в коробке"> В коробке</label>
-        <label><input type="radio" name="fiveStyle" value="" checked> Не знаю</label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="классика"><span>Классика</span></label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="современный"><span>Современный</span></label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="моно"><span>Моно</span></label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="микс"><span>Микс</span></label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="в коробке"><span>В коробке</span></label>
+        <label class="chip"><input type="radio" name="fiveStyle" value="" checked><span>Не знаю</span></label>
       </div>
     </div>
     <div class="contact-field">
