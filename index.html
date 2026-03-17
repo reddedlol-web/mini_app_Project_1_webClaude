@@ -322,6 +322,108 @@
     padding-right: 36px;
   }
   .modal-subtitle { font-size: 13px; color: var(--text-muted); line-height: 1.45; margin-top: 6px; }
+
+  /* ── МОДАЛКА ТОВАРА ── */
+  .modal.product-modal {
+    width: min(94vw, 760px);
+    padding: 0;
+    overflow: hidden;
+  }
+  .product-modal-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-height: min(86vh, 820px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .product-modal-media {
+    background: var(--bg-alt);
+  }
+  .product-modal-img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--bg-alt);
+  }
+  .product-modal-content {
+    padding: 16px 16px 18px;
+  }
+  .product-modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--accent-deep);
+    line-height: 1.15;
+    padding-right: 36px;
+  }
+  .product-modal-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .product-modal-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-deep);
+  }
+  .product-modal-price span { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+  .product-modal-add {
+    border: none;
+    background: var(--accent);
+    color: white;
+    border-radius: 999px;
+    padding: 10px 14px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    white-space: nowrap;
+  }
+  .product-modal-add:active { transform: scale(0.98); }
+  .product-modal-section {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .product-modal-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .product-modal-desc {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .product-modal-list {
+    margin: 8px 0 0;
+    padding: 0 0 0 18px;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .product-modal-list li { margin: 4px 0; }
+
+  @media (min-width: 720px) {
+    .product-modal-inner {
+      grid-template-columns: 1.05fr 1fr;
+      max-height: min(82vh, 760px);
+    }
+    .product-modal-img {
+      aspect-ratio: 4 / 5;
+      height: 100%;
+    }
+    .product-modal-content { padding: 18px 18px 20px; }
+  }
   .sheet {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--bg-main);
@@ -731,6 +833,9 @@
   .builder-collapsed .builder-footer {
     display:none;
   }
+  .builder-collapsed .builder-head {
+    display:none;
+  }
   .builder-toggle {
     display:inline-flex;
     align-items:center;
@@ -964,7 +1069,6 @@
   <div class="builder-head">
     <div class="builder-head-top">
       <div style="flex:1; min-width: 0;">
-        <div class="builder-title">Собери свой букет</div>
         <div class="builder-subtitle">Выберите цветы и их количество, добавьте зелень (по желанию), затем упаковку и дополнения.</div>
       </div>
     </div>
@@ -1128,6 +1232,28 @@
   <button type="button" class="order-btn" id="callbackSendBtn" onclick="sendCallbackRequest()">Отправить</button>
   <div style="margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.4;">
     Если не получается отправить заявку, позвоните нам: <a href="tel:+375292009880" style="color:var(--deep);font-weight:500;">+375 29 200 98 80</a>
+  </div>
+</div>
+
+<!-- КАРТОЧКА ТОВАРА (МОДАЛКА) -->
+<div class="overlay" id="overlayProduct" onclick="closeProductModal()"></div>
+<div class="modal product-modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productTitle">
+  <button type="button" class="modal-close" onclick="closeProductModal()" aria-label="Закрыть">✕</button>
+  <div class="product-modal-inner">
+    <div class="product-modal-media">
+      <img id="productImg" class="product-modal-img" src="" alt="" loading="lazy">
+    </div>
+    <div class="product-modal-content">
+      <div class="product-modal-title" id="productTitle"></div>
+      <div class="product-modal-meta">
+        <div class="product-modal-price" id="productPrice"></div>
+        <button type="button" class="product-modal-add" id="productAddBtn">В корзину</button>
+      </div>
+      <div class="product-modal-section">
+        <div class="product-modal-section-title" id="productDescTitle">Состав</div>
+        <div id="productDesc"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1659,7 +1785,7 @@ function renderGrid() {
   el.innerHTML = items.map((p, i) => {
     const inCart = cart[p.id] > 0;
     return `
-    <div class="card" style="animation-delay:${i * 0.05}s">
+    <div class="card" style="animation-delay:${i * 0.05}s" role="button" tabindex="0" onclick="openProductModal(${p.id})">
       <img
         class="card-img"
         src="${p.img}"
@@ -1673,7 +1799,7 @@ function renderGrid() {
         <div class="card-desc">${p.desc}</div>
         <div class="card-footer">
           <div class="card-price">${p.price} <span>${SHOP_CONFIG.currency}</span></div>
-          <button class="add-btn ${inCart ? 'added' : ''}" onclick="addToCart(${p.id})" id="btn-${p.id}">
+          <button class="add-btn ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); addToCart(${p.id})" id="btn-${p.id}">
             ${inCart ? '✓' : '+'}
           </button>
         </div>
@@ -2287,8 +2413,98 @@ document.getElementById('btnCallback') && document.getElementById('btnCallback')
   openCallbackModal();
 });
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeCallbackModal();
+  if (e.key === 'Escape') { closeCallbackModal(); closeProductModal(); }
 });
+
+// ── Карточка товара (модалка) ──────────────────────────────────────────────────
+var activeProductId = null;
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, function(ch) {
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
+  });
+}
+
+function getDefaultSingleFlowerNote() {
+  return 'Упаковка не включена в стоимость. На этапе оформления заказа вы можете добавить один из вариантов упаковки к букету.';
+}
+
+function renderProductDescription(p) {
+  var root = document.getElementById('productDesc');
+  var title = document.getElementById('productDescTitle');
+  if (!root) return;
+  var desc = (p && p.desc) ? String(p.desc).trim() : '';
+
+  // Для поштучных цветов — показываем стандартную подсказку про упаковку
+  if (p && String(p.cat || '').trim().toLowerCase() === 'цветы поштучно') {
+    if (!desc || /^без\s*упаковки$/i.test(desc)) desc = getDefaultSingleFlowerNote();
+    if (title) title.textContent = 'Важно';
+    root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+    return;
+  }
+
+  if (title) title.textContent = 'Состав';
+
+  if (!desc) {
+    root.innerHTML = '<div class="product-modal-desc" style="color:var(--text-muted)">Состав уточняется. Если важно повторить букет точь-в-точь — напишите нам, мы предложим замену при необходимости.</div>';
+    return;
+  }
+
+  // Если много строк — показываем списком
+  var lines = desc.split(/\r?\n/).map(function(s) { return String(s || '').trim(); }).filter(Boolean);
+  if (lines.length >= 2) {
+    root.innerHTML = '<ul class="product-modal-list">' + lines.map(function(line) {
+      return '<li>' + escapeHtml(line) + '</li>';
+    }).join('') + '</ul>';
+    return;
+  }
+
+  root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+}
+
+function openProductModal(productId) {
+  var id = Number(productId) || 0;
+  if (!id) return;
+  var p = catalog && catalog.find ? catalog.find(function(x) { return Number(x.id) === id; }) : null;
+  if (!p) return;
+
+  activeProductId = id;
+  var ov = document.getElementById('overlayProduct');
+  var md = document.getElementById('productModal');
+  if (ov) ov.classList.add('open');
+  if (md) md.classList.add('open');
+
+  var img = document.getElementById('productImg');
+  if (img) {
+    img.src = p.img || '';
+    img.alt = p.name || '';
+    img.onerror = function() { try { this.style.display = 'none'; } catch (e) {} };
+    try { img.style.display = 'block'; } catch (e) {}
+  }
+  var title = document.getElementById('productTitle');
+  if (title) title.textContent = p.name || '';
+  var price = document.getElementById('productPrice');
+  if (price) price.innerHTML = escapeHtml(p.price) + ' <span>' + escapeHtml(SHOP_CONFIG.currency) + '</span>';
+
+  renderProductDescription(p);
+
+  var addBtn = document.getElementById('productAddBtn');
+  if (addBtn) {
+    addBtn.onclick = function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      addToCart(id);
+      showToast('Добавлено в корзину');
+    };
+  }
+}
+
+function closeProductModal() {
+  activeProductId = null;
+  var ov = document.getElementById('overlayProduct');
+  var md = document.getElementById('productModal');
+  if (ov) ov.classList.remove('open');
+  if (md) md.classList.remove('open');
+}
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
 var linkSoberi = document.getElementById('linkSoberiSam');
