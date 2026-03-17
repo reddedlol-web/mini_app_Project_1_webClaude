@@ -1638,27 +1638,6 @@ const API_BASE = (function() {
   return '';
 })();
 
-// #region agent log
-try {
-  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Debug-Session-Id': 'cb6d5e'
-    },
-    body: JSON.stringify({
-      sessionId: 'cb6d5e',
-      runId: 'pre-fix1',
-      hypothesisId: 'H1',
-      location: 'web/index.html:API_BASE',
-      message: 'API_BASE initial value',
-      data: { apiBase: API_BASE },
-      timestamp: Date.now()
-    })
-  }).catch(function() {});
-} catch (e) {}
-// #endregion
-
 // Демо-данные — адреса Pastel Flowers (pastelflowers.by)
 var demoStores = [
   { id: '1', name: 'Pastel Flowers — Скрипникова', address: 'Минск, ул. Скрипникова, 11А' },
@@ -3188,26 +3167,6 @@ async function sendFiveVariantsRequest() {
   } catch (e) {
     console.warn('five-variants error', e);
     showToast('Не удалось получить варианты. Проверьте соединение и попробуйте ещё раз.');
-    // #region agent log
-    try {
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': 'cb6d5e'
-        },
-        body: JSON.stringify({
-          sessionId: 'cb6d5e',
-          runId: 'pre-fix1',
-          hypothesisId: 'H4',
-          location: 'web/index.html:sendFiveVariantsRequest',
-          message: 'Five-variants fetch threw',
-          data: { error: String(e && e.message || e) },
-          timestamp: Date.now()
-        })
-      }).catch(function() {});
-    } catch (e2) {}
-    // #endregion
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Показать 5 вариантов'; }
   }
