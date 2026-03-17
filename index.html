@@ -462,11 +462,29 @@
     transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
     max-height: 85vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 -4px 24px var(--shadow-strong);
     border: 1px solid var(--border);
     border-bottom: none;
   }
   .sheet.open { transform: translateY(0); }
+  .sheet-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
   .sheet-handle {
     width: 40px; height: 4px;
     border-radius: 2px;
@@ -1333,7 +1351,6 @@
 <div class="section-title" id="catalogSectionTitle2">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-source-hint" id="catalogSourceHint" style="display:none; font-size:12px; color:var(--muted, #9e8c82); padding:0 20px 8px;"></div>
-<div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">По вашим критериям ничего не найдено.</div>
 <div class="filters filters-scroll-hint">
   <div class="filter-row" id="categoryFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
@@ -1480,6 +1497,7 @@
 
 <!-- КОРЗИНА -->
 <div class="sheet" id="sheet">
+  <button type="button" class="sheet-close" onclick="closeCart()" aria-label="Закрыть">✕</button>
   <div class="sheet-handle"></div>
   <div class="sheet-title">Ваш букет</div>
   <div class="cart-items" id="cartItems"></div>
@@ -1652,7 +1670,6 @@ function renderStorePicker() {
   const pickerEl = document.getElementById('storePicker');
   const listEl = document.getElementById('storeList');
   const updatedEl = document.getElementById('storeUpdated');
-  const placeholderEl = document.getElementById('catalogPlaceholder');
   const catalogTitle = document.getElementById('catalogSectionTitle');
 
   if (!listEl) return;
@@ -1675,14 +1692,12 @@ function renderStorePicker() {
       subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
       subtitleEl.style.display = s ? 'block' : 'none';
     }
-    if (placeholderEl) placeholderEl.style.display = selectedStoreId ? 'none' : 'block';
     return;
   }
 
   if (stores.length === 0) {
     listEl.innerHTML = '<div class="store-empty">Магазины загружаются с сервера… Добавьте листы «Магазины» и «Остатки» в Google Таблицу (см. docs/CLIENT_REQUIREMENTS.md).</div>';
     updatedEl.style.display = 'none';
-    if (placeholderEl) placeholderEl.style.display = 'none';
     return;
   }
 
@@ -2263,12 +2278,6 @@ function renderGrid() {
 
   // Каталог показывается полностью без фильтра по остаткам; магазин выбирается при оформлении заказа
   const el = document.getElementById('grid');
-  const placeholderEl = document.getElementById('catalogPlaceholder');
-  if (placeholderEl && items.length > 0) placeholderEl.style.display = 'none';
-  if (placeholderEl && items.length === 0) {
-    placeholderEl.style.display = 'block';
-    placeholderEl.textContent = 'По вашим критериям ничего не найдено. Попробуйте изменить категорию или бюджет.';
-  }
 
   if (items.length === 0) {
     el.innerHTML = '<div class="grid-empty">По вашим критериям ничего не найдено. Попробуйте изменить категорию или бюджет.</div>';
@@ -2469,11 +2478,13 @@ function openCart() {
   renderCartSheet();
   document.getElementById('overlay').classList.add('open');
   document.getElementById('sheet').classList.add('open');
+  lockPageScrollForSheet();
 }
 
 function closeCart() {
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('sheet').classList.remove('open');
+  unlockPageScrollForSheet();
   // Сброс шага контактов при закрытии
   const contactForm = document.getElementById('contactForm');
   const orderBtn = document.getElementById('orderBtn');
@@ -2483,6 +2494,39 @@ function closeCart() {
     contactStep = false;
   }
 }
+
+// ── Блокировка фонового скролла при открытой корзине ──────────────────────────
+let __sheetScrollLockY = 0;
+function lockPageScrollForSheet() {
+  const sheet = document.getElementById('sheet');
+  if (!sheet || document.body.classList.contains('sheet-scroll-locked')) return;
+
+  __sheetScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.classList.add('sheet-scroll-locked');
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + __sheetScrollLockY + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockPageScrollForSheet() {
+  if (!document.body.classList.contains('sheet-scroll-locked')) return;
+  document.body.classList.remove('sheet-scroll-locked');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, __sheetScrollLockY || 0);
+}
+
+// Закрытие по ESC (в т.ч. на десктопе / Telegram Desktop)
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  const sheet = document.getElementById('sheet');
+  const overlay = document.getElementById('overlay');
+  if (sheet && overlay && sheet.classList.contains('open')) closeCart();
+});
 
 // ── ОФОРМЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────────
 
