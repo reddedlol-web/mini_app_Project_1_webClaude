@@ -3294,33 +3294,104 @@ async function sendFiveVariantsRequest() {
     if (budgetFrom !== null && budgetTo === null) budgetTo = Math.round(budgetFrom * 1.3);
     if (budgetTo !== null && budgetFrom === null) budgetFrom = Math.round(budgetTo * 0.7);
 
-    if (!API_BASE) {
-      showToast('Сервис подбора временно недоступен. Попробуйте ещё раз позже.');
+    // Локальный подбор на клиенте по уже загруженному catalog
+    var items = Array.isArray(catalog) ? catalog.slice() : [];
+    if (!items.length) {
+      showToast('Каталог пока не загружен. Попробуйте открыть каталог ещё раз.');
       return;
     }
+    function priceOf(p) { return Number(p && p.price) || 0; }
+    function midBudget() {
+      if (budgetFrom !== null && budgetTo !== null) return (budgetFrom + budgetTo) / 2;
+      return null;
+    }
+    var mid = midBudget();
 
-    var payload = {
-      budget_from: budgetFrom,
-      budget_to: budgetTo,
-      flowers: flowers,
-      colors: colors,
-      size: size,
-      style: style,
-      wishes: wishesText
-    };
+    // Дедуп по id и картинке
+    (function dedupe() {
+      var seenId = {};
+      var seenImg = {};
+      var out = [];
+      items.forEach(function(p) {
+        if (!p) return;
+        var id = Number(p.id) || 0;
+        if (id && seenId[id]) return;
+        var img = String(p.img || p.image || '').trim();
+        var imgKey = img ? img.toLowerCase() : '';
+        if (imgKey && seenImg[imgKey]) return;
+        if (id) seenId[id] = true;
+        if (imgKey) seenImg[imgKey] = true;
+        out.push(p);
+      });
+      items = out;
+    })();
+    // Простой скоринг по пожеланиям
+    var tokens = [];
+    if (wishes) {
+      tokens = wishes.toLowerCase().replace(/[^\wа-яё]+/gi, ' ').split(/\s+/).filter(function(t) { return t.length >= 3; }).slice(0, 12);
+    }
+    function wishScore(p) {
+      if (!tokens.length) return 0;
+      var h = [
+        p.name || '',
+        p.cat || p.category || '',
+        p.subcategory || '',
+        p.occ || p.occasions || '',
+        p.desc || p.description || ''
+      ].join(' ').toLowerCase();
+      var s = 0;
+      tokens.forEach(function(t) { if (h.indexOf(t) !== -1) s += 1; });
+      return s;
+    }
+    function inBudgetRange(p, from, to) {
+      if (from === null || to === null) return true;
+      var price = priceOf(p);
+      return price > 0 && price >= from && price <= to;
+    }
 
-    var resp = await fetch(API_BASE + '/api/five-variants', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    // Фильтр по бюджету и расширение диапазона, если < 5
+    var pool = items.slice();
+    if (budgetFrom !== null && budgetTo !== null) {
+      var width = (budgetTo - budgetFrom);
+      var center = (budgetFrom + budgetTo) / 2;
+      var steps = [0, 0.10, 0.20, 0.40, 0.60];
+      var chosen = [];
+      for (var i = 0; i < steps.length; i++) {
+        var k = steps[i];
+        var half = (width / 2) * (1 + k);
+        var from = Math.max(0, center - half);
+        var to = center + half;
+        chosen = pool.filter(function(p) { return inBudgetRange(p, from, to); });
+        if (chosen.length >= 5) { pool = chosen; break; }
+        if (i === steps.length - 1) pool = chosen;
+      }
+      mid = center;
+    }
+
+    pool.sort(function(a, b) {
+      var sa = wishScore(a);
+      var sb = wishScore(b);
+      if (sa !== sb) return sb - sa;
+      if (mid !== null) {
+        var pa = Math.abs(priceOf(a) - mid);
+        var pb = Math.abs(priceOf(b) - mid);
+        if (pa !== pb) return pa - pb;
+      }
+      return priceOf(a) - priceOf(b);
     });
-    if (!resp.ok) {
-      showToast('Не удалось получить варианты. Попробуйте ещё раз.');
-      return;
-    }
-    var data = await resp.json();
-    var items = Array.isArray(data.items) ? data.items : [];
-    renderFiveVariantsGrid(items);
+    var top = pool.slice(0, 5).map(function(p) {
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        image: p.img || p.image,
+        description: p.desc || p.description,
+        category: p.cat || p.category,
+        subcategory: p.subcategory,
+        occasions: p.occ || p.occasions
+      };
+    });
+    renderFiveVariantsGrid(top);
     closeFiveVariantsModal();
     showToast('✅ Готово! Вот 5 вариантов.');
   } catch (e) {
