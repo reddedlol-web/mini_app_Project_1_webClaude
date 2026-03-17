@@ -3109,11 +3109,11 @@ async function sendFiveVariantsRequest() {
       if (!isFinite(budget) || budget <= 0) budget = null;
     }
 
-    var r = await fetch(API_BASE + '/api/five-variants', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ budget: budget, wishes: wishes }),
-    });
+    var qs = [];
+    if (budget !== null) qs.push('budget=' + encodeURIComponent(String(budget)));
+    if (wishes) qs.push('wishes=' + encodeURIComponent(String(wishes)));
+    var url = API_BASE + '/api/five-variants' + (qs.length ? ('?' + qs.join('&')) : '');
+    var r = await fetch(url, { method: 'GET' });
     if (!r.ok) {
       showToast('Не удалось получить варианты. Попробуйте ещё раз.');
       return;
