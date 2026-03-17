@@ -1485,10 +1485,57 @@
 <div class="modal" id="fiveVariantsModal" role="dialog" aria-modal="true" aria-labelledby="fiveVariantsTitle">
   <button type="button" class="modal-close" onclick="closeFiveVariantsModal()" aria-label="Закрыть">✕</button>
   <div class="modal-title" id="fiveVariantsTitle">Получить 5 вариантов</div>
-  <div class="modal-subtitle">Укажите бюджет и пару пожеланий — мы покажем 5 подходящих букетов.</div>
+  <div class="modal-subtitle">Выберите параметры — и мы покажем подходящие варианты (если их меньше 5, покажем сколько найдём).</div>
   <div class="contact-field" style="margin-top:14px;">
-    <label for="fiveBudget">Примерный бюджет</label>
-    <input id="fiveBudget" type="number" inputmode="numeric" min="0" step="1" placeholder="Например: 120">
+    <label>Бюджет</label>
+    <div style="display:flex; gap:10px;">
+      <input id="fiveBudgetFrom" type="number" inputmode="numeric" min="0" step="1" placeholder="От">
+      <input id="fiveBudgetTo" type="number" inputmode="numeric" min="0" step="1" placeholder="До">
+    </div>
+    <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">Можно заполнить одно поле — второе посчитаем автоматически.</div>
+  </div>
+  <div class="contact-field">
+    <label>Цветы</label>
+    <div class="contact-radio" id="fiveFlowers" style="gap:8px; flex-wrap:wrap;">
+      <label><input type="radio" name="fiveFlowers" value="розы"> Розы</label>
+      <label><input type="radio" name="fiveFlowers" value="тюльпаны"> Тюльпаны</label>
+      <label><input type="radio" name="fiveFlowers" value="пионы"> Пионы</label>
+      <label><input type="radio" name="fiveFlowers" value="эустома"> Эустома</label>
+      <label><input type="radio" name="fiveFlowers" value="микс"> Микс</label>
+      <label><input type="radio" name="fiveFlowers" value="" checked> Не знаю</label>
+    </div>
+  </div>
+  <div class="contact-field">
+    <label>Цвета</label>
+    <div class="contact-radio" id="fiveColors" style="gap:8px; flex-wrap:wrap;">
+      <label><input type="radio" name="fiveColors" value="нежные"> Нежные</label>
+      <label><input type="radio" name="fiveColors" value="яркие"> Яркие</label>
+      <label><input type="radio" name="fiveColors" value="белые"> Белые</label>
+      <label><input type="radio" name="fiveColors" value="розовые"> Розовые</label>
+      <label><input type="radio" name="fiveColors" value="красные"> Красные</label>
+      <label><input type="radio" name="fiveColors" value="пастель"> Пастель</label>
+      <label><input type="radio" name="fiveColors" value="" checked> Не знаю</label>
+    </div>
+  </div>
+  <div class="contact-field">
+    <label>Размер</label>
+    <div class="contact-radio" id="fiveSize" style="gap:8px; flex-wrap:wrap;">
+      <label><input type="radio" name="fiveSize" value="мини"> Мини</label>
+      <label><input type="radio" name="fiveSize" value="средний"> Средний</label>
+      <label><input type="radio" name="fiveSize" value="большой"> Большой</label>
+      <label><input type="radio" name="fiveSize" value="" checked> Не знаю</label>
+    </div>
+  </div>
+  <div class="contact-field">
+    <label>Стиль</label>
+    <div class="contact-radio" id="fiveStyle" style="gap:8px; flex-wrap:wrap;">
+      <label><input type="radio" name="fiveStyle" value="классика"> Классика</label>
+      <label><input type="radio" name="fiveStyle" value="современный"> Современный</label>
+      <label><input type="radio" name="fiveStyle" value="моно"> Моно</label>
+      <label><input type="radio" name="fiveStyle" value="микс"> Микс</label>
+      <label><input type="radio" name="fiveStyle" value="в коробке"> В коробке</label>
+      <label><input type="radio" name="fiveStyle" value="" checked> Не знаю</label>
+    </div>
   </div>
   <div class="contact-field">
     <label for="fiveWishes">Пожелания</label>
@@ -1561,6 +1608,10 @@
         <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (+15 BYN) (с 11:00 до 21:30)</label>
        </div>
     </div>
+    <div class="contact-field" id="fieldDeliveryAddress">
+      <label for="contactAddress">Адрес доставки *</label>
+      <input id="contactAddress" type="text" placeholder="Адрес доставки">
+    </div>
     <div class="contact-field" id="fieldStore">
       <label>Адрес магазина</label>
       <div class="contact-radio">
@@ -1580,10 +1631,6 @@
         <label><input type="radio" name="timeSlot" value="17-20"> 17:00 – 20:00</label>
         <label><input type="radio" name="timeSlot" value="20-23"> 20:00 – 23:00</label>
       </div>
-    </div>
-    <div class="contact-field" id="fieldDeliveryAddress">
-      <label for="contactAddress">Адрес доставки *</label>
-      <input id="contactAddress" type="text" placeholder="Адрес доставки">
     </div>
     <div class="contact-field">
       <label>Дополнения</label>
@@ -3072,7 +3119,7 @@ function openFiveVariantsModal() {
   var md = document.getElementById('fiveVariantsModal');
   if (ov) ov.classList.add('open');
   if (md) md.classList.add('open');
-  var b = document.getElementById('fiveBudget');
+  var b = document.getElementById('fiveBudgetFrom');
   if (b) setTimeout(function() { try { b.focus(); } catch (e) {} }, 50);
 }
 function closeFiveVariantsModal() {
@@ -3152,16 +3199,43 @@ async function sendFiveVariantsRequest() {
   if (btn) { btn.disabled = true; btn.textContent = 'Подбираем...'; }
 
   try {
-    var budgetEl = document.getElementById('fiveBudget');
+    var budgetFromEl = document.getElementById('fiveBudgetFrom');
+    var budgetToEl = document.getElementById('fiveBudgetTo');
     var wishesEl = document.getElementById('fiveWishes');
-    var budgetRaw = (budgetEl && budgetEl.value != null) ? String(budgetEl.value).trim() : '';
-    var wishes = (wishesEl && wishesEl.value) ? String(wishesEl.value).trim() : '';
+    var budgetFromRaw = (budgetFromEl && budgetFromEl.value != null) ? String(budgetFromEl.value).trim() : '';
+    var budgetToRaw = (budgetToEl && budgetToEl.value != null) ? String(budgetToEl.value).trim() : '';
+    var wishesText = (wishesEl && wishesEl.value) ? String(wishesEl.value).trim() : '';
 
-    var budget = null;
-    if (budgetRaw) {
-      budget = Number(String(budgetRaw).replace(',', '.'));
-      if (!isFinite(budget) || budget <= 0) budget = null;
+    function getRadioVal(name) {
+      try {
+        var el = document.querySelector('input[name=\"' + name + '\"]:checked');
+        return el ? String(el.value || '') : '';
+      } catch (e) { return ''; }
     }
+    var flowers = getRadioVal('fiveFlowers');
+    var colors = getRadioVal('fiveColors');
+    var size = getRadioVal('fiveSize');
+    var style = getRadioVal('fiveStyle');
+
+    var wishParts = [];
+    if (flowers) wishParts.push('цветы: ' + flowers);
+    if (colors) wishParts.push('цвета: ' + colors);
+    if (size) wishParts.push('размер: ' + size);
+    if (style) wishParts.push('стиль: ' + style);
+    if (wishesText) wishParts.push('текст: ' + wishesText);
+    var wishes = wishParts.join('; ');
+
+    function toNum(raw) {
+      var n = Number(String(raw || '').replace(',', '.'));
+      return (isFinite(n) && n > 0) ? n : null;
+    }
+    var budgetFrom = toNum(budgetFromRaw);
+    var budgetTo = toNum(budgetToRaw);
+    if (budgetFrom !== null && budgetTo !== null && budgetFrom > budgetTo) {
+      var tmp = budgetFrom; budgetFrom = budgetTo; budgetTo = tmp;
+    }
+    if (budgetFrom !== null && budgetTo === null) budgetTo = Math.round(budgetFrom * 1.3);
+    if (budgetTo !== null && budgetFrom === null) budgetFrom = Math.round(budgetTo * 0.7);
 
     // Локальный подбор на клиенте по уже загруженному catalog
     var items = Array.isArray(catalog) ? catalog.slice() : [];
@@ -3169,16 +3243,31 @@ async function sendFiveVariantsRequest() {
       showToast('Каталог пока не загружен. Попробуйте открыть каталог ещё раз.');
       return;
     }
-    // Фильтр по бюджету ±30%
-    if (budget !== null) {
-      var lo = budget * 0.7;
-      var hi = budget * 1.3;
-      var inRange = items.filter(function(p) {
-        var price = Number(p.price) || 0;
-        return price > 0 && price >= lo && price <= hi;
-      });
-      if (inRange.length) items = inRange;
+    function priceOf(p) { return Number(p && p.price) || 0; }
+    function midBudget() {
+      if (budgetFrom !== null && budgetTo !== null) return (budgetFrom + budgetTo) / 2;
+      return null;
     }
+    var mid = midBudget();
+
+    // Дедуп по id и картинке
+    (function dedupe() {
+      var seenId = {};
+      var seenImg = {};
+      var out = [];
+      items.forEach(function(p) {
+        if (!p) return;
+        var id = Number(p.id) || 0;
+        if (id && seenId[id]) return;
+        var img = String(p.img || p.image || '').trim();
+        var imgKey = img ? img.toLowerCase() : '';
+        if (imgKey && seenImg[imgKey]) return;
+        if (id) seenId[id] = true;
+        if (imgKey) seenImg[imgKey] = true;
+        out.push(p);
+      });
+      items = out;
+    })();
     // Простой скоринг по пожеланиям
     var tokens = [];
     if (wishes) {
@@ -3197,18 +3286,43 @@ async function sendFiveVariantsRequest() {
       tokens.forEach(function(t) { if (h.indexOf(t) !== -1) s += 1; });
       return s;
     }
-    items.sort(function(a, b) {
+    function inBudgetRange(p, from, to) {
+      if (from === null || to === null) return true;
+      var price = priceOf(p);
+      return price > 0 && price >= from && price <= to;
+    }
+
+    // Фильтр по бюджету и расширение диапазона, если < 5
+    var pool = items.slice();
+    if (budgetFrom !== null && budgetTo !== null) {
+      var width = (budgetTo - budgetFrom);
+      var center = (budgetFrom + budgetTo) / 2;
+      var steps = [0, 0.10, 0.20, 0.40, 0.60];
+      var chosen = [];
+      for (var i = 0; i < steps.length; i++) {
+        var k = steps[i];
+        var half = (width / 2) * (1 + k);
+        var from = Math.max(0, center - half);
+        var to = center + half;
+        chosen = pool.filter(function(p) { return inBudgetRange(p, from, to); });
+        if (chosen.length >= 5) { pool = chosen; break; }
+        if (i === steps.length - 1) pool = chosen;
+      }
+      mid = center;
+    }
+
+    pool.sort(function(a, b) {
       var sa = wishScore(a);
       var sb = wishScore(b);
       if (sa !== sb) return sb - sa;
-      if (budget !== null) {
-        var pa = Math.abs((Number(a.price) || 0) - budget);
-        var pb = Math.abs((Number(b.price) || 0) - budget);
+      if (mid !== null) {
+        var pa = Math.abs(priceOf(a) - mid);
+        var pb = Math.abs(priceOf(b) - mid);
         if (pa !== pb) return pa - pb;
       }
-      return (Number(a.price) || 0) - (Number(b.price) || 0);
+      return priceOf(a) - priceOf(b);
     });
-    var top = items.slice(0, 5).map(function(p) {
+    var top = pool.slice(0, 5).map(function(p) {
       return {
         id: p.id,
         name: p.name,
