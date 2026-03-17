@@ -591,7 +591,7 @@
   }
 
   /* ── ПРЕСЕТЫ (хиты продаж) ── */
-  .presets-wrap { padding: 8px 0 12px; position: relative; }
+  .presets-wrap { padding: 8px 0 12px; position: relative; display: none; }
   .presets {
     padding: 8px 20px 10px;
     margin-right: -20px;
@@ -1281,6 +1281,12 @@
   </div>
 </div>
 
+<!-- 5 ВАРИАНТОВ (РЕЗУЛЬТАТ) -->
+<div id="fiveVariantsBlock" style="display:none;">
+  <div class="section-title">Ваши 5 вариантов</div>
+  <div class="grid" id="fiveGrid"></div>
+</div>
+
 <!-- СОБЕРИ САМ (текст с pastelflowers.by) -->
 <section class="block block--alt" id="sectionSoberiSam">
   <h2 class="block-title">Собери сам</h2>
@@ -1471,6 +1477,26 @@
   <button type="button" class="order-btn" id="callbackSendBtn" onclick="sendCallbackRequest()">Отправить</button>
   <div style="margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.4;">
     Если не получается отправить заявку, позвоните нам: <a href="tel:+375292009880" style="color:var(--deep);font-weight:500;">+375 29 200 98 80</a>
+  </div>
+</div>
+
+<!-- ПОЛУЧИТЬ 5 ВАРИАНТОВ (МОДАЛКА) -->
+<div class="overlay" id="overlayFiveVariants" onclick="closeFiveVariantsModal()"></div>
+<div class="modal" id="fiveVariantsModal" role="dialog" aria-modal="true" aria-labelledby="fiveVariantsTitle">
+  <button type="button" class="modal-close" onclick="closeFiveVariantsModal()" aria-label="Закрыть">✕</button>
+  <div class="modal-title" id="fiveVariantsTitle">Получить 5 вариантов</div>
+  <div class="modal-subtitle">Укажите бюджет и пару пожеланий — мы покажем 5 подходящих букетов.</div>
+  <div class="contact-field" style="margin-top:14px;">
+    <label for="fiveBudget">Примерный бюджет</label>
+    <input id="fiveBudget" type="number" inputmode="numeric" min="0" step="1" placeholder="Например: 120">
+  </div>
+  <div class="contact-field">
+    <label for="fiveWishes">Пожелания</label>
+    <textarea id="fiveWishes" rows="3" maxlength="500" placeholder="Например: нежные тона, розы/пионовидные, на день рождения"></textarea>
+  </div>
+  <button type="button" class="order-btn" id="fiveVariantsSendBtn" onclick="sendFiveVariantsRequest()">Показать 5 вариантов</button>
+  <div style="margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.4;">
+    Вы сможете открыть карточку букета и добавить понравившиеся в корзину.
   </div>
 </div>
 
@@ -2972,9 +2998,131 @@ setupWheelScroll(document.querySelector('.presets'));
   if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span><span class="logo-text">' + c.name + '</span>';
 })();
 
-// ── Получить 5 вариантов (как на сайте) ────────────────────────────────────────
+// ── Получить 5 вариантов (внутри миниаппа) ─────────────────────────────────────
+function openFiveVariantsModal() {
+  var ov = document.getElementById('overlayFiveVariants');
+  var md = document.getElementById('fiveVariantsModal');
+  if (ov) ov.classList.add('open');
+  if (md) md.classList.add('open');
+  var b = document.getElementById('fiveBudget');
+  if (b) setTimeout(function() { try { b.focus(); } catch (e) {} }, 50);
+}
+function closeFiveVariantsModal() {
+  var ov = document.getElementById('overlayFiveVariants');
+  var md = document.getElementById('fiveVariantsModal');
+  if (ov) ov.classList.remove('open');
+  if (md) md.classList.remove('open');
+}
+
+function normalizeApiItem(it) {
+  if (!it) return null;
+  var id = Number(it.id) || 0;
+  if (!id) return null;
+  // Если в каталоге уже есть этот id — используем существующую карточку (для модалки/корзины).
+  var existing = catalog && catalog.find ? catalog.find(function(x) { return Number(x.id) === id; }) : null;
+  if (existing) return existing;
+  // Иначе делаем минимальную карточку и добавляем в catalog, чтобы работала модалка и корзина.
+  var price = Number(it.price) || 0;
+  var obj = {
+    id: id,
+    name: String(it.name || '').trim(),
+    price: price ? Math.round(price) : 0,
+    img: String(it.image || it.img || '').trim(),
+    desc: String(it.description || it.desc || '').trim() || 'Состав уточняется.',
+    cat: String(it.category || '').trim() || 'any',
+    emoji: '🌸',
+  };
+  try { if (Array.isArray(catalog)) catalog.push(obj); } catch (e) {}
+  return obj;
+}
+
+function renderFiveVariantsGrid(items) {
+  var block = document.getElementById('fiveVariantsBlock');
+  var el = document.getElementById('fiveGrid');
+  if (!el || !block) return;
+
+  var resolved = (items || []).map(normalizeApiItem).filter(Boolean);
+  if (resolved.length === 0) {
+    block.style.display = 'block';
+    el.innerHTML = '<div class="grid-empty">Не нашли подходящих вариантов. Попробуйте изменить бюджет или пожелания.</div>';
+    return;
+  }
+
+  block.style.display = 'block';
+  el.innerHTML = resolved.map(function(p, i) {
+    var inCart = cart[p.id] > 0;
+    return `
+    <div class="card" style="animation-delay:${i * 0.05}s" role="button" tabindex="0" onclick="openProductModal(${p.id})">
+      <img
+        class="card-img"
+        src="${p.img}"
+        alt="${p.name}"
+        loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+      />
+      <div class="card-img-fallback" style="display:none;aspect-ratio:1;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,var(--accent-soft),var(--bg-hero))">🌸</div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-footer">
+          <div class="card-price">${p.price} <span>${SHOP_CONFIG.currency}</span></div>
+          <button class="add-btn ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); addToCart(${p.id})" id="btn-${p.id}">
+            ${inCart ? '✓' : '+'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  try {
+    block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {}
+}
+
+async function sendFiveVariantsRequest() {
+  var btn = document.getElementById('fiveVariantsSendBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Подбираем...'; }
+
+  try {
+    if (!API_BASE) {
+      showToast('Сервис подбора пока недоступен. Откройте миниапп с нашего сервера (/mini-app).');
+      return;
+    }
+
+    var budgetEl = document.getElementById('fiveBudget');
+    var wishesEl = document.getElementById('fiveWishes');
+    var budgetRaw = (budgetEl && budgetEl.value != null) ? String(budgetEl.value).trim() : '';
+    var wishes = (wishesEl && wishesEl.value) ? String(wishesEl.value).trim() : '';
+
+    var budget = null;
+    if (budgetRaw) {
+      budget = Number(String(budgetRaw).replace(',', '.'));
+      if (!isFinite(budget) || budget <= 0) budget = null;
+    }
+
+    var r = await fetch(API_BASE + '/api/five-variants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ budget: budget, wishes: wishes }),
+    });
+    if (!r.ok) {
+      showToast('Не удалось получить варианты. Попробуйте ещё раз.');
+      return;
+    }
+    var data = await r.json();
+    renderFiveVariantsGrid(Array.isArray(data.items) ? data.items : []);
+    closeFiveVariantsModal();
+    showToast('✅ Готово! Вот 5 вариантов.');
+  } catch (e) {
+    console.warn('five-variants error', e);
+    showToast('Не удалось получить варианты. Проверьте соединение и попробуйте ещё раз.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Показать 5 вариантов'; }
+  }
+}
+
 document.getElementById('btnFiveVariants') && document.getElementById('btnFiveVariants').addEventListener('click', function() {
-  showToast('Напишите в чат бота: «Хочу 5 вариантов под бюджет» — мы пришлём на ваш номер. Или позвоните: +375 (29) 200-98-80');
+  openFiveVariantsModal();
 });
 
 // ── Заказать звонок (модалка + заявка менеджеру) ──────────────────────────────
