@@ -1879,14 +1879,12 @@ async function fetchCatalog() {
         hintEl.style.display = 'block';
       }
       if (hintEl && !reason) { hintEl.style.display = 'none'; }
-      showToast(msg);
     }
   } catch (e) {
     // (debug logs removed)
     console.warn('Catalog API unavailable', e);
     var hintEl = document.getElementById('catalogSourceHint');
     if (hintEl) { hintEl.style.display = 'none'; }
-    showToast('Каталог с сервера недоступен. Показан демо-каталог.');
   }
 }
 
