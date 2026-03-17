@@ -1581,9 +1581,9 @@
         <label><input type="radio" name="timeSlot" value="20-23"> 20:00 – 23:00</label>
       </div>
     </div>
-    <div class="contact-field">
-      <label for="contactAddress">Адрес доставки »</label>
-      <input id="contactAddress" type="text" placeholder="Адрес">
+    <div class="contact-field" id="fieldDeliveryAddress">
+      <label for="contactAddress">Адрес доставки *</label>
+      <input id="contactAddress" type="text" placeholder="Адрес доставки">
     </div>
     <div class="contact-field">
       <label>Дополнения</label>
@@ -2469,6 +2469,10 @@ function renderCartSheet() {
   if (addonRibbon && addonRibbon.checked) sum += 2;
   if (addonCard && addonCard.checked) sum += 2;
 
+  // Доставка курьером (если выбрана)
+  const deliveryType = getSelectedDeliveryType();
+  if (deliveryType === 'courier') sum += getCourierDeliveryCost();
+
   totalEl.style.display = 'flex';
   sumEl.textContent = sum + ' ' + SHOP_CONFIG.currency;
 
@@ -2567,6 +2571,41 @@ document.addEventListener('keydown', function(e) {
 
 // ── ОФОРМЛЕНИЕ ЗАЯВКИ ─────────────────────────────────────────────────────────
 
+function getSelectedDeliveryType() {
+  const el = document.querySelector('input[name="deliveryType"]:checked');
+  return el ? String(el.value || '') : '';
+}
+
+function getCourierDeliveryCost() {
+  const v = (SHOP_CONFIG && SHOP_CONFIG.deliveryCostMinsk != null) ? Number(SHOP_CONFIG.deliveryCostMinsk) : 0;
+  return Number.isFinite(v) ? v : 0;
+}
+
+function updateDeliveryFields() {
+  const storeField = document.getElementById('fieldStore');
+  const addrField = document.getElementById('fieldDeliveryAddress');
+  const addrInput = document.getElementById('contactAddress');
+
+  // По умолчанию — самовывоз (чтобы сразу были видны адреса магазинов)
+  let type = getSelectedDeliveryType();
+  if (!type) {
+    const pickup = document.querySelector('input[name="deliveryType"][value="pickup"]');
+    if (pickup) pickup.checked = true;
+    type = 'pickup';
+  }
+
+  if (type === 'courier') {
+    if (storeField) storeField.style.display = 'none';
+    document.querySelectorAll('input[name="store"]').forEach(function(r) { r.checked = false; });
+    if (addrField) addrField.style.display = 'block';
+    if (addrInput) addrInput.required = true;
+  } else {
+    if (storeField) storeField.style.display = 'block';
+    if (addrField) addrField.style.display = 'none';
+    if (addrInput) addrInput.required = false;
+  }
+}
+
 function onOrderClick() {
   const ids = Object.keys(cart).map(Number);
   if (ids.length === 0 && !subscriptionGetHasSelection()) return;
@@ -2579,6 +2618,8 @@ function onOrderClick() {
     contactStep = true;
     contactForm.style.display = 'block';
     orderBtn.textContent = 'Заказать';
+    updateDeliveryFields();
+    renderCartSheet();
     return;
   }
 
@@ -2607,6 +2648,14 @@ function onOrderClick() {
     showToast('Выберите вариант доставки.');
     return;
   }
+  if (deliveryType.value === 'pickup' && !storeRadio) {
+    showToast('Выберите адрес магазина для самовывоза.');
+    return;
+  }
+  if (deliveryType.value === 'courier' && !address) {
+    showToast('Укажите адрес доставки.');
+    return;
+  }
   if (!timeSlot) {
     showToast('Выберите время получения.');
     return;
@@ -2631,8 +2680,8 @@ function onOrderClick() {
   const timeLabel = timeSlot ? timeSlot.value.replace('-', ' – ') : '';
 
   var wishesParts = ['Дата: ' + date, 'Время: ' + timeLabel, 'Доставка: ' + deliveryLabel];
-  if (storeLabel) wishesParts.push('Магазин: ' + storeLabel);
-  if (address) wishesParts.push('Адрес: ' + address); else wishesParts.push('Адрес: уточнить у получателя');
+  if (deliveryType.value === 'pickup') wishesParts.push('Магазин: ' + storeLabel);
+  if (deliveryType.value === 'courier') wishesParts.push('Адрес: ' + address);
   if (addons.length) wishesParts.push('Дополнения: ' + addons.map(function(a) { return a.name + (a.price ? ' +' + a.price + ' BYN' : '') + (a.note ? ': «' + a.note + '»' : ''); }).join(', '));
 
   sendOrder(name, receiverName, phone, receiverPhone, wishesParts.join('. '), date, addons);
@@ -2645,6 +2694,15 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
 
   let sum = 0;
   const lines = [];
+
+  const deliveryType = getSelectedDeliveryType();
+  if (deliveryType === 'courier') {
+    const d = getCourierDeliveryCost();
+    if (d > 0) {
+      sum += d;
+      lines.push('• 🚚 Доставка курьером = ' + d + ' ' + SHOP_CONFIG.currency);
+    }
+  }
 
   if (subscriptionGetHasSelection()) {
     const s = subscriptionSelection;
@@ -2747,6 +2805,9 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
       wishes: wishes,
       date: date || '',
       card_note: cardNote,
+      delivery_type: deliveryType || '',
+      delivery_cost: (deliveryType === 'courier' ? getCourierDeliveryCost() : 0),
+      delivery_address: (deliveryType === 'courier' && document.getElementById('contactAddress') ? (document.getElementById('contactAddress').value || '').trim() : ''),
       store_id: storeInfo.store_id || '',
       store_name: storeInfo.store_name || '',
       store_address: storeInfo.store_address || '',
@@ -3344,6 +3405,14 @@ if (linkSoberi) {
 ['addonPack', 'addonRibbon', 'addonCard'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('change', function() { renderCartSheet(); });
+});
+
+// При выборе типа доставки — переключаем поля и пересчитываем итог
+document.querySelectorAll('input[name="deliveryType"]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    updateDeliveryFields();
+    renderCartSheet();
+  });
 });
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
