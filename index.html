@@ -21,9 +21,9 @@
     --bg-hero:      #ececf2;
     --bg-card:      #ffffff;
     /* Акценты: пыльно‑розовый */
-    --accent:       #e39bb3;
-    --accent-deep:  #c56b89;
-    --accent-soft:  #f6d8e2;
+    --accent:       #db9eb3;
+    --accent-deep:  #c58ea0;
+    --accent-soft:  #f0c8d5;
     /* Текст */
     --text:         #2b2b31;
     --text-soft:    #4b4b55;
@@ -1072,21 +1072,14 @@ function buildCategoriesFromCatalog() {
   categories = list;
 }
 async function fetchCatalog() {
-  // #region agent log
-  try {
-    var embeddedLen = (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) ? EMBEDDED_CATALOG_RAW.length : 0;
-    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'fetchCatalog entry',data:{API_BASE:API_BASE||'(empty)',hasApiBase:!!API_BASE,embeddedLen:embeddedLen},timestamp:Date.now(),hypothesisId:'H1'})}).catch(function(){});
-  } catch (_) {}
-  // #endregion
+  // (debug logs removed)
   if (!API_BASE) {
     if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
       catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
       if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); }
       var h = document.getElementById('catalogSourceHint');
       if (h) { h.textContent = 'Каталог: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
-      // #region agent log
-      try { fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'branch: no API_BASE, used embedded',data:{catalogLen:catalog.length},timestamp:Date.now(),hypothesisId:'H1'})}).catch(function(){}); } catch (_) {}
-      // #endregion
+      // (debug logs removed)
       return;
     }
     var hint = document.getElementById('catalogSourceHint');
@@ -1094,26 +1087,14 @@ async function fetchCatalog() {
     return;
   }
   var catalogUrl = API_BASE + '/api/catalog';
-  // #region agent log
-  try {
-    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'before fetch',data:{url:catalogUrl},timestamp:Date.now(),hypothesisId:'H5'})}).catch(function(){});
-  } catch (_) {}
-  // #endregion
+  // (debug logs removed)
   try {
     var r = await fetch(catalogUrl);
     var data = r.ok ? await r.json() : { items: [] };
-    // #region agent log
-    try {
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'after fetch',data:{ok:r.ok,status:r.status,itemsLength:(data.items&&data.items.length)||0},timestamp:Date.now(),hypothesisId:'H2'})}).catch(function(){});
-    } catch (_) {}
-    // #endregion
+    // (debug logs removed)
     if (data.items && data.items.length > 0) {
       catalog = data.items.map(normalizeCatalogItem).filter(function(p) { return p.id; });
-      // #region agent log
-      try {
-        fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'branch: API used, catalog from server',data:{catalogLength:catalog.length,rawItemsLength:data.items.length},timestamp:Date.now(),hypothesisId:'H2'})}).catch(function(){});
-      } catch (_) {}
-      // #endregion
+      // (debug logs removed)
       buildCategoriesFromCatalog();
       renderCategoryFilters();
       renderGrid();
@@ -1165,11 +1146,7 @@ async function fetchCatalog() {
       showToast(msg);
     }
   } catch (e) {
-    // #region agent log
-    try {
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'77eebe'},body:JSON.stringify({sessionId:'77eebe',location:'index.html:fetchCatalog',message:'catch',data:{err:String(e&&e.message||e)},timestamp:Date.now(),hypothesisId:'H3'})}).catch(function(){});
-    } catch (_) {}
-    // #endregion
+    // (debug logs removed)
     console.warn('Catalog API unavailable', e);
     var hintEl = document.getElementById('catalogSourceHint');
     if (hintEl) { hintEl.style.display = 'none'; }
@@ -1618,11 +1595,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
         }
       }
     } catch (e) {}
-    // #region agent log
-    try {
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f8826'},body:JSON.stringify({sessionId:'6f8826',runId:'pre-fix',hypothesisId:'H1',location:'web/index.html:sendOrder.lines',message:'Resolved article for line',data:{id:id,pName:p&&p.name,pArticle:p&&p.article,rawArticle:rawArticle,embeddedType:typeof EMBEDDED_CATALOG_RAW,embeddedLen:(typeof EMBEDDED_CATALOG_RAW!=='undefined'&&EMBEDDED_CATALOG_RAW&&EMBEDDED_CATALOG_RAW.length)||0},timestamp:Date.now()})}).catch(()=>{});
-    } catch (_) {}
-    // #endregion
+    // (debug logs removed)
     const qty = cart[id];
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
@@ -1643,17 +1616,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     '\n👤 Имя получателя: ' + receiverName +
     '\n📞 Телефон получателя: ' + receiverPhone +
     '\n✏️ ' + wishes;
-  // #region agent log
-  try {
-    var embeddedSample = [];
-    try {
-      if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW && EMBEDDED_CATALOG_RAW.length) {
-        embeddedSample = EMBEDDED_CATALOG_RAW.slice(0, 5).map(function(x){ return {id:x.id,name:x.name,article:x.article}; });
-      }
-    } catch (_) {}
-    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f8826'},body:JSON.stringify({sessionId:'6f8826',runId:'pre-fix',hypothesisId:'H2',location:'web/index.html:sendOrder.orderText',message:'Order text built',data:{linesCount:lines.length,orderTextHead:String(orderText).slice(0,120),embeddedType:typeof EMBEDDED_CATALOG_RAW,embeddedLen:(typeof EMBEDDED_CATALOG_RAW!=='undefined'&&EMBEDDED_CATALOG_RAW&&EMBEDDED_CATALOG_RAW.length)||0,embeddedSample:embeddedSample},timestamp:Date.now()})}).catch(()=>{});
-  } catch (_) {}
-  // #endregion
+  // (debug logs removed)
 
   // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Сурганова»/«Скрипникова»)
   var storeInfo = (function() {
