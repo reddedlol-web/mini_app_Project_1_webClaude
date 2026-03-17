@@ -807,6 +807,149 @@
     cursor: pointer;
   }
   .block-cta:active { background: var(--text); transform: scale(0.98); }
+
+  /* ── ПОДПИСКА: Выбрать тариф (аккордеон + карточки) ── */
+  .sub-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sub-cta-arrow {
+    display:inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items:center;
+    justify-content:center;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.22);
+    line-height: 1;
+    transform: rotate(0deg);
+    transition: transform 0.18s ease;
+  }
+  #sectionSubscription.is-open .sub-cta-arrow { transform: rotate(180deg); }
+  .sub-chooser {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 14px var(--shadow);
+  }
+  .sub-chooser-head { margin-bottom: 12px; }
+  .sub-chooser-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-deep);
+    letter-spacing: 0.02em;
+  }
+  .sub-chooser-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .sub-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 720px) {
+    .sub-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .sub-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sub-card:hover { border-color: var(--accent); }
+  .sub-card-top {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
+  }
+  .sub-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent-deep);
+    line-height: 1.05;
+  }
+  .sub-card-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-deep);
+    white-space: nowrap;
+  }
+  .sub-cur { font-weight: 600; opacity: 0.9; }
+  .sub-card-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.55;
+    opacity: 0.95;
+  }
+  .sub-field { margin-top: 2px; }
+  .sub-field-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .sub-pills {
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sub-pill {
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--accent-deep);
+    border-radius: 999px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s, background 0.18s, border-color 0.18s;
+  }
+  .sub-pill:active { transform: scale(0.98); }
+  .sub-pill.is-active {
+    border-color: var(--accent-deep);
+    background: var(--bg-hero);
+  }
+  .sub-order-btn {
+    margin-top: 6px;
+    width: 100%;
+    border: 0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: var(--accent-deep);
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .sub-order-btn:active { background: var(--text); transform: scale(0.99); }
+  .sub-chooser-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display:flex;
+    justify-content:flex-start;
+  }
+  .sub-link {
+    font-size: 12px;
+    color: var(--accent-deep);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .sub-link:hover { text-decoration: underline; }
   .scroll-target-flash {
     animation: scrollTargetFlash 1.1s ease-out;
   }
@@ -1179,7 +1322,107 @@
   <h2 class="block-title">Подписка на цветы</h2>
   <p class="block-text">Уникальный сервис доставки цветов на дом 1 раз в неделю. Регулярно в оговоренный день недели и время вас будут радовать свежие сезонные цветы, состав которых, мы можем согласовывать индивидуально.</p>
   <p class="block-text">Это идеальный подарок для себя или ваших близких.</p>
-  <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="block-cta">Выбрать тариф</a>
+  <button type="button" class="block-cta sub-cta" id="subscriptionToggle" aria-expanded="false" aria-controls="subscriptionChooser">
+    Выбрать тариф
+    <span class="sub-cta-arrow" aria-hidden="true">▾</span>
+  </button>
+
+  <div class="sub-chooser" id="subscriptionChooser" hidden>
+    <div class="sub-chooser-head">
+      <div class="sub-chooser-title">Выберите подписку</div>
+      <div class="sub-chooser-note">Выберите бюджет букета и регулярность оплаты — после этого можно перейти к оформлению заказа.</div>
+    </div>
+
+    <div class="sub-grid" id="subscriptionGrid">
+      <div class="sub-card" data-tariff-id="start">
+        <div class="sub-card-top">
+          <div class="sub-card-title">Старт</div>
+          <div class="sub-card-price"><span data-role="subBudgetLabel">120</span> <span class="sub-cur" data-role="subCurrency">BYN</span></div>
+        </div>
+        <div class="sub-card-desc">Нежный сезонный букет. Отлично, чтобы попробовать сервис.</div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Бюджет букета</div>
+          <div class="sub-pills" data-role="subBudgetPills">
+            <button type="button" class="sub-pill is-active" data-budget="120">120</button>
+            <button type="button" class="sub-pill" data-budget="150">150</button>
+            <button type="button" class="sub-pill" data-budget="180">180</button>
+          </div>
+        </div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Регулярность оплаты</div>
+          <div class="sub-pills" data-role="subPayPills">
+            <button type="button" class="sub-pill is-active" data-pay="weekly">Еженедельно</button>
+            <button type="button" class="sub-pill" data-pay="biweekly">Раз в 2 недели</button>
+            <button type="button" class="sub-pill" data-pay="monthly">Ежемесячно</button>
+          </div>
+        </div>
+
+        <button type="button" class="sub-order-btn" data-action="subOrder">Заказать</button>
+      </div>
+
+      <div class="sub-card" data-tariff-id="classic">
+        <div class="sub-card-top">
+          <div class="sub-card-title">Классика</div>
+          <div class="sub-card-price"><span data-role="subBudgetLabel">180</span> <span class="sub-cur" data-role="subCurrency">BYN</span></div>
+        </div>
+        <div class="sub-card-desc">Больше объёма и сезонных акцентов. Самый популярный вариант.</div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Бюджет букета</div>
+          <div class="sub-pills" data-role="subBudgetPills">
+            <button type="button" class="sub-pill" data-budget="150">150</button>
+            <button type="button" class="sub-pill is-active" data-budget="180">180</button>
+            <button type="button" class="sub-pill" data-budget="220">220</button>
+          </div>
+        </div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Регулярность оплаты</div>
+          <div class="sub-pills" data-role="subPayPills">
+            <button type="button" class="sub-pill is-active" data-pay="weekly">Еженедельно</button>
+            <button type="button" class="sub-pill" data-pay="biweekly">Раз в 2 недели</button>
+            <button type="button" class="sub-pill" data-pay="monthly">Ежемесячно</button>
+          </div>
+        </div>
+
+        <button type="button" class="sub-order-btn" data-action="subOrder">Заказать</button>
+      </div>
+
+      <div class="sub-card" data-tariff-id="premium">
+        <div class="sub-card-top">
+          <div class="sub-card-title">Премиум</div>
+          <div class="sub-card-price"><span data-role="subBudgetLabel">250</span> <span class="sub-cur" data-role="subCurrency">BYN</span></div>
+        </div>
+        <div class="sub-card-desc">Выразительные композиции и больше редких сезонных цветов.</div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Бюджет букета</div>
+          <div class="sub-pills" data-role="subBudgetPills">
+            <button type="button" class="sub-pill" data-budget="220">220</button>
+            <button type="button" class="sub-pill is-active" data-budget="250">250</button>
+            <button type="button" class="sub-pill" data-budget="300">300</button>
+          </div>
+        </div>
+
+        <div class="sub-field">
+          <div class="sub-field-label">Регулярность оплаты</div>
+          <div class="sub-pills" data-role="subPayPills">
+            <button type="button" class="sub-pill is-active" data-pay="weekly">Еженедельно</button>
+            <button type="button" class="sub-pill" data-pay="biweekly">Раз в 2 недели</button>
+            <button type="button" class="sub-pill" data-pay="monthly">Ежемесячно</button>
+          </div>
+        </div>
+
+        <button type="button" class="sub-order-btn" data-action="subOrder">Заказать</button>
+      </div>
+    </div>
+
+    <div class="sub-chooser-footer">
+      <a href="https://pastelflowers.by/subscription/" target="_blank" rel="noopener" class="sub-link">Открыть страницу подписки на сайте</a>
+    </div>
+  </div>
 </section>
 
 <!-- ОТЗЫВЫ КЛИЕНТОВ -->
@@ -1322,8 +1565,8 @@
       <label>Вариант доставки *</label>
       <div class="contact-radio">
         <label><input type="radio" name="deliveryType" value="pickup"> Самовывоз (с 10:00 до 21:00)</label>
-        <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (15р) (с 11:00 до 21:30)</label>
-      </div>
+        <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (+15 BYN) (с 11:00 до 21:30)</label>
+       </div>
     </div>
     <div class="contact-field" id="fieldStore">
       <label>Адрес магазина</label>
@@ -1667,6 +1910,108 @@ let activeCategory = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let contactStep = false; // false — корзина, true — форма контактов
+let subscriptionSelection = null; // { tariffId, tariffTitle, budget, payKey, payLabel }
+
+function getSubscriptionPayLabel(key) {
+  if (key === 'weekly') return 'Еженедельно';
+  if (key === 'biweekly') return 'Раз в 2 недели';
+  if (key === 'monthly') return 'Ежемесячно';
+  return 'Еженедельно';
+}
+
+function subscriptionGetHasSelection() {
+  return !!(subscriptionSelection && subscriptionSelection.budget);
+}
+
+function subscriptionSetOpen(open) {
+  const root = document.getElementById('sectionSubscription');
+  const chooser = document.getElementById('subscriptionChooser');
+  const btn = document.getElementById('subscriptionToggle');
+  const isOpen = !!open;
+  if (root) root.classList.toggle('is-open', isOpen);
+  if (chooser) chooser.hidden = !isOpen;
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  if (isOpen) {
+    try { chooser.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  }
+}
+
+function subscriptionInit() {
+  const btn = document.getElementById('subscriptionToggle');
+  const grid = document.getElementById('subscriptionGrid');
+  if (!btn || !grid) return;
+
+  subscriptionSetOpen(false);
+
+  btn.addEventListener('click', function() {
+    const root = document.getElementById('sectionSubscription');
+    const isOpen = root && root.classList.contains('is-open');
+    subscriptionSetOpen(!isOpen);
+  });
+
+  function setActivePill(container, btnEl) {
+    if (!container) return;
+    container.querySelectorAll('.sub-pill').forEach(function(p) {
+      p.classList.toggle('is-active', p === btnEl);
+    });
+  }
+
+  function syncBudgetLabel(cardEl, budget) {
+    if (!cardEl) return;
+    cardEl.querySelectorAll('[data-role="subBudgetLabel"]').forEach(function(el) {
+      el.textContent = String(budget);
+    });
+  }
+
+  grid.addEventListener('click', function(e) {
+    const t = e && e.target ? e.target : null;
+    if (!t) return;
+
+    const pill = t.closest ? t.closest('.sub-pill') : null;
+    const orderBtn = t.closest ? t.closest('[data-action="subOrder"]') : null;
+    const card = t.closest ? t.closest('.sub-card') : null;
+    if (!card) return;
+
+    const tariffId = card.getAttribute('data-tariff-id') || '';
+    const tariffTitleEl = card.querySelector('.sub-card-title');
+    const tariffTitle = tariffTitleEl ? (tariffTitleEl.textContent || '').trim() : 'Подписка';
+
+    if (pill) {
+      const budgetPills = pill.closest('[data-role="subBudgetPills"]');
+      const payPills = pill.closest('[data-role="subPayPills"]');
+
+      if (budgetPills && pill.hasAttribute('data-budget')) {
+        const budget = Number(pill.getAttribute('data-budget')) || 0;
+        if (budget > 0) {
+          setActivePill(budgetPills, pill);
+          syncBudgetLabel(card, budget);
+        }
+      }
+      if (payPills && pill.hasAttribute('data-pay')) {
+        setActivePill(payPills, pill);
+      }
+      return;
+    }
+
+    if (orderBtn) {
+      const activeBudgetBtn = card.querySelector('[data-role="subBudgetPills"] .sub-pill.is-active');
+      const activePayBtn = card.querySelector('[data-role="subPayPills"] .sub-pill.is-active');
+      const budget = activeBudgetBtn ? (Number(activeBudgetBtn.getAttribute('data-budget')) || 0) : 0;
+      const payKey = activePayBtn ? (String(activePayBtn.getAttribute('data-pay') || '').trim()) : 'weekly';
+      const payLabel = getSubscriptionPayLabel(payKey);
+
+      if (!budget) {
+        showToast('Выберите бюджет подписки.');
+        return;
+      }
+
+      subscriptionSelection = { tariffId: tariffId, tariffTitle: tariffTitle, budget: budget, payKey: payKey, payLabel: payLabel };
+      showToast('Подписка добавлена в заказ');
+      openCart();
+      try { onOrderClick(); } catch (err) {}
+    }
+  });
+}
 
 // Категории для фильтра:
 // - чаще всего строятся из каталога в buildCategoriesFromCatalog()
@@ -1860,7 +2205,7 @@ function renderCartSheet() {
   const orderBtn = document.getElementById('orderBtn');
   const contactForm = document.getElementById('contactForm');
 
-  if (ids.length === 0) {
+  if (ids.length === 0 && !subscriptionGetHasSelection()) {
     itemsEl.innerHTML = `
       <div class="cart-empty">
         <div class="cart-empty-icon">🌿</div>
@@ -1876,7 +2221,28 @@ function renderCartSheet() {
   orderBtn.disabled = false;
   let sum = 0;
 
-  itemsEl.innerHTML = ids.map(id => {
+  const parts = [];
+
+  if (subscriptionGetHasSelection()) {
+    const s = subscriptionSelection;
+    const subTitle = (s && s.tariffTitle) ? s.tariffTitle : 'Подписка';
+    const subBudget = (s && s.budget) ? Number(s.budget) : 0;
+    const subPay = (s && s.payLabel) ? s.payLabel : '';
+    sum += subBudget;
+    parts.push(`
+    <div class="cart-item">
+      <div style="width:48px;height:48px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--accent-soft),var(--bg-hero));display:flex;align-items:center;justify-content:center;font-size:22px;">🌸</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">Подписка: ${escapeHtml(subTitle)}</div>
+        <div class="cart-item-price">${subBudget} ${SHOP_CONFIG.currency}${subPay ? ' · ' + escapeHtml(subPay) : ''}</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="qty-btn" onclick="subscriptionSelection=null; renderCartSheet(); updateCartUI();" aria-label="Удалить подписку">✕</button>
+      </div>
+    </div>`);
+  }
+
+  parts.push(ids.map(id => {
     const p = catalog.find(p => p.id === id);
     const qty = cart[id];
     sum += p.price * qty;
@@ -1893,7 +2259,9 @@ function renderCartSheet() {
         <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
       </div>
     </div>`;
-  }).join('');
+  }).join(''));
+
+  itemsEl.innerHTML = parts.join('');
 
   // Учитываем дополнения (чекбоксы) в итоговой сумме
   const addonPack = document.getElementById('addonPack');
@@ -1968,7 +2336,7 @@ function closeCart() {
 
 function onOrderClick() {
   const ids = Object.keys(cart).map(Number);
-  if (ids.length === 0) return;
+  if (ids.length === 0 && !subscriptionGetHasSelection()) return;
 
   const contactForm = document.getElementById('contactForm');
   const orderBtn = document.getElementById('orderBtn');
@@ -2576,6 +2944,7 @@ fetchStores().then(function() {
 });
 fetchCatalog();
 builderInit();
+subscriptionInit();
 </script>
 </body>
 </html>
