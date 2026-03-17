@@ -1624,8 +1624,17 @@ if (tg) {
 // Базовый URL API: задайте в <meta name="api-base" content="https://..."> или window.API_BASE
 const API_BASE = (function() {
   var meta = document.querySelector('meta[name="api-base"]');
-  if (meta && meta.getAttribute('content')) return meta.getAttribute('content').trim();
+  if (meta && meta.getAttribute('content')) {
+    var v = meta.getAttribute('content').trim();
+    if (v) return v;
+  }
   if (typeof window !== 'undefined' && window.API_BASE) return window.API_BASE;
+  // Фоллбек: если миниапп открыт с нашего домена, используем origin как API base
+  try {
+    if (typeof location !== 'undefined' && location.origin && /^https?:\/\//.test(location.origin)) {
+      return location.origin;
+    }
+  } catch (e) {}
   return '';
 })();
 
@@ -3085,7 +3094,7 @@ async function sendFiveVariantsRequest() {
 
   try {
     if (!API_BASE) {
-      showToast('Сервис подбора пока недоступен. Откройте миниапп с нашего сервера (/mini-app).');
+      showToast('Сервис подбора пока недоступен. Откройте миниапп по ссылке бота или через /mini-app.');
       return;
     }
 
