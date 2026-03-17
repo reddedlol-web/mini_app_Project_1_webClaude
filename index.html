@@ -683,6 +683,185 @@
     20% { box-shadow: 0 0 0 6px rgba(173, 91, 133, 0.25); }
     100% { box-shadow: 0 0 0 18px rgba(173, 91, 133, 0); }
   }
+
+  /* ── СOБЕРИ БУКЕТ (3 шага) ── */
+  .builder {
+    padding: 26px 20px;
+    background: var(--bg-main);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .builder-head {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .builder-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent-deep);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+  }
+  .builder-subtitle {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+  .builder-steps {
+    display:flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-items:center;
+    justify-content:flex-end;
+    margin-top: 2px;
+  }
+  .builder-step-pill {
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .builder-step-pill strong {
+    display:inline-flex;
+    width: 18px; height: 18px;
+    align-items:center; justify-content:center;
+    border-radius: 999px;
+    background: var(--border);
+    color: var(--accent-deep);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .builder-step-pill.active {
+    border-color: var(--accent);
+    color: var(--accent-deep);
+    background: var(--bg-hero);
+  }
+  .builder-step-pill.active strong {
+    background: var(--accent-deep);
+    color: #fff;
+  }
+  .builder-panel {
+    margin-top: 14px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .builder-panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-deep);
+    margin-bottom: 8px;
+  }
+  .builder-panel-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .builder-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (min-width: 540px) {
+    .builder-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .builder-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow:hidden;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  .builder-item-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--bg-hero);
+    display:block;
+  }
+  .builder-item-body { padding: 10px 10px 12px; }
+  .builder-item-name { font-size: 12px; font-weight: 600; color: var(--accent-deep); line-height: 1.25; min-height: 30px; }
+  .builder-item-meta { margin-top: 6px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .builder-item-price { font-size: 12px; color: var(--text); font-weight: 600; }
+  .builder-qty {
+    display:flex; align-items:center; gap: 8px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 6px;
+  }
+  .builder-qty button {
+    width: 26px; height: 26px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--accent-deep);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .builder-qty span { min-width: 16px; text-align:center; font-weight: 600; color: var(--accent-deep); font-size: 12px; }
+  .builder-footer {
+    display:flex;
+    gap: 10px;
+    align-items:center;
+    justify-content:space-between;
+    margin-top: 14px;
+  }
+  .builder-summary {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .builder-actions { display:flex; gap: 10px; }
+  .builder-btn {
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--accent-deep);
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor:pointer;
+  }
+  .builder-btn.primary {
+    border-color: var(--accent-deep);
+    background: var(--accent-deep);
+    color: #fff;
+  }
+  .builder-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .builder-addons {
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .builder-addon-row {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-main);
+  }
+  .builder-addon-row label { display:flex; gap: 10px; align-items:flex-start; font-size: 13px; color: var(--text); line-height: 1.35; }
+  .builder-addon-row input { margin-top: 2px; }
+  .builder-addon-price { font-size: 12px; color: var(--text-muted); white-space: nowrap; padding-top: 2px; }
+  .builder-hidden { display:none !important; }
   .faq-item {
     border-bottom: 1px solid var(--border);
     padding: 16px 0;
@@ -752,7 +931,68 @@
   <h2 class="block-title">Собери сам</h2>
   <p class="block-text">У нас вы можете собрать индивидуальный букет по своим пожеланиям. Букет, которого нет на сайте. Букет, который никто никогда не видел и не получал.</p>
   <p class="block-text">Воспользуйтесь удобным конструктором, чтобы воплотить фантазию в жизнь. А дальше дело за нами, мы создадим букет, который превзойдет ожидания.</p>
-  <button type="button" class="block-cta" id="linkSoberiSam" data-scroll-target="catalogSectionTitle">Собрать букет</button>
+  <button type="button" class="block-cta" id="linkSoberiSam" data-scroll-target="bouquetBuilder">Собрать букет</button>
+</section>
+
+<!-- СОБЕРИ СВОЙ БУКЕТ (3 шага) -->
+<section class="builder" id="bouquetBuilder">
+  <div class="builder-head">
+    <div>
+      <div class="builder-title">Собери свой букет</div>
+      <div class="builder-subtitle">Выберите цветы и их количество, добавьте зелень (по желанию), затем упаковку и дополнения.</div>
+    </div>
+    <div class="builder-steps" aria-label="Шаги конструктора">
+      <div class="builder-step-pill active" id="builderStepPill1"><strong>1</strong> Цветы</div>
+      <div class="builder-step-pill" id="builderStepPill2"><strong>2</strong> Зелень</div>
+      <div class="builder-step-pill" id="builderStepPill3"><strong>3</strong> Упаковка</div>
+    </div>
+  </div>
+
+  <div class="builder-panel" id="builderPanel1">
+    <div class="builder-panel-title">1 ШАГ — Выберите цветы и их количество для букета</div>
+    <div class="builder-panel-note">Показываем только одиночные цветы из категории «Цветы поштучно».</div>
+    <div class="builder-list" id="builderListFlowers"></div>
+  </div>
+
+  <div class="builder-panel builder-hidden" id="builderPanel2">
+    <div class="builder-panel-title">2 ШАГ — Выберите зелень для букета</div>
+    <div class="builder-panel-note">Эвкалипт и писташ — по желанию.</div>
+    <div class="builder-list" id="builderListGreens"></div>
+  </div>
+
+  <div class="builder-panel builder-hidden" id="builderPanel3">
+    <div class="builder-panel-title">3 ШАГ — Выберите упаковку и дополнение для букета</div>
+    <div class="builder-panel-note">Эти опции попадут в заказ вместе с букетом.</div>
+    <div class="builder-addons">
+      <div class="builder-addon-row">
+        <label><input type="checkbox" id="builderAddonPack"> Упаковка в фирменном стиле</label>
+        <div class="builder-addon-price">+5 BYN</div>
+      </div>
+      <div class="builder-addon-row">
+        <label><input type="checkbox" id="builderAddonRibbon"> Лента</label>
+        <div class="builder-addon-price">+2 BYN</div>
+      </div>
+      <div class="builder-addon-row">
+        <label><input type="checkbox" id="builderAddonCard"> Открытка тематическая</label>
+        <div class="builder-addon-price">+2 BYN</div>
+      </div>
+      <div class="builder-addon-row">
+        <label style="flex:1"><input type="checkbox" id="builderAddonNote"> Записка на фирменной карточке</label>
+        <div class="builder-addon-price">0</div>
+      </div>
+      <div id="builderAddonNoteWrap" class="builder-hidden">
+        <textarea id="builderAddonNoteText" placeholder="Что написать на карточке (пожелание получателю)" rows="2" maxlength="500" style="width:100%; padding:10px 12px; font-size:14px; border:1px solid var(--border, #e8e0d8); border-radius:12px; resize:vertical; min-height:52px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="builder-footer">
+    <div class="builder-summary" id="builderSummary">Выбрано: 0 позиций</div>
+    <div class="builder-actions">
+      <button type="button" class="builder-btn" id="builderBackBtn">Назад</button>
+      <button type="button" class="builder-btn primary" id="builderNextBtn">Далее</button>
+    </div>
+  </div>
 </section>
 
 <!-- ХИТЫ ПРОДАЖ + КАТАЛОГ -->
@@ -1144,7 +1384,7 @@ async function fetchCatalog() {
   if (!API_BASE) {
     if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
       catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
-      if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); }
+      if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); builderRender(); }
       var h = document.getElementById('catalogSourceHint');
       if (h) { h.textContent = 'Каталог: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
       // (debug logs removed)
@@ -1166,6 +1406,7 @@ async function fetchCatalog() {
       buildCategoriesFromCatalog();
       renderCategoryFilters();
       renderGrid();
+      builderRender();
       var hintEl = document.getElementById('catalogSourceHint');
       if (hintEl) {
         hintEl.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров';
@@ -1179,6 +1420,7 @@ async function fetchCatalog() {
           buildCategoriesFromCatalog();
           renderCategoryFilters();
           renderGrid();
+          builderRender();
           var h = document.getElementById('catalogSourceHint');
           if (h) { h.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
           return;
@@ -1189,6 +1431,7 @@ async function fetchCatalog() {
         buildCategoriesFromCatalog();
         renderCategoryFilters();
         renderGrid();
+        builderRender();
       }
       var hintEl = document.getElementById('catalogSourceHint');
       var reason = (data.catalog_empty_reason || '').trim();
@@ -1763,6 +2006,169 @@ function showToast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
+// ── СОБЕРИ СВОЙ БУКЕТ (3 шага) ────────────────────────────────────────────────
+let builderStep = 1;
+let builderCart = {}; // { id: qty }
+
+function normName(s) {
+  return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function builderQty(id) {
+  return Number(builderCart[id] || 0);
+}
+
+function builderChangeQty(id, delta) {
+  const next = builderQty(id) + delta;
+  if (next <= 0) delete builderCart[id];
+  else builderCart[id] = next;
+  builderRender();
+}
+
+function builderFindItemByNameExact(name) {
+  const needle = normName(name);
+  return catalog.find(p => normName(p.name) === needle) || null;
+}
+
+function builderGetGreens() {
+  const e = builderFindItemByNameExact('ЭВКАЛИПТ') || catalog.find(p => p.id === 25) || null;
+  const p = builderFindItemByNameExact('ПИСТАШ') || catalog.find(p => p.id === 26) || null;
+  return [e, p].filter(Boolean);
+}
+
+function builderGetFlowers() {
+  const skip = new Set(builderGetGreens().map(x => x.id));
+  return catalog
+    .filter(p => p.cat === 'Цветы поштучно')
+    .filter(p => !skip.has(p.id));
+}
+
+function builderRenderList(el, items) {
+  if (!el) return;
+  if (!items || items.length === 0) {
+    el.innerHTML = '<div class="grid-empty" style="grid-column:1/-1;margin:0;">Нет позиций для отображения.</div>';
+    return;
+  }
+  el.innerHTML = items.map((p) => {
+    const qty = builderQty(p.id);
+    return `
+      <div class="builder-item">
+        <img class="builder-item-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
+        <div class="builder-item-body">
+          <div class="builder-item-name">${p.name}</div>
+          <div class="builder-item-meta">
+            <div class="builder-item-price">${p.price} ${SHOP_CONFIG.currency}</div>
+            <div class="builder-qty" aria-label="Количество">
+              <button type="button" onclick="builderChangeQty(${p.id}, -1)" aria-label="Уменьшить">−</button>
+              <span>${qty}</span>
+              <button type="button" onclick="builderChangeQty(${p.id}, 1)" aria-label="Увеличить">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function builderSelectedCount() {
+  return Object.values(builderCart).reduce((s, q) => s + (Number(q) || 0), 0);
+}
+
+function builderSetStep(step) {
+  builderStep = Math.max(1, Math.min(3, Number(step) || 1));
+  builderRender();
+  const root = document.getElementById('bouquetBuilder');
+  if (root) {
+    root.classList.remove('scroll-target-flash');
+    void root.offsetWidth;
+    root.classList.add('scroll-target-flash');
+    setTimeout(function() { root.classList.remove('scroll-target-flash'); }, 1200);
+  }
+}
+
+function builderSyncAddonsFromBuilderToOrderForm() {
+  const map = [
+    ['builderAddonPack', 'addonPack'],
+    ['builderAddonRibbon', 'addonRibbon'],
+    ['builderAddonCard', 'addonCard'],
+    ['builderAddonNote', 'addonNote'],
+  ];
+  map.forEach(function(pair) {
+    const from = document.getElementById(pair[0]);
+    const to = document.getElementById(pair[1]);
+    if (from && to) to.checked = !!from.checked;
+  });
+  const noteFrom = document.getElementById('builderAddonNoteText');
+  const noteTo = document.getElementById('addonNoteText');
+  if (noteFrom && noteTo) noteTo.value = noteFrom.value || '';
+}
+
+function builderRender() {
+  const p1 = document.getElementById('builderPanel1');
+  const p2 = document.getElementById('builderPanel2');
+  const p3 = document.getElementById('builderPanel3');
+  if (p1) p1.classList.toggle('builder-hidden', builderStep !== 1);
+  if (p2) p2.classList.toggle('builder-hidden', builderStep !== 2);
+  if (p3) p3.classList.toggle('builder-hidden', builderStep !== 3);
+
+  const s1 = document.getElementById('builderStepPill1');
+  const s2 = document.getElementById('builderStepPill2');
+  const s3 = document.getElementById('builderStepPill3');
+  if (s1) s1.classList.toggle('active', builderStep === 1);
+  if (s2) s2.classList.toggle('active', builderStep === 2);
+  if (s3) s3.classList.toggle('active', builderStep === 3);
+
+  builderRenderList(document.getElementById('builderListFlowers'), builderGetFlowers());
+  builderRenderList(document.getElementById('builderListGreens'), builderGetGreens());
+
+  const summary = document.getElementById('builderSummary');
+  if (summary) summary.textContent = 'Выбрано: ' + builderSelectedCount() + ' шт.';
+
+  const backBtn = document.getElementById('builderBackBtn');
+  const nextBtn = document.getElementById('builderNextBtn');
+  if (backBtn) backBtn.disabled = builderStep === 1;
+  if (nextBtn) {
+    nextBtn.textContent = (builderStep === 3) ? 'Заказать' : 'Далее';
+    const flowerIds = new Set(builderGetFlowers().map(x => x.id));
+    const flowerCount = Object.keys(builderCart).map(Number).reduce((s, id) => s + (flowerIds.has(id) ? builderQty(id) : 0), 0);
+    nextBtn.disabled = (builderStep === 1 && flowerCount <= 0);
+  }
+
+  const noteCb = document.getElementById('builderAddonNote');
+  const noteWrap = document.getElementById('builderAddonNoteWrap');
+  if (noteCb && noteWrap) noteWrap.classList.toggle('builder-hidden', !noteCb.checked);
+}
+
+function builderInit() {
+  const backBtn = document.getElementById('builderBackBtn');
+  const nextBtn = document.getElementById('builderNextBtn');
+  if (backBtn) backBtn.addEventListener('click', function() { builderSetStep(builderStep - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', function() {
+    if (builderStep < 3) { builderSetStep(builderStep + 1); return; }
+
+    Object.keys(builderCart).map(Number).forEach(function(id) {
+      const qty = builderQty(id);
+      if (qty > 0) cart[id] = (cart[id] || 0) + qty;
+    });
+    builderSyncAddonsFromBuilderToOrderForm();
+    updateCartUI();
+    renderGrid();
+    openCart();
+    try { onOrderClick(); } catch (e) {}
+  });
+
+  const noteCb = document.getElementById('builderAddonNote');
+  if (noteCb) noteCb.addEventListener('change', builderRender);
+
+  // Синхронизируем валюту в ценниках на шаге 3
+  const currency = SHOP_CONFIG && SHOP_CONFIG.currency ? SHOP_CONFIG.currency : 'BYN';
+  document.querySelectorAll('#builderPanel3 .builder-addon-price').forEach(function(el) {
+    const txt = (el.textContent || '').trim();
+    if (/^\+\d+\s*BYN$/i.test(txt)) el.textContent = txt.replace(/BYN/i, currency);
+  });
+  builderRender();
+}
+
 // ── ПРОКРУТКА КОЛЁСИКОМ (ПК) ─────────────────────────────────────────────────
 function setupWheelScroll(el) {
   if (!el) return;
@@ -1879,6 +2285,7 @@ fetchStores().then(function() {
   renderGrid();
 });
 fetchCatalog();
+builderInit();
 </script>
 </body>
 </html>
