@@ -16,23 +16,23 @@
   ═══════════════════════════════════════════════════════════════════════════ */
   :root {
     /* Фон: кремовый, слоновая кость, пастельный беж */
-    --bg-main:      #fdfbf8;
-    --bg-alt:       #f8f4ef;
-    --bg-hero:      #f5efe8;
+    --bg-main:      #fbf7f2;
+    --bg-alt:       #f6f0ea;
+    --bg-hero:      #f1e7dd;
     --bg-card:      #ffffff;
     /* Акценты: пыльная роза, терракотовый (кнопки, ссылки, актив) */
-    --accent:       #c98b6a;
-    --accent-deep:  #a66b4a;
-    --accent-soft:  #e8d5c9;
+    --accent:       #c58a6c;
+    --accent-deep:  #9b5f41;
+    --accent-soft:  #ead5c8;
     /* Текст */
-    --text:         #3d3028;
-    --text-soft:    #6b5b52;
-    --text-muted:   #9a8a80;
+    --text:         #2f231d;
+    --text-soft:    #5f4f46;
+    --text-muted:   #8f7f74;
     /* Границы и тени */
-    --border:       #e8dfd6;
-    --border-strong:#d4c4b8;
-    --shadow:       rgba(61, 48, 40, 0.06);
-    --shadow-strong: rgba(61, 48, 40, 0.12);
+    --border:       #e7ddd4;
+    --border-strong:#d7c6bb;
+    --shadow:       rgba(47, 35, 29, 0.06);
+    --shadow-strong: rgba(47, 35, 29, 0.12);
     /* Успех (добавлено в корзину) */
     --success:      #5a6e4e;
     /* Совместимость со старыми именами */
@@ -60,6 +60,8 @@
     overflow-x: hidden;
     letter-spacing: 0.01em;
   }
+  a { color: var(--accent-deep); }
+  a:active { color: var(--text); }
 
   /* ── ШАПКА (как на сайте: чистая, с тонкой границей) ── */
   .header {
@@ -78,6 +80,10 @@
     display: flex; align-items: center; gap: 10px;
   }
   .logo-icon { font-size: 22px; opacity: 0.95; }
+  .logo-text {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
 
   /* ── FAB КОРЗИНА (круглая кнопка в стиле сайта) ── */
   .fab {
@@ -123,6 +129,15 @@
     background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%);
     opacity: 0.5;
     border-radius: 50%;
+  }
+  .hero-brand {
+    font-family: 'Cormorant Garamond', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 14px;
+    color: var(--accent-deep);
+    opacity: 0.9;
+    margin-bottom: 10px;
   }
   .hero-title {
     font-family: 'Cormorant Garamond', serif;
@@ -656,13 +671,14 @@
 <header class="header">
   <div class="logo" id="shopLogo">
     <span class="logo-icon">🌸</span>
-    Pastel Flowers
+    <span class="logo-text">Pastel Flowers</span>
   </div>
 
 </header>
 
 <!-- ГЕРОЙ (как на pastelflowers.by) -->
 <div class="hero">
+  <div class="hero-brand">Pastel Flowers</div>
   <h1 class="hero-title hero-title--site">свежие цветы и букеты в минске</h1>
   <h2 class="hero-subtitle">Подберем букет на любой бюджет и доставим в течение 1 часа</h2>
   <a href="tel:+375292009880" class="hero-cta">Заказать звонок</a>
@@ -814,7 +830,7 @@
       <label>Вариант доставки *</label>
       <div class="contact-radio">
         <label><input type="radio" name="deliveryType" value="pickup"> Самовывоз (с 10:00 до 21:00)</label>
-        <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (с 11:00 до 21:30)</label>
+        <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (15р) (с 11:00 до 21:30)</label>
       </div>
     </div>
     <div class="contact-field" id="fieldStore">
@@ -839,8 +855,8 @@
       </div>
     </div>
     <div class="contact-field">
-      <label for="contactAddress">Адрес доставки или «Уточнить у получателя»</label>
-      <input id="contactAddress" type="text" placeholder="Адрес или оставьте пустым для уточнения у получателя">
+      <label for="contactAddress">Адрес доставки »</label>
+      <input id="contactAddress" type="text" placeholder="Адрес">
     </div>
     <div class="contact-field">
       <label>Дополнения</label>
@@ -874,7 +890,7 @@ if (tg) {
   tg.ready();
   tg.expand();
   // Подстраиваем цвета под тему Telegram
-  document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#1a1410' : '#faf7f2');
+    document.documentElement.style.setProperty('--cream', tg.colorScheme === 'dark' ? '#16100c' : getComputedStyle(document.documentElement).getPropertyValue('--bg-main').trim() || '#fbf7f2');
 }
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
@@ -1336,7 +1352,7 @@ function renderGrid() {
         loading="lazy"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
       />
-      <div class="card-img-fallback" style="display:none;aspect-ratio:1;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,#f5e6d8,#ede0d4)">🌸</div>
+      <div class="card-img-fallback" style="display:none;aspect-ratio:1;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,var(--accent-soft),var(--bg-hero))">🌸</div>
       <div class="card-body">
         <div class="card-name">${p.name}</div>
         <div class="card-desc">${p.desc}</div>
