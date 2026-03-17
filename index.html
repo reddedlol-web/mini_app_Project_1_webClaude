@@ -1134,7 +1134,6 @@
 <div class="catalog-placeholder" id="catalogPlaceholder" style="display:none">По вашим критериям ничего не найдено.</div>
 <div class="filters filters-scroll-hint">
   <div class="filter-row" id="categoryFilters"></div>
-  <div class="filter-row" id="occasionFilters"></div>
   <div class="filter-row" id="budgetFilters"></div>
 </div>
 <div class="presets-wrap presets-scroll-hint">
@@ -1633,30 +1632,16 @@ if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) 
 }
 
 let activeCategory = 'any';
-let activeOccasion = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let contactStep = false; // false — корзина, true — форма контактов
 
-// Категории для фильтра (по умолчанию; при загрузке из API строятся из данных)
-var categories = [
-  { id: 'any', label: 'Все цветы' },
-  { id: 'Букеты', label: 'Цветы поштучно' },
-  { id: 'Композиции', label: 'Цветочные композиции' },
-  { id: 'По поводу', label: 'Цветы по поводу' },
-  { id: 'Свадебные', label: 'свадебные букеты' },
-];
-
-// Поводы и бюджеты для фильтров
-const occasions = [
-  { id:'any',        label:'Любой повод' },
-  { id:'birthday',   label:'День рождения' },
-  { id:'wedding',    label:'Свадьба' },
-  { id:'anniversary',label:'Годовщина' },
-  { id:'march8',     label:'8 марта' },
-  { id:'condolences',label:'Соболезнования' },
-  { id:'justbecause',label:'Просто так' },
-];
+// Категории для фильтра:
+// - чаще всего строятся из каталога в buildCategoriesFromCatalog()
+// - fallback нужен только если каталог ещё не загрузился
+if (typeof categories === 'undefined' || !Array.isArray(categories) || categories.length === 0) {
+  categories = [{ id: 'any', label: 'Все цветы' }];
+}
 
 const budgets = (function() {
   const c = SHOP_CONFIG.currency;
@@ -1695,15 +1680,6 @@ function selectCategory(id) {
   renderGrid();
 }
 
-function renderOccasionFilters() {
-  const el = document.getElementById('occasionFilters');
-  el.innerHTML = occasions.map(o => `
-    <button class="filter-chip ${o.id === activeOccasion ? 'active' : ''}" onclick="selectOccasion('${o.id}')">
-      ${o.label}
-    </button>
-  `).join('');
-}
-
 function renderBudgetFilters() {
   const el = document.getElementById('budgetFilters');
   el.innerHTML = budgets.map(b => `
@@ -1711,12 +1687,6 @@ function renderBudgetFilters() {
       ${b.label}
     </button>
   `).join('');
-}
-
-function selectOccasion(id) {
-  activeOccasion = id;
-  renderOccasionFilters();
-  renderGrid();
 }
 
 function selectBudget(id) {
@@ -1757,10 +1727,6 @@ function renderGrid() {
     items = items.filter(p => p.cat === activeCategory);
   }
 
-  if (activeOccasion !== 'any') {
-    items = items.filter(p => !p.occasions || p.occasions.includes(activeOccasion));
-  }
-
   if (activeBudget !== 'any') {
     const b = budgets.find(b => b.id === activeBudget);
     if (b) {
@@ -1774,11 +1740,11 @@ function renderGrid() {
   if (placeholderEl && items.length > 0) placeholderEl.style.display = 'none';
   if (placeholderEl && items.length === 0) {
     placeholderEl.style.display = 'block';
-    placeholderEl.textContent = 'По вашим критериям ничего не найдено. Попробуйте изменить категорию, повод или бюджет.';
+    placeholderEl.textContent = 'По вашим критериям ничего не найдено. Попробуйте изменить категорию или бюджет.';
   }
 
   if (items.length === 0) {
-    el.innerHTML = '<div class="grid-empty">По вашим критериям ничего не найдено. Попробуйте изменить повод или бюджет.</div>';
+    el.innerHTML = '<div class="grid-empty">По вашим критериям ничего не найдено. Попробуйте изменить категорию или бюджет.</div>';
     return;
   }
 
@@ -2542,7 +2508,6 @@ if (linkSoberi) {
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
-renderOccasionFilters();
 renderBudgetFilters();
 renderPresets();
 renderStorePicker();
