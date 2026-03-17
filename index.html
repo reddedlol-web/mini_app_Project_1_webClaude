@@ -338,7 +338,35 @@
     -webkit-overflow-scrolling: touch;
   }
   .product-modal-media {
+    position: relative;
     background: var(--bg-alt);
+  }
+  .product-modal-back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: rgba(255,255,255,0.92);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .product-modal-back:active { transform: scale(0.98); }
+  .modal.product-modal .modal-close {
+    background: rgba(255,255,255,0.92);
+    border-color: rgba(0,0,0,0.08);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
   .product-modal-img {
     width: 100%;
@@ -736,7 +764,9 @@
     color: var(--text-muted);
     background: var(--bg-alt);
     border-radius: 14px;
-    margin: 0 20px 20px;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    margin: 0 0 20px;
     line-height: 1.6;
   }
 
@@ -987,6 +1017,7 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     background: var(--bg-main);
+    cursor: pointer;
   }
   .builder-addon-row label { display:flex; gap: 10px; align-items:flex-start; font-size: 13px; color: var(--text); line-height: 1.35; }
   .builder-addon-row input { margin-top: 2px; }
@@ -1035,7 +1066,7 @@
 
 <!-- ГЕРОЙ (как на pastelflowers.by) -->
 <div class="hero">
-  <div class="hero-brand">Pastel Flowers</div>
+  <div class="hero-brand">PASTEL FLOWERS</div>
   <h1 class="hero-title hero-title--site">свежие цветы и букеты в минске</h1>
   <h2 class="hero-subtitle">Подберем букет на любой бюджет и доставим в течение 1 часа</h2>
   <button type="button" class="hero-cta" id="btnCallback" onclick="openCallbackModal()">Заказать звонок</button>
@@ -1240,6 +1271,7 @@
   <button type="button" class="modal-close" onclick="closeProductModal()" aria-label="Закрыть">✕</button>
   <div class="product-modal-inner">
     <div class="product-modal-media">
+      <button type="button" class="product-modal-back" onclick="closeProductModal()" aria-label="Назад">←</button>
       <img id="productImg" class="product-modal-img" src="" alt="" loading="lazy">
     </div>
     <div class="product-modal-content">
@@ -2130,6 +2162,17 @@ let builderStep = 1;
 let builderCart = {}; // { id: qty }
 let builderOpen = false;
 
+function builderScrollToStep(step) {
+  const s = Math.max(1, Math.min(3, Number(step) || 1));
+  const panel = document.getElementById('builderPanel' + s);
+  if (!panel) return;
+  try {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    panel.scrollIntoView(true);
+  }
+}
+
 function normName(s) {
   return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -2197,6 +2240,8 @@ function builderSelectedCount() {
 function builderSetStep(step) {
   builderStep = Math.max(1, Math.min(3, Number(step) || 1));
   builderRender();
+  // при переходе между шагами поднимаем к шапке шага
+  if (builderOpen) builderScrollToStep(builderStep);
   const root = document.getElementById('bouquetBuilder');
   if (root) {
     root.classList.remove('scroll-target-flash');
@@ -2297,6 +2342,19 @@ function builderInit() {
   const noteCb = document.getElementById('builderAddonNote');
   if (noteCb) noteCb.addEventListener('change', builderRender);
 
+  // На шаге 3: кликом по всей строке переключаем чекбокс
+  document.querySelectorAll('#builderPanel3 .builder-addon-row').forEach(function(row) {
+    row.addEventListener('click', function(e) {
+      const t = e && e.target ? e.target : null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+      const cb = row.querySelector('input[type=\"checkbox\"]');
+      if (!cb) return;
+      cb.checked = !cb.checked;
+      try { cb.dispatchEvent(new Event('change', { bubbles: true })); } catch (err) {}
+      builderRender();
+    });
+  });
+
   // Синхронизируем валюту в ценниках на шаге 3
   const currency = SHOP_CONFIG && SHOP_CONFIG.currency ? SHOP_CONFIG.currency : 'BYN';
   document.querySelectorAll('#builderPanel3 .builder-addon-price').forEach(function(el) {
@@ -2326,7 +2384,7 @@ setupWheelScroll(document.querySelector('.presets'));
   var t = document.getElementById('pageTitle');
   if (t) t.textContent = c.name + ' — свежие цветы и букеты в Минске';
   var logo = document.getElementById('shopLogo');
-  if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span>' + c.name;
+  if (logo) logo.innerHTML = '<span class="logo-icon">🌸</span><span class="logo-text">' + c.name + '</span>';
 })();
 
 // ── Получить 5 вариантов (как на сайте) ────────────────────────────────────────
