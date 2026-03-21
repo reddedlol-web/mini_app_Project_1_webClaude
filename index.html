@@ -158,21 +158,11 @@
     margin-bottom: 20px;
     line-height: 1.35;
   }
-  .hero-cta {
-    display: inline-block;
-    background: var(--accent-deep);
-    color: white;
-    padding: 14px 28px;
-    border-radius: 999px;
-    font-family: 'Jost', sans-serif;
-    font-size: 14px; font-weight: 500;
-    text-decoration: none;
-    letter-spacing: 0.03em;
+  /* Кнопка в герое — тот же вид, что .block-cta («Собрать букет» и др.) */
+  .hero > button.block-cta {
+    margin-top: 0;
     margin-bottom: 22px;
-    transition: background 0.2s, transform 0.15s;
-    box-shadow: 0 2px 10px var(--shadow);
   }
-  .hero-cta:active { background: var(--text); transform: scale(0.98); }
   .hero-addresses { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
   .hero-address-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
   .hero-address-text { font-size: 15px; font-weight: 500; color: var(--accent-deep); }
@@ -886,6 +876,15 @@
   }
   .block-cta:active { background: var(--text); transform: scale(0.98); }
 
+  /* Секция «Собери сам» → конструктор: одна линия вместо двух границ + меньше «воздуха» */
+  #sectionSoberiSam.block--alt {
+    border-bottom: none;
+    padding-bottom: 20px;
+  }
+  #sectionSoberiSam + #bouquetBuilder.builder {
+    padding-top: 18px;
+  }
+
   /* ── ПОДПИСКА: Выбрать тариф (аккордеон + карточки) ── */
   .sub-cta {
     display: inline-flex;
@@ -1318,7 +1317,7 @@
   <div class="hero-brand">PASTEL FLOWERS</div>
   <h1 class="hero-title hero-title--site">свежие цветы и букеты в минске</h1>
   <h2 class="hero-subtitle">Подберем букет на любой бюджет и доставим в течение 1 часа</h2>
-  <button type="button" class="hero-cta" id="btnCallback" onclick="openCallbackModal()">Заказать звонок</button>
+  <button type="button" class="block-cta" id="btnCallback" onclick="openCallbackModal()">Заказать звонок</button>
   <div class="hero-addresses">
     <div class="hero-address-item">
       <span class="hero-address-text">Минск, Скрипникова, 11А</span>
@@ -1412,9 +1411,8 @@
   </div>
 </section>
 
-<!-- ХИТЫ ПРОДАЖ + КАТАЛОГ -->
-<div class="section-title section-title--caps" id="catalogSectionTitle">Хиты продаж</div>
-<div class="section-title" id="catalogSectionTitle2">Каталог цветов</div>
+<!-- КАТАЛОГ -->
+<div class="section-title section-title--caps" id="catalogSectionTitle">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-source-hint" id="catalogSourceHint" style="display:none; font-size:12px; color:var(--muted, #9e8c82); padding:0 20px 8px;"></div>
 <div class="filters filters-scroll-hint">
