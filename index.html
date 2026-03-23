@@ -816,6 +816,58 @@
     border-radius: 14px;
   }
   .catalog-subtitle { font-size: 14px; color: var(--accent); padding: 0 20px 10px; font-weight: 500; }
+  .showcase-section { padding: 0 0 8px; display: none; }
+  .showcase-section.visible { display: block; }
+  .showcase-head {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 600;
+    color: var(--accent-deep);
+    padding: 8px 20px 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .showcase-scroll {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 0 20px 16px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .showcase-scroll::-webkit-scrollbar { height: 4px; }
+  .showcase-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  .showcase-card {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .showcase-card-img-wrap {
+    aspect-ratio: 1;
+    background: var(--bg-alt);
+    overflow: hidden;
+  }
+  .showcase-card-img { width: 100%; height: 100%; object-fit: cover; }
+  .showcase-card-body { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .showcase-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.35; }
+  .showcase-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; max-height: 3.6em; overflow: hidden; }
+  .showcase-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+  .showcase-card-price { font-size: 15px; font-weight: 600; color: var(--accent-deep); }
+  .showcase-card .add-btn {
+    min-width: 40px; height: 40px; border-radius: 12px;
+    border: none; background: var(--accent-deep); color: white;
+    font-size: 20px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .showcase-card .add-btn:active { transform: scale(0.94); }
+  .showcase-card .add-btn.added { background: var(--success); }
+  .showcase-empty { font-size: 13px; color: var(--text-muted); padding: 0 20px 8px; }
   .catalog-placeholder {
     padding: 28px 20px;
     text-align: center;
@@ -1427,6 +1479,13 @@
   </div>
 </section>
 
+<!-- ВИТРИНА ДНЯ -->
+<section class="showcase-section" id="showcaseSection" aria-label="Витрина">
+  <div class="showcase-head" id="showcaseHead">Сегодня на витрине</div>
+  <div class="showcase-empty" id="showcaseEmpty" style="display:none">Для выбранного магазина пока нет позиций на витрине.</div>
+  <div class="showcase-scroll" id="showcaseScroll"></div>
+</section>
+
 <!-- КАТАЛОГ -->
 <div class="section-title section-title--caps" id="catalogSectionTitle">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
@@ -1894,6 +1953,104 @@ function selectStore(storeId) {
   selectedStoreId = storeId;
   renderStorePicker();
   fetchStock(storeId);
+  fetchShowcase(storeId);
+}
+
+async function fetchShowcase(storeId) {
+  showcaseItemsList = [];
+  var section = document.getElementById('showcaseSection');
+  if (!section) return;
+  if (!storeId) {
+    section.classList.remove('visible');
+    renderShowcase();
+    return;
+  }
+  if (!API_BASE) {
+    section.classList.remove('visible');
+    renderShowcase();
+    return;
+  }
+  try {
+    var r = await fetch(API_BASE + '/api/showcase?store_id=' + encodeURIComponent(storeId));
+    var data = r.ok ? await r.json() : { showcase_items: [] };
+    showcaseItemsList = Array.isArray(data.showcase_items) ? data.showcase_items : [];
+  } catch (e) {
+    console.warn('Showcase API', e);
+    showcaseItemsList = [];
+  }
+  renderShowcase();
+}
+
+function renderShowcase() {
+  var section = document.getElementById('showcaseSection');
+  var scroll = document.getElementById('showcaseScroll');
+  var empty = document.getElementById('showcaseEmpty');
+  if (!section || !scroll) return;
+  if (!selectedStoreId || !API_BASE) {
+    section.classList.remove('visible');
+    scroll.innerHTML = '';
+    if (empty) empty.style.display = 'none';
+    return;
+  }
+  section.classList.add('visible');
+  if (!showcaseItemsList.length) {
+    scroll.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  var cur = SHOP_CONFIG && SHOP_CONFIG.currency ? SHOP_CONFIG.currency : 'BYN';
+  scroll.innerHTML = showcaseItemsList.map(function(it) {
+    var sid = Number(it.showcase_id);
+    var title = escapeHtml(String(it.title || 'Витрина'));
+    var desc = escapeHtml(String(it.description || '').trim());
+    var img = String(it.image_url || '').replace(/"/g, '&quot;');
+    var price = Number(it.price) || 0;
+    var inC = showcaseCart[sid] && showcaseCart[sid].qty > 0;
+    return (
+      '<div class="showcase-card">' +
+        '<div class="showcase-card-img-wrap"><img class="showcase-card-img" src="' + img + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"></div>' +
+        '<div class="showcase-card-body">' +
+          '<div class="showcase-card-title">' + title + '</div>' +
+          (desc ? '<div class="showcase-card-desc">' + desc + '</div>' : '') +
+          '<div class="showcase-card-meta">' +
+            '<span class="showcase-card-price">' + price + ' ' + cur + '</span>' +
+            '<button type="button" class="add-btn' + (inC ? ' added' : '') + '" onclick="addShowcaseToCart(' + sid + ')" aria-label="В корзину">' + (inC ? '✓' : '+') + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function addShowcaseToCart(showcaseId) {
+  var sid = Number(showcaseId);
+  var it = showcaseItemsList.find(function(x) { return Number(x.showcase_id) === sid; });
+  if (!it) return;
+  if (!showcaseCart[sid]) {
+    showcaseCart[sid] = {
+      title: String(it.title || 'Витрина'),
+      price: Number(it.price) || 0,
+      img: String(it.image_url || ''),
+      qty: 0,
+    };
+  }
+  showcaseCart[sid].qty += 1;
+  updateCartUI();
+  renderCartSheet();
+  renderShowcase();
+  showToast('Добавлено с витрины');
+}
+
+function changeShowcaseQty(showcaseId, delta) {
+  var sid = Number(showcaseId);
+  var x = showcaseCart[sid];
+  if (!x) return;
+  x.qty += delta;
+  if (x.qty <= 0) delete showcaseCart[sid];
+  updateCartUI();
+  renderCartSheet();
+  renderShowcase();
 }
 
 // Загрузка каталога из API (лист «Каталог»); при ошибке или пустом ответе остаётся встроенный каталог
@@ -2023,6 +2180,8 @@ if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) 
 let activeCategory = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
+let showcaseCart = {};  // { [showcase_id]: { title, price, img, qty } }
+let showcaseItemsList = [];
 let contactStep = false; // false — корзина, true — форма контактов
 let subscriptionSelection = null; // { tariffId, tariffTitle, price, budget, payKey, payLabel }
 
@@ -2519,11 +2678,19 @@ function renderCartSheet() {
   const orderBtn = document.getElementById('orderBtn');
   const contactForm = document.getElementById('contactForm');
 
-  if (ids.length === 0 && !subscriptionGetHasSelection()) {
+  var hasShowcase = false;
+  try {
+    hasShowcase = Object.keys(showcaseCart || {}).some(function(k) {
+      var x = showcaseCart[k];
+      return x && x.qty > 0;
+    });
+  } catch (e) {}
+
+  if (ids.length === 0 && !subscriptionGetHasSelection() && !hasShowcase) {
     itemsEl.innerHTML = `
       <div class="cart-empty">
         <div class="cart-empty-icon">🌿</div>
-        Корзина пустая<br>Добавьте что-нибудь из каталога
+        Корзина пустая<br>Добавьте что-нибудь из каталога или витрины
       </div>`;
     totalEl.style.display = 'none';
     orderBtn.disabled = true;
@@ -2557,6 +2724,28 @@ function renderCartSheet() {
       </div>
     </div>`);
   }
+
+  Object.keys(showcaseCart || {}).forEach(function(sk) {
+    var sid = Number(sk);
+    var x = showcaseCart[sid];
+    if (!x || x.qty <= 0) return;
+    var img = String(x.img || '').replace(/"/g, '&quot;');
+    var t = escapeHtml(String(x.title || 'Витрина'));
+    sum += Number(x.price) * x.qty;
+    parts.push(`
+    <div class="cart-item">
+      <img src="${img}" alt="" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--ivory)"/>
+      <div class="cart-item-info">
+        <div class="cart-item-name">Витрина: ${t}</div>
+        <div class="cart-item-price">${x.price} ${SHOP_CONFIG.currency} × ${x.qty} = ${x.price * x.qty} ${SHOP_CONFIG.currency}</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="qty-btn" onclick="changeShowcaseQty(${sid}, -1)">−</button>
+        <span class="qty-num">${x.qty}</span>
+        <button class="qty-btn" onclick="changeShowcaseQty(${sid}, 1)">+</button>
+      </div>
+    </div>`);
+  });
 
   parts.push(ids.map(id => {
     const p = catalog.find(p => p.id === id);
@@ -2726,7 +2915,14 @@ function updateDeliveryFields() {
 
 function onOrderClick() {
   const ids = Object.keys(cart).map(Number);
-  if (ids.length === 0 && !subscriptionGetHasSelection()) return;
+  var hasShowcaseOrder = false;
+  try {
+    hasShowcaseOrder = Object.keys(showcaseCart || {}).some(function(k) {
+      var x = showcaseCart[k];
+      return x && x.qty > 0;
+    });
+  } catch (e) {}
+  if (ids.length === 0 && !subscriptionGetHasSelection() && !hasShowcaseOrder) return;
 
   const contactForm = document.getElementById('contactForm');
   const orderBtn = document.getElementById('orderBtn');
@@ -2808,7 +3004,13 @@ function onOrderClick() {
 function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addons) {
   addons = addons || [];
   const ids = Object.keys(cart).map(Number);
-  if (ids.length === 0 && !subscriptionGetHasSelection()) return;
+  var showcaseLinesCount = 0;
+  try {
+    Object.keys(showcaseCart || {}).forEach(function(k) {
+      if (showcaseCart[k] && showcaseCart[k].qty > 0) showcaseLinesCount += 1;
+    });
+  } catch (e) {}
+  if (ids.length === 0 && !subscriptionGetHasSelection() && showcaseLinesCount === 0) return;
 
   let sum = 0;
   const lines = [];
@@ -2853,6 +3055,23 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     const cur = SHOP_CONFIG.currency;
     const art = rawArticle ? ' (арт. ' + rawArticle + ')' : '';
     lines.push('• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur);
+  });
+  var showcaseOrderItems = [];
+  Object.keys(showcaseCart || {}).forEach(function(sk) {
+    var sid = Number(sk);
+    var x = showcaseCart[sid];
+    if (!x || x.qty <= 0) return;
+    var cur = SHOP_CONFIG.currency;
+    var lineSum = x.price * x.qty;
+    sum += lineSum;
+    lines.push('• 🌸 Витрина: «' + x.title + '» × ' + x.qty + ' = ' + lineSum + ' ' + cur);
+    showcaseOrderItems.push({
+      is_showcase: true,
+      showcase_id: sid,
+      name: x.title,
+      price: x.price,
+      qty: x.qty,
+    });
   });
   addons.forEach(function(a) {
     sum += a.price || 0;
@@ -2911,7 +3130,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
           qty: cart[id],
           price: p.price,
         };
-      }),
+      }).concat(showcaseOrderItems),
       addons: addons,
       total: sum,
       text: orderText,
@@ -2937,9 +3156,11 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
   closeCart();
   showToast('✅ Заявка отправлена!');
   cart = {};
+  showcaseCart = {};
   subscriptionSelection = null;
   updateCartUI();
   renderGrid();
+  renderShowcase();
 }
 
 // ── ТОСТ ──────────────────────────────────────────────────────────────────────
