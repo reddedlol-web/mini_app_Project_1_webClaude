@@ -1479,6 +1479,14 @@
   </div>
 </section>
 
+<!-- ВЫБОР МАГАЗИНА: без #storeList renderStorePicker() не работает — витрина не показывалась -->
+<div class="store-picker" id="storePicker" style="display:none" aria-label="Выбор магазина">
+  <div class="store-picker-title">Выберите магазин</div>
+  <p class="block-text" style="margin:-6px 0 14px; font-size:14px; color:var(--text-muted); line-height:1.45;">От него зависят витрина дня и подпись к каталогу.</p>
+  <div class="store-list" id="storeList"></div>
+  <div class="store-updated" id="storeUpdated" style="display:none"></div>
+</div>
+
 <!-- ВИТРИНА ДНЯ -->
 <section class="showcase-section" id="showcaseSection" aria-label="Витрина">
   <div class="showcase-head" id="showcaseHead">Сегодня на витрине</div>
@@ -1898,10 +1906,12 @@ function renderStorePicker() {
       var isSelected = selectedStoreId === s.id;
       return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
     }).join('');
-    if (lastUpdated) {
-      updatedEl.textContent = 'Обновлено: ' + lastUpdated;
-      updatedEl.style.display = 'block';
-    } else { updatedEl.style.display = 'none'; }
+    if (updatedEl) {
+      if (lastUpdated) {
+        updatedEl.textContent = 'Обновлено: ' + lastUpdated;
+        updatedEl.style.display = 'block';
+      } else { updatedEl.style.display = 'none'; }
+    }
     var subtitleEl = document.getElementById('catalogSubtitle');
     if (subtitleEl && selectedStoreId) {
       var s = stores.find(function(x) { return x.id === selectedStoreId; });
@@ -1918,7 +1928,7 @@ function renderStorePicker() {
   }
 
   listEl.innerHTML = stores.map(function(s) {
-    const isSelected = selectedStoreId === s.id;
+    const isSelected = String(selectedStoreId) === String(s.id);
     return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
   }).join('');
 
