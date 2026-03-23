@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="api-base" content="">
+<!-- Пустой content: демо-магазины; живые данные — откройте /mini-app с сервера бота или укажите здесь HTTPS-URL API (без слэша в конце). -->
 <title id="pageTitle">Pastel Flowers — свежие цветы и букеты в Минске</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -1806,16 +1807,11 @@ if (tg) {
 }
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
-// Базовый URL API: сервер /mini-app → __PASTEL_API_BASE__ → meta → window.API_BASE → ?api_base= → origin
+// Базовый URL API: __PASTEL_API_BASE__ (/mini-app) → window.API_BASE → ?api_base= → meta api-base → иначе origin (если нет meta в DOM)
 let API_BASE = (function() {
   if (typeof window !== 'undefined' && window.__PASTEL_API_BASE__) {
     var inj = String(window.__PASTEL_API_BASE__).trim();
     if (inj) return inj.replace(/\/$/, '');
-  }
-  var meta = document.querySelector('meta[name="api-base"]');
-  if (meta && meta.getAttribute('content')) {
-    var v = meta.getAttribute('content').trim();
-    if (v) return v.replace(/\/$/, '');
   }
   if (typeof window !== 'undefined' && window.API_BASE) return String(window.API_BASE).replace(/\/$/, '');
   try {
@@ -1825,7 +1821,13 @@ let API_BASE = (function() {
       if (qb && /^https?:\/\//i.test(qb)) return qb.replace(/\/$/, '');
     }
   } catch (e0) {}
-  // Фоллбек: origin страницы (если HTML и API на одном хосте, иначе задайте meta или ?api_base=)
+  var metaEl = document.querySelector('meta[name="api-base"]');
+  if (metaEl) {
+    var mv = (metaEl.getAttribute('content') || '').trim();
+    if (mv) return mv.replace(/\/$/, '');
+    // Пустой content="" в репозитории: не подставляем origin — статический хост часто отдаёт index.html на /api/* (200 + HTML).
+    return '';
+  }
   try {
     if (typeof location !== 'undefined' && location.origin && /^https?:\/\//.test(location.origin)) {
       return location.origin.replace(/\/$/, '');
@@ -1942,7 +1944,22 @@ async function fetchStores() {
       renderStorePicker();
       return;
     }
-    const data = await r.json();
+    var rawStores = await r.text();
+    var ts = rawStores.trimStart();
+    if (ts.charAt(0) === '<') {
+      console.warn('GET /api/stores вернул HTML вместо JSON (часто SPA/статика). Переходим на демо-магазины.');
+      // #region agent log
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'post-fix',hypothesisId:'FIX',location:'index.html:fetchStores:htmlFallback',message:'stores response was HTML, cleared API_BASE to demo',data:{status:r.status,preview:ts.slice(0,40)},timestamp:Date.now()})}).catch(function(){});
+      // #endregion
+      API_BASE = '';
+      stores = demoStores.slice();
+      lastUpdated = '28.02.2025';
+      storesRequestFailed = false;
+      storesHttpStatus = 0;
+      renderStorePicker();
+      return;
+    }
+    var data = JSON.parse(rawStores);
     stores = Array.isArray(data.stores) ? data.stores : [];
     // #region agent log
     fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H4',location:'index.html:fetchStores:parsed',message:'stores JSON shape',data:{storesLen:stores.length,isArray:Array.isArray(data.stores)},timestamp:Date.now()})}).catch(function(){});
