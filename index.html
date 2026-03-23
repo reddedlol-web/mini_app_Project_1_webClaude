@@ -1806,8 +1806,12 @@ if (tg) {
 }
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
-// Базовый URL API: meta → window.API_BASE → ?api_base= → origin страницы
+// Базовый URL API: сервер /mini-app → __PASTEL_API_BASE__ → meta → window.API_BASE → ?api_base= → origin
 const API_BASE = (function() {
+  if (typeof window !== 'undefined' && window.__PASTEL_API_BASE__) {
+    var inj = String(window.__PASTEL_API_BASE__).trim();
+    if (inj) return inj.replace(/\/$/, '');
+  }
   var meta = document.querySelector('meta[name="api-base"]');
   if (meta && meta.getAttribute('content')) {
     var v = meta.getAttribute('content').trim();
@@ -1829,6 +1833,42 @@ const API_BASE = (function() {
   } catch (e) {}
   return '';
 })();
+
+/** URL для fetch: на том же origin, что и страница, — только путь (избегает лишнего cross-origin в WebView). */
+function apiRequestUrl(pathAndQuery) {
+  var pq = pathAndQuery.charAt(0) === '/' ? pathAndQuery : '/' + pathAndQuery;
+  try {
+    if (API_BASE) {
+      var abs = new URL(API_BASE);
+      var here = new URL(location.href);
+      if (abs.origin === here.origin) return pq;
+    }
+  } catch (e) {}
+  return (API_BASE ? API_BASE.replace(/\/$/, '') : '') + pq;
+}
+
+/** Сначала полный URL из API_BASE, при ошибке или не-OK — повтор относительным /api/... (тот же хост, что HTML). */
+async function fetchApi(pathAndQuery, init) {
+  var pq = pathAndQuery.charAt(0) === '/' ? pathAndQuery : '/' + pathAndQuery;
+  var primary = apiRequestUrl(pathAndQuery);
+  var seq = primary === pq ? [pq] : [primary, pq];
+  var lastErr = null;
+  var lastResp = null;
+  for (var i = 0; i < seq.length; i++) {
+    try {
+      var r = await fetch(seq[i], init || {});
+      lastResp = r;
+      if (r.ok) return r;
+    } catch (e) {
+      lastErr = e;
+      if (i < seq.length - 1) continue;
+      throw e;
+    }
+    if (i < seq.length - 1) continue;
+  }
+  if (lastErr) throw lastErr;
+  return lastResp;
+}
 
 // Демо-данные — адреса Pastel Flowers (pastelflowers.by)
 var demoStores = [
@@ -1862,7 +1902,7 @@ async function fetchStores() {
   storesHttpStatus = 0;
   renderStorePicker();
   try {
-    const r = await fetch(API_BASE + '/api/stores', { cache: 'no-store' });
+    const r = await fetchApi('/api/stores', { cache: 'no-store' });
     storesFetched = true;
     storesHttpStatus = r.status;
     if (!r.ok) {
@@ -1888,7 +1928,7 @@ async function fetchStores() {
 async function fetchUpdates() {
   if (!API_BASE) return;
   try {
-    const r = await fetch(API_BASE + '/api/updates');
+    const r = await fetchApi('/api/updates');
     if (!r.ok) return;
     const data = await r.json();
     if (data.last_updated) lastUpdated = data.last_updated;
@@ -1905,7 +1945,7 @@ async function fetchStock(storeId) {
     return;
   }
   try {
-    const r = await fetch(API_BASE + '/api/stock?store_id=' + encodeURIComponent(storeId));
+    const r = await fetchApi('/api/stock?store_id=' + encodeURIComponent(storeId));
     if (!r.ok) return;
     const data = await r.json();
     if (Array.isArray(data.items)) {
@@ -2016,7 +2056,7 @@ async function fetchShowcase(storeId) {
     return;
   }
   try {
-    var r = await fetch(API_BASE + '/api/showcase?store_id=' + encodeURIComponent(storeId));
+    var r = await fetchApi('/api/showcase?store_id=' + encodeURIComponent(storeId));
     var data = r.ok ? await r.json() : { showcase_items: [] };
     showcaseItemsList = Array.isArray(data.showcase_items) ? data.showcase_items : [];
   } catch (e) {
@@ -2150,10 +2190,8 @@ async function fetchCatalog() {
     if (hint) hint.style.display = 'none';
     return;
   }
-  var catalogUrl = API_BASE + '/api/catalog';
-  // (debug logs removed)
   try {
-    var r = await fetch(catalogUrl);
+    var r = await fetchApi('/api/catalog');
     var data = r.ok ? await r.json() : { items: [] };
     // (debug logs removed)
     if (data.items && data.items.length > 0) {
