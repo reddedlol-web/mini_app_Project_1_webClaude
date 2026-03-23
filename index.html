@@ -1807,7 +1807,7 @@ if (tg) {
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
 // Базовый URL API: сервер /mini-app → __PASTEL_API_BASE__ → meta → window.API_BASE → ?api_base= → origin
-const API_BASE = (function() {
+let API_BASE = (function() {
   if (typeof window !== 'undefined' && window.__PASTEL_API_BASE__) {
     var inj = String(window.__PASTEL_API_BASE__).trim();
     if (inj) return inj.replace(/\/$/, '');
@@ -1833,6 +1833,17 @@ const API_BASE = (function() {
   } catch (e) {}
   return '';
 })();
+
+// Mixed content: страница по https, а база вшита как http://тот же хост — WebView блокирует fetch к /api/*
+try {
+  if (typeof location !== 'undefined' && location.protocol === 'https:' && API_BASE) {
+    var _abu = new URL(API_BASE);
+    var _here = new URL(location.href);
+    if (_abu.protocol === 'http:' && _abu.hostname === _here.hostname) {
+      API_BASE = _abu.origin.replace(/\/$/, '').replace(/^http:/i, 'https:');
+    }
+  }
+} catch (eApiBaseHttps) {}
 
 /** URL для fetch: на том же origin, что и страница, — только путь (избегает лишнего cross-origin в WebView). */
 function apiRequestUrl(pathAndQuery) {
