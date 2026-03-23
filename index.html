@@ -1806,18 +1806,25 @@ if (tg) {
 }
 
 // ── API (магазины и остатки) ───────────────────────────────────────────────────
-// Базовый URL API: задайте в <meta name="api-base" content="https://..."> или window.API_BASE
+// Базовый URL API: meta → window.API_BASE → ?api_base= → origin страницы
 const API_BASE = (function() {
   var meta = document.querySelector('meta[name="api-base"]');
   if (meta && meta.getAttribute('content')) {
     var v = meta.getAttribute('content').trim();
-    if (v) return v;
+    if (v) return v.replace(/\/$/, '');
   }
-  if (typeof window !== 'undefined' && window.API_BASE) return window.API_BASE;
-  // Фоллбек: если миниапп открыт с нашего домена, используем origin как API base
+  if (typeof window !== 'undefined' && window.API_BASE) return String(window.API_BASE).replace(/\/$/, '');
+  try {
+    if (typeof location !== 'undefined' && location.search) {
+      var q = new URLSearchParams(location.search);
+      var qb = (q.get('api_base') || q.get('api') || '').trim();
+      if (qb && /^https?:\/\//i.test(qb)) return qb.replace(/\/$/, '');
+    }
+  } catch (e0) {}
+  // Фоллбек: origin страницы (если HTML и API на одном хосте, иначе задайте meta или ?api_base=)
   try {
     if (typeof location !== 'undefined' && location.origin && /^https?:\/\//.test(location.origin)) {
-      return location.origin;
+      return location.origin.replace(/\/$/, '');
     }
   } catch (e) {}
   return '';
