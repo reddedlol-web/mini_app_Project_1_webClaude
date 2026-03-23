@@ -3610,7 +3610,19 @@ fetchStores().then(function() {
   renderStorePicker();
   renderGrid();
 });
-fetchCatalog();
+var __AUTO_OPEN_PRODUCT_ID = null;
+try {
+  if (typeof window !== 'undefined' && window.location && window.location.search) {
+    var __qs = new URLSearchParams(window.location.search);
+    var __pid = __qs.get('product') || __qs.get('products');
+    var __n = Number(__pid);
+    if (Number.isFinite(__n) && __n > 0) __AUTO_OPEN_PRODUCT_ID = __n;
+  }
+} catch (e) {}
+
+fetchCatalog().then(function() {
+  if (__AUTO_OPEN_PRODUCT_ID) openProductModal(__AUTO_OPEN_PRODUCT_ID);
+});
 builderInit();
 subscriptionInit();
 </script>
