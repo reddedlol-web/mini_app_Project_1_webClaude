@@ -1858,6 +1858,15 @@ function apiRequestUrl(pathAndQuery) {
   return (API_BASE ? API_BASE.replace(/\/$/, '') : '') + pq;
 }
 
+// #region agent log
+(function _dbgApiBaseInit(){
+  try {
+    var _req = apiRequestUrl('/api/stores');
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H1',location:'index.html:API_BASE_init',message:'resolved API_BASE and first stores URL',data:{API_BASE:API_BASE||'',origin:(typeof location!=='undefined'&&location.origin)||'',path:(typeof location!=='undefined'&&location.pathname)||'',hasInjected:!!(typeof window!=='undefined'&&window.__PASTEL_API_BASE__),storesFetchUrl:_req,sameOriginAsBase:(function(){try{if(!API_BASE)return false;return new URL(API_BASE).origin===new URL(location.href).origin;}catch(_e){return null;}})()},timestamp:Date.now()})}).catch(function(){});
+  } catch (_e) { fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H1',location:'index.html:API_BASE_init_err',message:'init log failed',data:{err:String(_e&&_e.message||_e)},timestamp:Date.now()})}).catch(function(){}); }
+})();
+// #endregion
+
 /** Сначала полный URL из API_BASE, при ошибке или не-OK — повтор относительным /api/... (тот же хост, что HTML). */
 async function fetchApi(pathAndQuery, init) {
   var pq = pathAndQuery.charAt(0) === '/' ? pathAndQuery : '/' + pathAndQuery;
@@ -1913,9 +1922,20 @@ async function fetchStores() {
   storesHttpStatus = 0;
   renderStorePicker();
   try {
+    // #region agent log
+    (function(){
+      var _pq = '/api/stores';
+      var _prim = apiRequestUrl(_pq);
+      var _seq = _prim === _pq ? [_pq] : [_prim, _pq];
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H5',location:'index.html:fetchStores:before',message:'fetch /api/stores attempt sequence',data:{seq:_seq},timestamp:Date.now()})}).catch(function(){});
+    })();
+    // #endregion
     const r = await fetchApi('/api/stores', { cache: 'no-store' });
     storesFetched = true;
     storesHttpStatus = r.status;
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H3',location:'index.html:fetchStores:response',message:'stores fetch response',data:{ok:r.ok,status:r.status},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     if (!r.ok) {
       stores = [];
       storesRequestFailed = true;
@@ -1924,10 +1944,16 @@ async function fetchStores() {
     }
     const data = await r.json();
     stores = Array.isArray(data.stores) ? data.stores : [];
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H4',location:'index.html:fetchStores:parsed',message:'stores JSON shape',data:{storesLen:stores.length,isArray:Array.isArray(data.stores)},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     storesRequestFailed = false;
     await fetchUpdates();
   } catch (e) {
     console.warn('Stores API unavailable', e);
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',hypothesisId:'H2',location:'index.html:fetchStores:catch',message:'stores fetch threw',data:{errName:e&&e.name,errMsg:String(e&&e.message||e)},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     storesFetched = true;
     storesRequestFailed = true;
     storesHttpStatus = 0;
