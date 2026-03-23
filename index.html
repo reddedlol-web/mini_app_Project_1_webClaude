@@ -1966,7 +1966,6 @@ async function fetchShowcase(storeId) {
     return;
   }
   if (!API_BASE) {
-    section.classList.remove('visible');
     renderShowcase();
     return;
   }
@@ -1986,16 +1985,27 @@ function renderShowcase() {
   var scroll = document.getElementById('showcaseScroll');
   var empty = document.getElementById('showcaseEmpty');
   if (!section || !scroll) return;
-  if (!selectedStoreId || !API_BASE) {
+  if (!selectedStoreId) {
     section.classList.remove('visible');
     scroll.innerHTML = '';
     if (empty) empty.style.display = 'none';
     return;
   }
   section.classList.add('visible');
+  if (!API_BASE) {
+    scroll.innerHTML = '';
+    if (empty) {
+      empty.textContent = 'Витрина доступна, когда мини-приложение открыто с сервера бота (страница /mini-app) или в <meta name="api-base"> указан URL API.';
+      empty.style.display = 'block';
+    }
+    return;
+  }
   if (!showcaseItemsList.length) {
     scroll.innerHTML = '';
-    if (empty) empty.style.display = 'block';
+    if (empty) {
+      empty.textContent = 'Для выбранного магазина пока нет позиций на витрине.';
+      empty.style.display = 'block';
+    }
     return;
   }
   if (empty) empty.style.display = 'none';
