@@ -1838,22 +1838,44 @@ let stores = API_BASE ? [] : demoStores.slice();
 let selectedStoreId = null;
 let inStockBouquetIds = new Set();
 let lastUpdated = API_BASE ? null : '28.02.2025';
+/** Состояние загрузки /api/stores (чтобы не показывать вечное «загружаются…» при ошибке). */
+let storesFetched = !API_BASE;
+let storesRequestFailed = false;
+let storesHttpStatus = 0;
 
 async function fetchStores() {
   if (!API_BASE) {
     stores = demoStores.slice();
     lastUpdated = '28.02.2025';
+    storesFetched = true;
+    storesRequestFailed = false;
     return Promise.resolve();
   }
+  storesRequestFailed = false;
+  storesHttpStatus = 0;
+  renderStorePicker();
   try {
-    const r = await fetch(API_BASE + '/api/stores');
-    if (!r.ok) return;
+    const r = await fetch(API_BASE + '/api/stores', { cache: 'no-store' });
+    storesFetched = true;
+    storesHttpStatus = r.status;
+    if (!r.ok) {
+      stores = [];
+      storesRequestFailed = true;
+      renderStorePicker();
+      return;
+    }
     const data = await r.json();
-    if (Array.isArray(data.stores)) stores = data.stores;
-    fetchUpdates();
+    stores = Array.isArray(data.stores) ? data.stores : [];
+    storesRequestFailed = false;
+    await fetchUpdates();
   } catch (e) {
     console.warn('Stores API unavailable', e);
+    storesFetched = true;
+    storesRequestFailed = true;
+    storesHttpStatus = 0;
+    stores = [];
   }
+  renderStorePicker();
 }
 
 async function fetchUpdates() {
@@ -1894,7 +1916,6 @@ function renderStorePicker() {
   const pickerEl = document.getElementById('storePicker');
   const listEl = document.getElementById('storeList');
   const updatedEl = document.getElementById('storeUpdated');
-  const catalogTitle = document.getElementById('catalogSectionTitle');
 
   if (!listEl) return;
 
@@ -1903,7 +1924,7 @@ function renderStorePicker() {
   if (!API_BASE && stores.length > 0) {
     lastUpdated = lastUpdated || '28.02.2025';
     listEl.innerHTML = stores.map(function(s) {
-      var isSelected = selectedStoreId === s.id;
+      var isSelected = String(selectedStoreId) === String(s.id);
       return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
     }).join('');
     if (updatedEl) {
@@ -1914,16 +1935,30 @@ function renderStorePicker() {
     }
     var subtitleEl = document.getElementById('catalogSubtitle');
     if (subtitleEl && selectedStoreId) {
-      var s = stores.find(function(x) { return x.id === selectedStoreId; });
+      var s = stores.find(function(x) { return String(x.id) === String(selectedStoreId); });
       subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
       subtitleEl.style.display = s ? 'block' : 'none';
     }
     return;
   }
 
+  if (API_BASE && !storesFetched) {
+    listEl.innerHTML = '<div class="store-empty">Загрузка списка магазинов…</div>';
+    if (updatedEl) updatedEl.style.display = 'none';
+    return;
+  }
+
   if (stores.length === 0) {
-    listEl.innerHTML = '<div class="store-empty">Магазины загружаются с сервера… Добавьте листы «Магазины» и «Остатки» в Google Таблицу (см. docs/CLIENT_REQUIREMENTS.md).</div>';
-    updatedEl.style.display = 'none';
+    var emptyMsg;
+    if (API_BASE && storesRequestFailed) {
+      emptyMsg = 'Не удалось загрузить магазины' + (storesHttpStatus ? ' (код ' + storesHttpStatus + ')' : '') + '. Откройте мини-приложение по адресу <strong>/mini-app</strong> на сервере бота (там подставится верный API) или проверьте HTTPS и доступность API.';
+    } else if (API_BASE) {
+      emptyMsg = 'Список магазинов пуст. Добавьте строки на лист «Магазины» в Google Таблице (колонки id, name, address) и проверьте переменную STORES_SHEET_NAME в настройках бота.';
+    } else {
+      emptyMsg = 'Нет данных магазинов.';
+    }
+    listEl.innerHTML = '<div class="store-empty">' + emptyMsg + '</div>';
+    if (updatedEl) updatedEl.style.display = 'none';
     return;
   }
 
@@ -1932,38 +1967,32 @@ function renderStorePicker() {
     return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
   }).join('');
 
-  if (lastUpdated) {
-    updatedEl.textContent = 'Обновлено: ' + lastUpdated;
-    updatedEl.style.display = 'block';
-  } else {
-    updatedEl.style.display = 'none';
+  if (updatedEl) {
+    if (lastUpdated) {
+      updatedEl.textContent = 'Обновлено: ' + lastUpdated;
+      updatedEl.style.display = 'block';
+    } else {
+      updatedEl.style.display = 'none';
+    }
   }
 
   var subtitleEl = document.getElementById('catalogSubtitle');
   if (subtitleEl) {
     if (selectedStoreId) {
-      var s = stores.find(function(x) { return x.id === selectedStoreId; });
-      subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
-      subtitleEl.style.display = s ? 'block' : 'none';
+      var s2 = stores.find(function(x) { return String(x.id) === String(selectedStoreId); });
+      subtitleEl.textContent = s2 ? 'В наличии в «' + s2.name + '»' : '';
+      subtitleEl.style.display = s2 ? 'block' : 'none';
     } else {
       subtitleEl.style.display = 'none';
-    }
-  }
-
-  if (placeholderEl && catalogTitle) {
-    if (!selectedStoreId) {
-      placeholderEl.style.display = 'none';
-    } else {
-      placeholderEl.style.display = 'none';
     }
   }
 }
 
 function selectStore(storeId) {
-  selectedStoreId = storeId;
+  selectedStoreId = storeId != null ? String(storeId) : null;
   renderStorePicker();
-  fetchStock(storeId);
-  fetchShowcase(storeId);
+  fetchStock(selectedStoreId);
+  fetchShowcase(selectedStoreId);
 }
 
 async function fetchShowcase(storeId) {
@@ -3850,6 +3879,9 @@ renderGrid();
 fetchStores().then(function() {
   renderStorePicker();
   renderGrid();
+  if (stores.length > 0 && !selectedStoreId) {
+    selectStore(stores[0].id);
+  }
 });
 var __AUTO_OPEN_PRODUCT_ID = null;
 try {
