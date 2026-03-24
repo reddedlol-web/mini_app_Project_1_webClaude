@@ -2077,21 +2077,36 @@ async function fetchShowcase(storeId) {
     return;
   }
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'showcase-check',hypothesisId:'S1',location:'index.html:fetchShowcase:before',message:'request showcase for store',data:{storeId:String(storeId),apiBase:API_BASE||'',path:(typeof location!=='undefined'&&location.pathname)||''},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     var r = await fetchApi('/api/showcase?store_id=' + encodeURIComponent(storeId));
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'showcase-check',hypothesisId:'S2',location:'index.html:fetchShowcase:response',message:'showcase response status',data:{storeId:String(storeId),ok:r.ok,status:r.status,url:String(r.url||'')},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     if (!r.ok) {
       showcaseItemsList = [];
     } else {
       var rawSc = await r.text();
       var tsSc = rawSc.trimStart();
       if (tsSc.charAt(0) === '<') {
+        // #region agent log
+        fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'showcase-check',hypothesisId:'S3',location:'index.html:fetchShowcase:html',message:'showcase returned HTML instead of JSON',data:{storeId:String(storeId),preview:tsSc.slice(0,40)},timestamp:Date.now()})}).catch(function(){});
+        // #endregion
         showcaseItemsList = [];
       } else {
         var dataSc = JSON.parse(rawSc);
         showcaseItemsList = Array.isArray(dataSc.showcase_items) ? dataSc.showcase_items : [];
+        // #region agent log
+        fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'showcase-check',hypothesisId:'S4',location:'index.html:fetchShowcase:parsed',message:'showcase parsed payload',data:{storeId:String(storeId),itemsLen:showcaseItemsList.length,firstStoreId:(showcaseItemsList[0]&&showcaseItemsList[0].store_id!=null)?String(showcaseItemsList[0].store_id):null,firstShowcaseId:(showcaseItemsList[0]&&showcaseItemsList[0].showcase_id!=null)?String(showcaseItemsList[0].showcase_id):null},timestamp:Date.now()})}).catch(function(){});
+        // #endregion
       }
     }
   } catch (e) {
     console.warn('Showcase API', e);
+    // #region agent log
+    fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c08a24'},body:JSON.stringify({sessionId:'c08a24',runId:'showcase-check',hypothesisId:'S5',location:'index.html:fetchShowcase:catch',message:'showcase fetch threw',data:{storeId:String(storeId),errName:e&&e.name,errMsg:String(e&&e.message||e)},timestamp:Date.now()})}).catch(function(){});
+    // #endregion
     showcaseItemsList = [];
   }
   renderShowcase();
