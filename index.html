@@ -2007,12 +2007,7 @@ function renderStorePicker() {
       var isSelected = String(selectedStoreId) === String(s.id);
       return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
     }).join('');
-    if (updatedEl) {
-      if (lastUpdated) {
-        updatedEl.textContent = 'Обновлено: ' + lastUpdated;
-        updatedEl.style.display = 'block';
-      } else { updatedEl.style.display = 'none'; }
-    }
+    if (updatedEl) updatedEl.style.display = 'none';
     var subtitleEl = document.getElementById('catalogSubtitle');
     if (subtitleEl) subtitleEl.style.display = 'none';
     return;
@@ -2043,14 +2038,7 @@ function renderStorePicker() {
     return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
   }).join('');
 
-  if (updatedEl) {
-    if (lastUpdated) {
-      updatedEl.textContent = 'Обновлено: ' + lastUpdated;
-      updatedEl.style.display = 'block';
-    } else {
-      updatedEl.style.display = 'none';
-    }
-  }
+  if (updatedEl) updatedEl.style.display = 'none';
 
   var subtitleEl = document.getElementById('catalogSubtitle');
   if (subtitleEl) subtitleEl.style.display = 'none';
@@ -2769,7 +2757,10 @@ function changeQty(id, delta) {
 }
 
 function updateCartUI() {
-  const total = Object.values(cart).reduce((s, q) => s + q, 0) + (subscriptionGetHasSelection() ? 1 : 0);
+  const showcaseTotal = Object.values(showcaseCart || {}).reduce(function(sum, item) {
+    return sum + ((item && Number(item.qty) > 0) ? Number(item.qty) : 0);
+  }, 0);
+  const total = Object.values(cart).reduce((s, q) => s + q, 0) + showcaseTotal + (subscriptionGetHasSelection() ? 1 : 0);
   const badge = document.getElementById('cartCount');
   badge.textContent = total;
   badge.classList.toggle('visible', total > 0);
