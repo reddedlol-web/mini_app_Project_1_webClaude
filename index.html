@@ -816,7 +816,12 @@
     background: var(--bg-alt);
     border-radius: 14px;
   }
-  .catalog-subtitle { font-size: 14px; color: var(--accent); padding: 0 20px 10px; font-weight: 500; }
+  .catalog-subtitle { display: none !important; }
+  .catalog-divider {
+    height: 1px;
+    margin: 8px 20px 6px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
   .showcase-section { padding: 0 0 8px; display: none; }
   .showcase-section.visible { display: block; }
   .showcase-head {
@@ -838,7 +843,9 @@
   .showcase-scroll::-webkit-scrollbar { height: 4px; }
   .showcase-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
   .showcase-card {
-    flex: 0 0 220px;
+    /* Ширина как у карточки в сетке каталога (2 колонки, тот же gap/padding). */
+    flex: 0 0 calc((100% - 14px) / 2);
+    max-width: 260px;
     scroll-snap-align: start;
     background: var(--bg-card);
     border-radius: 16px;
@@ -1496,6 +1503,7 @@
 </section>
 
 <!-- КАТАЛОГ -->
+<div class="catalog-divider" aria-hidden="true"></div>
 <div class="section-title section-title--caps" id="catalogSectionTitle">Каталог цветов</div>
 <div class="catalog-subtitle" id="catalogSubtitle" style="display:none"></div>
 <div class="catalog-source-hint" id="catalogSourceHint" style="display:none; font-size:12px; color:var(--muted, #9e8c82); padding:0 20px 8px;"></div>
@@ -2006,11 +2014,7 @@ function renderStorePicker() {
       } else { updatedEl.style.display = 'none'; }
     }
     var subtitleEl = document.getElementById('catalogSubtitle');
-    if (subtitleEl && selectedStoreId) {
-      var s = stores.find(function(x) { return String(x.id) === String(selectedStoreId); });
-      subtitleEl.textContent = s ? 'В наличии в «' + s.name + '»' : '';
-      subtitleEl.style.display = s ? 'block' : 'none';
-    }
+    if (subtitleEl) subtitleEl.style.display = 'none';
     return;
   }
 
@@ -2049,15 +2053,7 @@ function renderStorePicker() {
   }
 
   var subtitleEl = document.getElementById('catalogSubtitle');
-  if (subtitleEl) {
-    if (selectedStoreId) {
-      var s2 = stores.find(function(x) { return String(x.id) === String(selectedStoreId); });
-      subtitleEl.textContent = s2 ? 'В наличии в «' + s2.name + '»' : '';
-      subtitleEl.style.display = s2 ? 'block' : 'none';
-    } else {
-      subtitleEl.style.display = 'none';
-    }
-  }
+  if (subtitleEl) subtitleEl.style.display = 'none';
 }
 
 function selectStore(storeId) {
@@ -2205,7 +2201,7 @@ async function fetchCatalog() {
       catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
       if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); builderRender(); }
       var h = document.getElementById('catalogSourceHint');
-      if (h) { h.textContent = 'Каталог: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
+      if (h) h.style.display = 'none';
       // (debug logs removed)
       return;
     }
@@ -2225,10 +2221,7 @@ async function fetchCatalog() {
       renderGrid();
       builderRender();
       var hintEl = document.getElementById('catalogSourceHint');
-      if (hintEl) {
-        hintEl.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров';
-        hintEl.style.display = 'block';
-      }
+      if (hintEl) hintEl.style.display = 'none';
     } else {
       if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
         var fallbackCatalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
@@ -2239,7 +2232,7 @@ async function fetchCatalog() {
           renderGrid();
           builderRender();
           var h = document.getElementById('catalogSourceHint');
-          if (h) { h.textContent = 'Загружено из каталога: ' + catalog.length + ' товаров'; h.style.display = 'block'; }
+          if (h) h.style.display = 'none';
           return;
         }
       }
