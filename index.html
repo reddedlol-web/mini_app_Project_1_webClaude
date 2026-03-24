@@ -2111,14 +2111,14 @@ function renderShowcase() {
     var price = Number(it.price) || 0;
     var inC = showcaseCart[sid] && showcaseCart[sid].qty > 0;
     return (
-      '<div class="showcase-card">' +
+      '<div class="showcase-card" role="button" tabindex="0" onclick="openShowcaseModal(' + sid + ')">' +
         '<div class="showcase-card-img-wrap"><img class="showcase-card-img" src="' + img + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"></div>' +
         '<div class="showcase-card-body">' +
           '<div class="showcase-card-title">' + title + '</div>' +
           (desc ? '<div class="showcase-card-desc">' + desc + '</div>' : '') +
           '<div class="showcase-card-meta">' +
             '<span class="showcase-card-price">' + price + ' ' + cur + '</span>' +
-            '<button type="button" class="add-btn' + (inC ? ' added' : '') + '" onclick="addShowcaseToCart(' + sid + ')" aria-label="В корзину">' + (inC ? '✓' : '+') + '</button>' +
+            '<button type="button" class="add-btn' + (inC ? ' added' : '') + '" onclick="event.stopPropagation(); addShowcaseToCart(' + sid + ')" aria-label="В корзину">' + (inC ? '✓' : '+') + '</button>' +
           '</div>' +
         '</div>' +
       '</div>'
@@ -3836,6 +3836,41 @@ function renderProductDescription(p) {
   root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
 }
 
+function openShowcaseModal(showcaseId) {
+  var sid = Number(showcaseId) || 0;
+  if (!sid) return;
+  var it = showcaseItemsList && showcaseItemsList.find ? showcaseItemsList.find(function(x) { return Number(x.showcase_id) === sid; }) : null;
+  if (!it) return;
+
+  activeProductId = null;
+  var ov = document.getElementById('overlayProduct');
+  var md = document.getElementById('productModal');
+  if (ov) ov.classList.add('open');
+  if (md) md.classList.add('open');
+
+  var img = document.getElementById('productImg');
+  if (img) {
+    img.src = it.image_url || '';
+    img.alt = it.title || '';
+    img.onerror = function() { try { this.style.display = 'none'; } catch (e) {} };
+    try { img.style.display = 'block'; } catch (e) {}
+  }
+  var title = document.getElementById('productTitle');
+  if (title) title.textContent = String(it.title || 'Витрина');
+  var price = document.getElementById('productPrice');
+  if (price) price.innerHTML = escapeHtml(Number(it.price) || 0) + ' <span>' + escapeHtml(SHOP_CONFIG.currency) + '</span>';
+
+  renderProductDescription({ desc: String(it.description || '') });
+
+  var addBtn = document.getElementById('productAddBtn');
+  if (addBtn) {
+    addBtn.onclick = function(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      addShowcaseToCart(sid);
+      showToast('Добавлено в корзину');
+    };
+  }
+}
 function openProductModal(productId) {
   var id = Number(productId) || 0;
   if (!id) return;
