@@ -2031,6 +2031,7 @@ function selectStore(storeId) {
   renderStorePicker();
   fetchStock(selectedStoreId);
   fetchShowcase(selectedStoreId);
+  try { if (typeof __focusEntryMode === 'function') __focusEntryMode(); } catch (e) {}
 }
 
 async function fetchShowcase(storeId) {
@@ -3953,17 +3954,45 @@ fetchStores().then(function() {
   }
 });
 var __AUTO_OPEN_PRODUCT_ID = null;
+var __ENTRY_MODE = '';
 try {
   if (typeof window !== 'undefined' && window.location && window.location.search) {
     var __qs = new URLSearchParams(window.location.search);
+    var __entry = (__qs.get('entry') || __qs.get('mode') || '').trim().toLowerCase();
+    if (__entry) __ENTRY_MODE = __entry;
     var __pid = __qs.get('product') || __qs.get('products');
     var __n = Number(__pid);
     if (Number.isFinite(__n) && __n > 0) __AUTO_OPEN_PRODUCT_ID = __n;
   }
 } catch (e) {}
 
+function __scrollToEl(el) {
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  try { el.scrollIntoView(true); } catch (e2) {}
+}
+function __flashEl(el) {
+  try {
+    el.classList.remove('scroll-target-flash');
+    void el.offsetWidth;
+    el.classList.add('scroll-target-flash');
+    setTimeout(function() { el.classList.remove('scroll-target-flash'); }, 1200);
+  } catch (e) {}
+}
+function __focusEntryMode() {
+  if (__ENTRY_MODE !== 'showcase') return;
+  // Витрина зависит от выбранного магазина: сначала приводим пользователя к выбору магазина.
+  if (!selectedStoreId) {
+    var picker = document.getElementById('storePicker');
+    if (picker) { __scrollToEl(picker); __flashEl(picker); }
+    return;
+  }
+  var sc = document.getElementById('showcaseSection');
+  if (sc) { __scrollToEl(sc); __flashEl(sc); }
+}
+
 fetchCatalog().then(function() {
   if (__AUTO_OPEN_PRODUCT_ID) openProductModal(__AUTO_OPEN_PRODUCT_ID);
+  __focusEntryMode();
 });
 builderInit();
 subscriptionInit();
