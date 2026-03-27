@@ -3234,31 +3234,8 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     };
   }
 
-  if (tg) {
-    var payload = __payload();
-    // Для fallback-отправки через /api/order (Menu Button) — Telegram initData для верификации.
-    try { payload.init_data = (tg.initData || ''); } catch (eInit) {}
-    try {
-      tg.sendData(JSON.stringify(payload));
-    } catch (eSend) {
-      // Если WebApp открыт не через reply-кнопку, sendData может не дойти до бота.
-      try {
-        fetchApi('/api/order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        }).then(function(r) {
-          if (!r || !r.ok) throw new Error('order api not ok');
-        }).catch(function(e2) {
-          alert(orderText);
-        });
-      } catch (e3) {
-        alert(orderText);
-      }
-    }
-  } else {
-    alert(orderText);
-  }
+  if (tg) tg.sendData(JSON.stringify(__payload()));
+  else alert(orderText);
 
   closeCart();
   showToast('✅ Заявка отправлена!');
