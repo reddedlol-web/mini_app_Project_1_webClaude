@@ -3967,7 +3967,7 @@ try {
 } catch (e) {}
 
 function __scrollToEl(el) {
-  try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  try { el.scrollIntoView({ behavior: 'auto', block: 'start' }); } catch (e) {}
   try { el.scrollIntoView(true); } catch (e2) {}
 }
 function __flashEl(el) {
@@ -3989,6 +3989,9 @@ function __focusEntryMode() {
   var sc = document.getElementById('showcaseSection');
   if (sc) { __scrollToEl(sc); __flashEl(sc); }
 }
+
+// Если открыли мини-апп сразу в режиме витрины — не ждём загрузки каталога/АПИ.
+__focusEntryMode();
 
 fetchCatalog().then(function() {
   if (__AUTO_OPEN_PRODUCT_ID) openProductModal(__AUTO_OPEN_PRODUCT_ID);
