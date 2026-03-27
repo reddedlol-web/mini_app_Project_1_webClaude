@@ -3967,14 +3967,23 @@ function __flashEl(el) {
 }
 function __focusEntryMode() {
   if (__ENTRY_MODE !== 'showcase') return;
+  function go(el) {
+    if (!el) return;
+    // В Telegram WebView часто “дёргает” скролл во время первой отрисовки.
+    // Поэтому делаем несколько попыток: сразу, на следующий кадр и чуть позже.
+    __scrollToEl(el);
+    try { requestAnimationFrame(function() { __scrollToEl(el); }); } catch (e) {}
+    setTimeout(function() { __scrollToEl(el); }, 120);
+    setTimeout(function() { __scrollToEl(el); }, 350);
+    __flashEl(el);
+  }
+
   // Витрина зависит от выбранного магазина: сначала приводим пользователя к выбору магазина.
   if (!selectedStoreId) {
-    var picker = document.getElementById('storePicker');
-    if (picker) { __scrollToEl(picker); __flashEl(picker); }
+    go(document.getElementById('storePicker'));
     return;
   }
-  var sc = document.getElementById('showcaseSection');
-  if (sc) { __scrollToEl(sc); __flashEl(sc); }
+  go(document.getElementById('showcaseSection'));
 }
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
