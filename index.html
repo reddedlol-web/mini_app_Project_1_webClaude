@@ -2031,7 +2031,6 @@ function selectStore(storeId) {
   renderStorePicker();
   fetchStock(selectedStoreId);
   fetchShowcase(selectedStoreId);
-  try { if (typeof __focusEntryMode === 'function') __focusEntryMode(); } catch (e) {}
 }
 
 async function fetchShowcase(storeId) {
