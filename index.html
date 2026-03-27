@@ -3189,8 +3189,8 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
 
   var cardNote = '';
   addons.forEach(function(a) { if (a.note) cardNote = a.note; });
-  if (tg) {
-    tg.sendData(JSON.stringify({
+  function __payload() {
+    return {
       type: 'catalog_order',
       subscription: (subscriptionGetHasSelection() ? subscriptionSelection : null),
       items: ids.map(id => {
@@ -3231,7 +3231,31 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
       store_id: storeInfo.store_id || '',
       store_name: storeInfo.store_name || '',
       store_address: storeInfo.store_address || '',
-    }));
+    };
+  }
+
+  if (tg) {
+    var payload = __payload();
+    // Для fallback-отправки через /api/order (Menu Button) — Telegram initData для верификации.
+    try { payload.init_data = (tg.initData || ''); } catch (eInit) {}
+    try {
+      tg.sendData(JSON.stringify(payload));
+    } catch (eSend) {
+      // Если WebApp открыт не через reply-кнопку, sendData может не дойти до бота.
+      try {
+        fetchApi('/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(function(r) {
+          if (!r || !r.ok) throw new Error('order api not ok');
+        }).catch(function(e2) {
+          alert(orderText);
+        });
+      } catch (e3) {
+        alert(orderText);
+      }
+    }
   } else {
     alert(orderText);
   }
@@ -3939,19 +3963,6 @@ document.querySelectorAll('input[name="deliveryType"]').forEach(function(el) {
   });
 });
 
-// ── СТАРТ ─────────────────────────────────────────────────────────────────────
-renderCategoryFilters();
-renderBudgetFilters();
-renderPresets();
-renderStorePicker();
-renderGrid();
-fetchStores().then(function() {
-  renderStorePicker();
-  renderGrid();
-  if (stores.length > 0 && !selectedStoreId) {
-    selectStore(stores[0].id);
-  }
-});
 var __AUTO_OPEN_PRODUCT_ID = null;
 var __ENTRY_MODE = '';
 try {
@@ -3989,12 +4000,26 @@ function __focusEntryMode() {
   if (sc) { __scrollToEl(sc); __flashEl(sc); }
 }
 
-// Если открыли мини-апп сразу в режиме витрины — не ждём загрузки каталога/АПИ.
+// ── СТАРТ ─────────────────────────────────────────────────────────────────────
+renderCategoryFilters();
+renderBudgetFilters();
+renderPresets();
+renderStorePicker();
+
+// В режиме витрины сразу фокусируем выбор магазина (без “прыжка” после рендера каталога).
 __focusEntryMode();
+
+renderGrid();
+fetchStores().then(function() {
+  renderStorePicker();
+  renderGrid();
+  if (stores.length > 0 && !selectedStoreId) {
+    selectStore(stores[0].id);
+  }
+});
 
 fetchCatalog().then(function() {
   if (__AUTO_OPEN_PRODUCT_ID) openProductModal(__AUTO_OPEN_PRODUCT_ID);
-  __focusEntryMode();
 });
 builderInit();
 subscriptionInit();
