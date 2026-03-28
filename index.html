@@ -1495,6 +1495,7 @@
 <div class="catalog-source-hint" id="catalogSourceHint" style="display:none; font-size:12px; color:var(--muted, #9e8c82); padding:0 20px 8px;"></div>
 <div class="filters filters-scroll-hint">
   <div class="filter-row" id="categoryFilters"></div>
+  <div class="filter-row" id="subcategoryFilters" style="display:none"></div>
   <div class="filter-row" id="budgetFilters"></div>
 </div>
 <div class="presets-wrap presets-scroll-hint">
@@ -2146,6 +2147,8 @@ function normalizeCatalogItem(it) {
   return {
     id: Number(it.id) || 0,
     cat: (it.category || '').trim(),
+    subcategory: String(it.subcategory || '').trim(),
+    composition: String(it.composition || '').trim(),
     name: (it.name || '').trim(),
     img: (it.image || '').trim(),
     desc: (it.description || '').trim(),
@@ -2169,7 +2172,7 @@ async function fetchCatalog() {
   if (!API_BASE) {
     if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) {
       catalog = EMBEDDED_CATALOG_RAW.map(normalizeCatalogItem).filter(function(p) { return p.id; });
-      if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderGrid(); builderRender(); }
+      if (catalog.length) { buildCategoriesFromCatalog(); renderCategoryFilters(); renderSubcategoryFilters(); renderGrid(); builderRender(); }
       var h = document.getElementById('catalogSourceHint');
       if (h) h.style.display = 'none';
       // (debug logs removed)
@@ -2188,6 +2191,7 @@ async function fetchCatalog() {
       // (debug logs removed)
       buildCategoriesFromCatalog();
       renderCategoryFilters();
+      renderSubcategoryFilters();
       renderGrid();
       builderRender();
       var hintEl = document.getElementById('catalogSourceHint');
@@ -2199,6 +2203,7 @@ async function fetchCatalog() {
           catalog = fallbackCatalog;
           buildCategoriesFromCatalog();
           renderCategoryFilters();
+          renderSubcategoryFilters();
           renderGrid();
           builderRender();
           var h = document.getElementById('catalogSourceHint');
@@ -2210,6 +2215,7 @@ async function fetchCatalog() {
       if (catalog.length) {
         buildCategoriesFromCatalog();
         renderCategoryFilters();
+        renderSubcategoryFilters();
         renderGrid();
         builderRender();
       }
@@ -2258,6 +2264,7 @@ if (typeof EMBEDDED_CATALOG_RAW !== 'undefined' && EMBEDDED_CATALOG_RAW.length) 
 }
 
 let activeCategory = 'any';
+let activeSubcategory = 'any';
 let activeBudget = 'any';
 let cart = {};  // { id: qty }
 let showcaseCart = {};  // { [showcase_id]: { title, price, img, qty } }
@@ -2610,9 +2617,52 @@ function renderCategoryFilters() {
   }).join('');
 }
 
+function getSubcategoriesForActiveCategory() {
+  if (activeCategory === 'any' || activeCategory === 'По поводу') return [];
+  var seen = {};
+  var out = [];
+  catalog.forEach(function(p) {
+    if (p.cat !== activeCategory) return;
+    var s = (p.subcategory || '').trim();
+    if (s && !seen[s]) { seen[s] = true; out.push(s); }
+  });
+  out.sort(function(a, b) { return a.localeCompare(b, 'ru'); });
+  return out;
+}
+
+function renderSubcategoryFilters() {
+  var el = document.getElementById('subcategoryFilters');
+  if (!el) return;
+  var subs = getSubcategoriesForActiveCategory();
+  if (!subs.length) {
+    el.innerHTML = '';
+    el.style.display = 'none';
+    activeSubcategory = 'any';
+    return;
+  }
+  el.style.display = '';
+  if (activeSubcategory !== 'any' && subs.indexOf(activeSubcategory) === -1) {
+    activeSubcategory = 'any';
+  }
+  var chips = [{ id: 'any', label: 'Все подкатегории' }].concat(subs.map(function(s) { return { id: s, label: s }; }));
+  el.innerHTML = chips.map(function(c) {
+    var isActive = activeSubcategory === c.id;
+    var sid = String(c.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return '<button class="filter-chip ' + (isActive ? 'active' : '') + '" onclick="selectSubcategory(\'' + sid + '\')">' + escapeHtml(c.label) + '</button>';
+  }).join('');
+}
+
+function selectSubcategory(id) {
+  activeSubcategory = id;
+  renderSubcategoryFilters();
+  renderGrid();
+}
+
 function selectCategory(id) {
   activeCategory = id === 'по поводу' ? 'По поводу' : id;
+  activeSubcategory = 'any';
   renderCategoryFilters();
+  renderSubcategoryFilters();
   renderGrid();
 }
 
@@ -2661,6 +2711,10 @@ function renderGrid() {
 
   if (activeCategory !== 'any') {
     items = items.filter(p => p.cat === activeCategory);
+  }
+
+  if (activeSubcategory !== 'any') {
+    items = items.filter(p => (p.subcategory || '').trim() === activeSubcategory);
   }
 
   if (activeBudget !== 'any') {
@@ -3521,6 +3575,9 @@ function normalizeApiItem(it) {
     img: String(it.image || it.img || '').trim(),
     desc: String(it.description || it.desc || '').trim() || 'Состав уточняется.',
     cat: String(it.category || '').trim() || 'any',
+    subcategory: String(it.subcategory || '').trim(),
+    composition: String(it.composition || '').trim(),
+    article: String(it.article || '').trim(),
     emoji: '🌸',
   };
   try { if (Array.isArray(catalog)) catalog.push(obj); } catch (e) {}
@@ -3790,33 +3847,58 @@ function renderProductDescription(p) {
   var root = document.getElementById('productDesc');
   var title = document.getElementById('productDescTitle');
   if (!root) return;
+  var comp = (p && p.composition) ? String(p.composition).trim() : '';
   var desc = (p && p.desc) ? String(p.desc).trim() : '';
+
+  function compBlock() {
+    if (!comp) return '';
+    var lines = comp.split(/\r?\n/).map(function(s) { return String(s || '').trim(); }).filter(Boolean);
+    if (lines.length >= 2) {
+      return '<div class="product-modal-section-note" style="margin-bottom:10px;font-size:13px;opacity:0.9">Состав</div><ul class="product-modal-list">' + lines.map(function(line) {
+        return '<li>' + escapeHtml(line) + '</li>';
+      }).join('') + '</ul>';
+    }
+    return '<div class="product-modal-desc" style="margin-bottom:12px">' + escapeHtml(comp) + '</div>';
+  }
 
   // Для поштучных цветов — показываем стандартную подсказку про упаковку
   if (p && String(p.cat || '').trim().toLowerCase() === 'цветы поштучно') {
     if (!desc || /^без\s*упаковки$/i.test(desc)) desc = getDefaultSingleFlowerNote();
-    if (title) title.textContent = 'Важно';
-    root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+    if (title) title.textContent = comp ? 'Информация' : 'Важно';
+    root.innerHTML = compBlock() + '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
     return;
   }
 
   if (title) title.textContent = 'Состав';
 
-  if (!desc) {
+  var extra = '';
+  if (desc && (!comp || desc !== comp)) {
+    extra = '<div class="product-modal-section-note" style="margin-top:12px;margin-bottom:6px;font-size:13px;opacity:0.9">Описание</div><div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+  }
+
+  if (!comp && !desc) {
     root.innerHTML = '<div class="product-modal-desc" style="color:var(--text-muted)">Состав уточняется. Если важно повторить букет точь-в-точь — напишите нам, мы предложим замену при необходимости.</div>';
     return;
   }
 
-  // Если много строк — показываем списком
-  var lines = desc.split(/\r?\n/).map(function(s) { return String(s || '').trim(); }).filter(Boolean);
-  if (lines.length >= 2) {
-    root.innerHTML = '<ul class="product-modal-list">' + lines.map(function(line) {
-      return '<li>' + escapeHtml(line) + '</li>';
-    }).join('') + '</ul>';
+  if (comp && !desc) {
+    root.innerHTML = compBlock();
     return;
   }
 
-  root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+  if (!comp && desc) {
+    var lines = desc.split(/\r?\n/).map(function(s) { return String(s || '').trim(); }).filter(Boolean);
+    if (lines.length >= 2) {
+      root.innerHTML = '<ul class="product-modal-list">' + lines.map(function(line) {
+        return '<li>' + escapeHtml(line) + '</li>';
+      }).join('') + '</ul>';
+      return;
+    }
+    root.innerHTML = '<div class="product-modal-desc">' + escapeHtml(desc) + '</div>';
+    return;
+  }
+
+  root.innerHTML = compBlock() + extra;
 }
 
 function openShowcaseModal(showcaseId) {
@@ -3988,6 +4070,7 @@ function __focusEntryMode() {
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
 renderCategoryFilters();
+renderSubcategoryFilters();
 renderBudgetFilters();
 renderPresets();
 renderStorePicker();
