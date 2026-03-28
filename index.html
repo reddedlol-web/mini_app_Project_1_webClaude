@@ -2183,7 +2183,7 @@ async function fetchCatalog() {
     return;
   }
   try {
-    var r = await fetchApi('/api/catalog');
+    var r = await fetchApi('/api/catalog?_=' + Date.now(), { cache: 'no-store' });
     var data = r.ok ? await r.json() : { items: [] };
     // (debug logs removed)
     if (data.items && data.items.length > 0) {
