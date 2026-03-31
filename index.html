@@ -4037,16 +4037,30 @@ function closeProductModal() {
   if (ov) ov.style.display = 'none';
 
   // iOS Telegram WebView: after closing modal, horizontal overflow scrollers can "freeze".
-  // Force a tiny reflow + reset webkit overflow scrolling on filter rows.
-  try {
-    document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
-      if (!el) return;
-      var prev = el.style.webkitOverflowScrolling;
-      el.style.webkitOverflowScrolling = 'auto';
-      void el.offsetHeight;
-      el.style.webkitOverflowScrolling = prev || 'touch';
-    });
-  } catch (e) {}
+  // We avoid manual drag scrolling (keeps momentum), and instead force a layout+overflow reset.
+  function reviveHorizontalScroll() {
+    try {
+      document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
+        if (!el) return;
+        var x = el.scrollLeft || 0;
+        var prevWebkit = el.style.webkitOverflowScrolling;
+        var prevOverflowX = el.style.overflowX;
+
+        el.style.webkitOverflowScrolling = 'auto';
+        el.style.overflowX = 'hidden';
+        void el.offsetHeight;
+        el.style.overflowX = prevOverflowX || 'auto';
+        el.style.webkitOverflowScrolling = prevWebkit || 'touch';
+
+        // Nudge scroll position to wake up iOS scroll chain, then restore.
+        el.scrollLeft = x + 1;
+        el.scrollLeft = x;
+      });
+    } catch (e) {}
+  }
+
+  reviveHorizontalScroll();
+  try { setTimeout(reviveHorizontalScroll, 220); } catch (e2) {}
 }
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
