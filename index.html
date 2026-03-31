@@ -603,9 +603,6 @@
     overflow-y: hidden;
     touch-action: pan-x;
     overscroll-behavior-x: contain;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
     padding-right: 20px;
@@ -653,9 +650,6 @@
     overflow-y: hidden;
     touch-action: pan-x;
     overscroll-behavior-x: contain;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
     -webkit-overflow-scrolling: touch;
@@ -3541,89 +3535,8 @@ function setupWheelScroll(el) {
     el.scrollLeft += e.deltaY;
   }, { passive: false });
 }
-
-// ── Drag-to-scroll (iOS / Telegram WebView fallback) ──────────────────────────
-function setupTouchDragScroll(el) {
-  if (!el) return;
-  if (typeof window === 'undefined') return;
-  if (!('ontouchstart' in window)) return;
-
-  var active = false;
-  var lockedAxis = ''; // '', 'x', 'y'
-  var startX = 0;
-  var startY = 0;
-  var startScrollLeft = 0;
-  var moved = false;
-  var suppressClickUntil = 0;
-  var THRESH = 10;
-
-  function tPoint(e) {
-    var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
-    return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
-  }
-
-  el.addEventListener('touchstart', function(e) {
-    if (!e) return;
-    active = true;
-    lockedAxis = '';
-    moved = false;
-    var p = tPoint(e);
-    startX = p.x;
-    startY = p.y;
-    startScrollLeft = el.scrollLeft;
-  }, { passive: true });
-
-  el.addEventListener('touchmove', function(e) {
-    if (!active || !e) return;
-
-    var p = tPoint(e);
-    var dx = p.x - startX;
-    var dy = p.y - startY;
-    var adx = Math.abs(dx);
-    var ady = Math.abs(dy);
-
-    if (!lockedAxis) {
-      if (adx < THRESH && ady < THRESH) return;
-      lockedAxis = adx > ady ? 'x' : 'y';
-    }
-
-    if (lockedAxis !== 'x') return;
-
-    moved = moved || adx > 1;
-    el.scrollLeft = startScrollLeft - dx;
-
-    // Only block default behavior for horizontal gestures (keeps vertical page scroll intact).
-    try { e.preventDefault(); } catch (err) {}
-    try { e.stopPropagation(); } catch (err2) {}
-  }, { passive: false });
-
-  function endDrag() {
-    active = false;
-    lockedAxis = '';
-    if (moved) suppressClickUntil = Date.now() + 450;
-    moved = false;
-  }
-
-  el.addEventListener('touchend', endDrag, { passive: true });
-  el.addEventListener('touchcancel', endDrag, { passive: true });
-
-  // Prevent accidental tap after horizontal drag.
-  el.addEventListener('click', function(e) {
-    if (!e) return;
-    if (suppressClickUntil && Date.now() < suppressClickUntil) {
-      try { e.preventDefault(); } catch (err) {}
-      try { e.stopPropagation(); } catch (err2) {}
-    }
-  }, true);
-}
-
-document.querySelectorAll('.filter-row').forEach(function(el) {
-  setupWheelScroll(el);
-  setupTouchDragScroll(el);
-});
-var presetsEl = document.querySelector('.presets');
-setupWheelScroll(presetsEl);
-setupTouchDragScroll(presetsEl);
+document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
+setupWheelScroll(document.querySelector('.presets'));
 
 // ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
 (function() {
