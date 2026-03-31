@@ -1734,7 +1734,7 @@
 </div>
 
 <!-- КАРТОЧКА ТОВАРА (МОДАЛКА) -->
-<div class="overlay" id="overlayProduct" onclick="closeProductModal()"></div>
+<div class="overlay" id="overlayProduct" onclick="closeProductModal()" style="display:none"></div>
 <div class="modal product-modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="productTitle">
   <button type="button" class="modal-close" onclick="closeProductModal()" aria-label="Закрыть">✕</button>
   <div class="product-modal-inner">
@@ -3590,6 +3590,72 @@ function setupWheelScroll(el) {
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
 
+// ── iOS touch drag horizontal scroll (only for overflow rows) ────────────────
+(function() {
+  try {
+    var ua = (navigator && navigator.userAgent) ? navigator.userAgent : '';
+    var isIOS = /iP(hone|ad|od)/i.test(ua);
+    if (!isIOS) return;
+
+    function setupTouchDragScroll(el) {
+      if (!el) return;
+      if (el._touchDragScrollBound) return;
+      el._touchDragScrollBound = true;
+
+      var active = false;
+      var lockedAxis = '';
+      var startX = 0;
+      var startY = 0;
+      var startScrollLeft = 0;
+      var THRESH = 10;
+
+      function getPoint(e) {
+        var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
+        return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
+      }
+
+      el.addEventListener('touchstart', function(e) {
+        // Only bind if horizontal overflow exists
+        if ((el.scrollWidth - el.clientWidth) <= 2) return;
+        // If product modal overlay is open, ignore (overlay should catch anyway)
+        var ov = document.getElementById('overlayProduct');
+        if (ov && ov.classList.contains('open')) return;
+
+        active = true;
+        lockedAxis = '';
+        var p = getPoint(e);
+        startX = p.x;
+        startY = p.y;
+        startScrollLeft = el.scrollLeft;
+      }, { passive: true });
+
+      el.addEventListener('touchmove', function(e) {
+        if (!active) return;
+        var p = getPoint(e);
+        var dx = p.x - startX;
+        var dy = p.y - startY;
+        var adx = Math.abs(dx);
+        var ady = Math.abs(dy);
+
+        if (!lockedAxis) {
+          if (adx < THRESH && ady < THRESH) return;
+          lockedAxis = adx > ady ? 'x' : 'y';
+        }
+        if (lockedAxis !== 'x') return;
+
+        el.scrollLeft = startScrollLeft - dx;
+        try { e.preventDefault(); } catch (err) {}
+      }, { passive: false });
+
+      function end() { active = false; lockedAxis = ''; }
+      el.addEventListener('touchend', end, { passive: true });
+      el.addEventListener('touchcancel', end, { passive: true });
+    }
+
+    document.querySelectorAll('.filter-row, .presets').forEach(setupTouchDragScroll);
+  } catch (e) {}
+})();
+
 // ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
 (function() {
   var c = SHOP_CONFIG;
@@ -3966,7 +4032,7 @@ function openShowcaseModal(showcaseId) {
   activeProductId = null;
   var ov = document.getElementById('overlayProduct');
   var md = document.getElementById('productModal');
-  if (ov) ov.classList.add('open');
+  if (ov) { ov.style.display = 'block'; ov.classList.add('open'); }
   if (md) md.classList.add('open');
 
   var img = document.getElementById('productImg');
@@ -4001,7 +4067,7 @@ function openProductModal(productId) {
   activeProductId = id;
   var ov = document.getElementById('overlayProduct');
   var md = document.getElementById('productModal');
-  if (ov) ov.classList.add('open');
+  if (ov) { ov.style.display = 'block'; ov.classList.add('open'); }
   if (md) md.classList.add('open');
 
   var img = document.getElementById('productImg');
@@ -4034,6 +4100,19 @@ function closeProductModal() {
   var md = document.getElementById('productModal');
   if (ov) ov.classList.remove('open');
   if (md) md.classList.remove('open');
+  if (ov) ov.style.display = 'none';
+
+  // iOS Telegram WebView: after closing modal, horizontal overflow scrollers can "freeze".
+  // Force a tiny reflow + reset webkit overflow scrolling on filter rows.
+  try {
+    document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
+      if (!el) return;
+      var prev = el.style.webkitOverflowScrolling;
+      el.style.webkitOverflowScrolling = 'auto';
+      void el.offsetHeight;
+      el.style.webkitOverflowScrolling = prev || 'touch';
+    });
+  } catch (e) {}
 }
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
