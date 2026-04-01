@@ -26,6 +26,21 @@
       btn.style.cssText = 'float:right;margin:-2px 0 0 10px;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;cursor:pointer';
       btn.onclick = function() { box.style.display = 'none'; };
       box.appendChild(btn);
+      var copyBtn = document.createElement('button');
+      copyBtn.textContent = 'Copy debug';
+      copyBtn.setAttribute('type', 'button');
+      copyBtn.style.cssText = 'float:right;margin:-1px 8px 0 0;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#fff;font-size:12px;line-height:1.2;padding:5px 8px;border-radius:8px;cursor:pointer;display:none';
+      copyBtn.onclick = function() {
+        try {
+          var t = document.getElementById('__diagText');
+          var txt = t ? (t.textContent || '') : '';
+          if (!txt) return;
+          if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(txt).catch(function(){});
+          }
+        } catch (e) {}
+      };
+      box.appendChild(copyBtn);
       var pre = document.createElement('div');
       pre.id = '__diagText';
       box.appendChild(pre);
@@ -37,6 +52,13 @@
     try {
       var box = ensureBox();
       if (!box) return;
+      try {
+        var copyBtn = box.querySelector('button:nth-of-type(2)');
+        if (copyBtn) {
+          var dbg = (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1));
+          copyBtn.style.display = dbg ? 'inline-block' : 'none';
+        }
+      } catch (eBtn) {}
       var t = document.getElementById('__diagText');
       if (!t) return;
       t.textContent = msg;
