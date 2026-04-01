@@ -3694,6 +3694,122 @@ function setupWheelScroll(el) {
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
 
+/** iOS Telegram: native overflow-x sometimes stops updating scrollLeft after modal; passive touchmove is always non-cancelable, so we must NOT use e.cancelable as a freeze signal. */
+function touchPointForRow(e) {
+  var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
+  return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
+}
+function ensureManualScrollFallback(row) {
+  if (!row || row._manualScrollBound) return;
+  row._manualScrollBound = true;
+
+  var dragging = false;
+  var startX = 0;
+  var startY = 0;
+  var startScrollLeft = 0;
+  var lastX = 0;
+  var lastT = 0;
+  var velPxMs = 0;
+  var rafId = 0;
+  var manualActive = false;
+
+  var ENGAGE_PX = 30;
+  var FRICTION = 0.993;
+  var STOP_EPS = 0.006;
+
+  function stopInertia() {
+    if (rafId) {
+      try { cancelAnimationFrame(rafId); } catch (e) {}
+      rafId = 0;
+    }
+  }
+
+  function step() {
+    if (Math.abs(velPxMs) < STOP_EPS) {
+      rafId = 0;
+      return;
+    }
+    try {
+      row.scrollLeft -= velPxMs * 16;
+    } catch (eStep) {}
+    velPxMs *= FRICTION;
+    rafId = requestAnimationFrame(step);
+  }
+
+  row.addEventListener('touchstart', function(e) {
+    if ((row.scrollWidth - row.clientWidth) <= 2) return;
+    stopInertia();
+    dragging = true;
+    manualActive = false;
+    var p = touchPointForRow(e);
+    startX = lastX = p.x;
+    startY = p.y;
+    startScrollLeft = row.scrollLeft || 0;
+    lastT = Date.now();
+    velPxMs = 0;
+  }, { passive: true });
+
+  row.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    var p = touchPointForRow(e);
+    var dx = p.x - startX;
+    var dy = p.y - startY;
+
+    if (!manualActive) {
+      if (Math.abs(dx) < ENGAGE_PX) return;
+      if (Math.abs(dx) < Math.abs(dy) * 0.85) return;
+      var sl = row.scrollLeft || 0;
+      if (Math.abs(sl - startScrollLeft) >= 1) return;
+      manualActive = true;
+      try {
+        if (typeof window.__dbgLog === 'function') {
+          window.__dbgLog('manual_scroll_engaged', { rowId: row.id || '', dx: Math.round(dx), sl0: startScrollLeft, sl: sl }, 'H2_scrollLayerFreeze');
+        }
+      } catch (eL) {}
+      // #region agent log
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:ensureManualScrollFallback', message: 'manual_scroll_engaged', data: { rowId: String(row.id || ''), dx: Math.round(dx) }, timestamp: Date.now(), hypothesisId: 'H2_scrollLayerFreeze' }) }).catch(function() {});
+      // #endregion
+    }
+
+    var next = startScrollLeft - dx;
+    var maxS = Math.max(0, (row.scrollWidth || 0) - (row.clientWidth || 0));
+    if (next < 0) next = 0;
+    if (next > maxS) next = maxS;
+    row.scrollLeft = next;
+
+    var now = Date.now();
+    var dt = Math.max(1, now - lastT);
+    velPxMs = (p.x - lastX) / dt;
+    lastX = p.x;
+    lastT = now;
+  }, { passive: true });
+
+  row.addEventListener('touchend', function() {
+    if (!dragging) return;
+    dragging = false;
+    if (manualActive && Math.abs(velPxMs) > 0.035) {
+      try { rafId = requestAnimationFrame(step); } catch (eR) {}
+    }
+    manualActive = false;
+  }, { passive: true });
+
+  row.addEventListener('touchcancel', function() {
+    dragging = false;
+    manualActive = false;
+    stopInertia();
+  }, { passive: true });
+}
+function bindIosManualScrollRows() {
+  try {
+    var ua = (navigator && navigator.userAgent) ? navigator.userAgent : '';
+    if (!/iP(hone|ad|od)/i.test(ua)) return;
+    document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
+      try { ensureManualScrollFallback(el); } catch (e) {}
+    });
+  } catch (e0) {}
+}
+bindIosManualScrollRows();
+
 // ── Debug: touch/scroll trace for iOS freeze ─────────────────────────────────
 (function() {
   try {
@@ -3729,97 +3845,6 @@ setupWheelScroll(document.querySelector('.presets'));
       try { window.__dbgLog(msg, data || {}, hid || 'H2_scrollLayerFreeze'); } catch (e1) {}
     }
 
-    // Manual scroll fallback with inertia, only when native scroll appears frozen.
-    function ensureManualScrollFallback(row) {
-      if (!row || row._manualScrollBound) return;
-      row._manualScrollBound = true;
-
-      var dragging = false;
-      var startX = 0;
-      var startScrollLeft = 0;
-      var lastX = 0;
-      var lastT = 0;
-      var vx = 0;
-      var rafId = 0;
-      var manualActive = false;
-
-      function stopInertia() {
-        if (rafId) {
-          try { cancelAnimationFrame(rafId); } catch (e) {}
-          rafId = 0;
-        }
-      }
-
-      function step() {
-        // Exponential decay (simple, stable)
-        vx *= 0.94;
-        if (Math.abs(vx) < 0.15) {
-          rafId = 0;
-          return;
-        }
-        row.scrollLeft -= vx * 16; // px per frame approx
-        rafId = requestAnimationFrame(step);
-      }
-
-      row.addEventListener('touchstart', function(e) {
-        // Only if scrollable
-        if ((row.scrollWidth - row.clientWidth) <= 2) return;
-        stopInertia();
-        dragging = true;
-        manualActive = false;
-        var p = point(e);
-        startX = p.x;
-        lastX = p.x;
-        startScrollLeft = row.scrollLeft || 0;
-        lastT = Date.now();
-        vx = 0;
-      }, { passive: true });
-
-      row.addEventListener('touchmove', function(e) {
-        if (!dragging) return;
-        var p = point(e);
-        var dx = p.x - startX;
-
-        // Detect frozen native scroll: finger moved, but scrollLeft didn't change recently.
-        var sample = lastScrollLeftSample.get(row);
-        var frozen = false;
-        if (sample) {
-          frozen = (Math.abs(dx) > 14) && (Math.abs((row.scrollLeft || 0) - (sample.scrollLeft || 0)) < 1) && ((Date.now() - (sample.ts || 0)) < 1200);
-        }
-        // Also treat as frozen if touch event is non-cancelable (iOS sometimes locks scroll chain)
-        if (!e.cancelable && Math.abs(dx) > 14) frozen = true;
-
-        if (!manualActive && frozen) {
-          manualActive = true;
-          log('manual_scroll_engaged', { rowId: row.id || '', cancelable: !!e.cancelable }, 'H2_scrollLayerFreeze');
-        }
-        if (!manualActive) return;
-
-        // Manual scroll; do NOT preventDefault to keep click behavior stable.
-        row.scrollLeft = startScrollLeft - dx;
-
-        var now = Date.now();
-        var dt = Math.max(1, now - lastT);
-        vx = (p.x - lastX) / dt * 16; // normalize to ~per-frame
-        lastX = p.x;
-        lastT = now;
-      }, { passive: true });
-
-      row.addEventListener('touchend', function() {
-        if (!dragging) return;
-        dragging = false;
-        if (manualActive) {
-          // inertia
-          try { rafId = requestAnimationFrame(step); } catch (e) {}
-        }
-      }, { passive: true });
-
-      row.addEventListener('touchcancel', function() {
-        dragging = false;
-        stopInertia();
-      }, { passive: true });
-    }
-
     document.addEventListener('touchstart', function(e) {
       var t = e && e.target ? e.target : null;
       var row = getRowFromTarget(t);
@@ -3830,7 +3855,6 @@ setupWheelScroll(document.querySelector('.presets'));
       if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
       var p = point(e);
       lastScrollLeftSample.set(row, { scrollLeft: Number(row.scrollLeft || 0), ts: Date.now() });
-      try { ensureManualScrollFallback(row); } catch (eBind) {}
       last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
       log('row_touchstart', {
         rowId: row.id || '',
@@ -4364,6 +4388,7 @@ function closeProductModal() {
         // Re-enable wheel-to-horizontal on desktop (harmless on iOS).
         try { if (typeof setupWheelScroll === 'function') setupWheelScroll(clone); } catch (e1) {}
       });
+      try { if (typeof bindIosManualScrollRows === 'function') bindIosManualScrollRows(); } catch (eBind) {}
     } catch (e) {}
   }
 
