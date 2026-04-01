@@ -10,83 +10,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script>
 (function() {
-  // Early diagnostics for iOS Telegram WebView: show JS errors instead of white screen.
-  // Also provides lightweight local debug logs via localStorage (network-less).
-  function ensureBox() {
-    try {
-      var id = '__diagBox';
-      var box = document.getElementById(id);
-      if (box) return box;
-      box = document.createElement('div');
-      box.id = id;
-      box.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:999999;background:#111;color:#fff;padding:10px 12px;border-radius:10px;font:12px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;white-space:pre-wrap;word-break:break-word;display:none';
-      var btn = document.createElement('button');
-      btn.textContent = '×';
-      btn.setAttribute('type', 'button');
-      btn.style.cssText = 'float:right;margin:-2px 0 0 10px;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;cursor:pointer';
-      btn.onclick = function() { box.style.display = 'none'; };
-      box.appendChild(btn);
-      var copyBtn = document.createElement('button');
-      copyBtn.textContent = 'Copy debug';
-      copyBtn.setAttribute('type', 'button');
-      copyBtn.style.cssText = 'float:right;margin:-1px 8px 0 0;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#fff;font-size:12px;line-height:1.2;padding:5px 8px;border-radius:8px;cursor:pointer;display:none';
-      copyBtn.onclick = function() {
-        try {
-          // Render latest debug snapshot into the box (if available)
-          try { if (window.__dbgRender) window.__dbgRender(); } catch (e0) {}
-          var t = document.getElementById('__diagText');
-          var txt = t ? (t.textContent || '') : '';
-          if (!txt) return;
-          if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(txt).catch(function(){});
-          }
-        } catch (e) {}
-      };
-      box.appendChild(copyBtn);
-      var showBtn = document.createElement('button');
-      showBtn.textContent = 'Show debug';
-      showBtn.setAttribute('type', 'button');
-      showBtn.style.cssText = 'float:right;margin:-1px 8px 0 0;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#fff;font-size:12px;line-height:1.2;padding:5px 8px;border-radius:8px;cursor:pointer;display:none';
-      showBtn.onclick = function() { try { if (window.__dbgRender) window.__dbgRender(true); } catch (e) {} };
-      box.appendChild(showBtn);
-      var pre = document.createElement('div');
-      pre.id = '__diagText';
-      box.appendChild(pre);
-      (document.documentElement || document.head || document.body).appendChild(box);
-      return box;
-    } catch (e) { return null; }
-  }
-
-  function ensureLauncher() {
-    try {
-      if (!(typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1))) return;
-      if (document.getElementById('__diagLauncher')) return;
-      var b = document.createElement('button');
-      b.id = '__diagLauncher';
-      b.textContent = 'Debug';
-      b.setAttribute('type', 'button');
-      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:999998;border:1px solid rgba(0,0,0,0.2);background:#111;color:#fff;font-size:12px;line-height:1.2;padding:8px 10px;border-radius:999px;opacity:0.7';
-      b.onclick = function() {
-        try { if (window.__dbgRender) window.__dbgRender(true); } catch (e) {}
-      };
-      (document.body || document.documentElement).appendChild(b);
-    } catch (e) {}
-  }
+  // Ранний перехват ошибок (iOS Telegram / белый экран): короткое сообщение поверх страницы.
   function show(msg) {
     try {
-      var box = ensureBox();
-      if (!box) return;
-      ensureLauncher();
-      try {
-        var dbg = (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1));
-        var btns = box.querySelectorAll('button');
-        // btns[0] = close, btns[1] = copy, btns[2] = show
-        if (btns && btns[1]) btns[1].style.display = dbg ? 'inline-block' : 'none';
-        if (btns && btns[2]) btns[2].style.display = dbg ? 'inline-block' : 'none';
-      } catch (eBtn) {}
+      var box = document.getElementById('__diagBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = '__diagBox';
+        box.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:999999;background:#111;color:#fff;padding:10px 12px;border-radius:10px;font:12px/1.35 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;white-space:pre-wrap;word-break:break-word;display:none';
+        var btn = document.createElement('button');
+        btn.textContent = '×';
+        btn.setAttribute('type', 'button');
+        btn.style.cssText = 'float:right;margin:-2px 0 0 10px;border:0;background:transparent;color:#fff;font-size:18px;line-height:1;cursor:pointer';
+        btn.onclick = function() { box.style.display = 'none'; };
+        box.appendChild(btn);
+        var pre = document.createElement('div');
+        pre.id = '__diagText';
+        box.appendChild(pre);
+        (document.documentElement || document.head || document.body).appendChild(box);
+      }
       var t = document.getElementById('__diagText');
-      if (!t) return;
-      t.textContent = msg;
+      if (t) t.textContent = msg;
       box.style.display = 'block';
     } catch (e) {}
   }
@@ -96,64 +40,16 @@
       var f = (ev && ev.filename) ? String(ev.filename) : '';
       var l = (ev && (ev.lineno || ev.lineNo)) ? String(ev.lineno || ev.lineNo) : '';
       var c = (ev && (ev.colno || ev.colNo)) ? String(ev.colno || ev.colNo) : '';
-      show('JS error:\\n' + m + (f ? ('\\n' + f + ':' + l + ':' + c) : '') + '\\n\\nUA:\\n' + (navigator && navigator.userAgent ? navigator.userAgent : ''));
+      show('JS error:\n' + m + (f ? ('\n' + f + ':' + l + ':' + c) : '') + '\n\nUA:\n' + (navigator && navigator.userAgent ? navigator.userAgent : ''));
     } catch (e) {}
   });
   window.addEventListener('unhandledrejection', function(ev) {
     try {
       var r = ev && ev.reason ? ev.reason : 'Unhandled rejection';
       var msg = (r && r.message) ? r.message : String(r);
-      show('Unhandled promise rejection:\\n' + msg + '\\n\\nUA:\\n' + (navigator && navigator.userAgent ? navigator.userAgent : ''));
+      show('Unhandled promise rejection:\n' + msg + '\n\nUA:\n' + (navigator && navigator.userAgent ? navigator.userAgent : ''));
     } catch (e) {}
   });
-
-  // ── Local debug logger (no network) ────────────────────────────────────────
-  // Stores last ~200 entries in localStorage and can render them in the diag box
-  // on demand (no auto-popup to avoid blocking UI).
-  try {
-    var DBG_KEY = '__dbg_d60e66';
-    function dbgPush(entry) {
-      try {
-        var arr = [];
-        try { arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e0) { arr = []; }
-        arr.push(entry);
-        if (arr.length > 220) arr = arr.slice(-220);
-        try { localStorage.setItem(DBG_KEY, JSON.stringify(arr)); } catch (e1) {}
-      } catch (e2) {}
-    }
-    window.__dbgLog = function(message, data, hypothesisId) {
-      dbgPush({ sessionId: 'd60e66', ts: Date.now(), hypothesisId: hypothesisId || '', message: String(message || ''), data: data || {} });
-    };
-    window.__dbgRender = function(forceShow) {
-      try {
-        var arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || [];
-        var last = arr.slice(-25).map(function(x) {
-          return (new Date(x.ts)).toISOString() + ' ' + (x.hypothesisId ? ('[' + x.hypothesisId + '] ') : '') + x.message + ' ' + JSON.stringify(x.data || {});
-        }).join('\n');
-        var msg = 'Debug log (last 25):\n' + last;
-        if (forceShow) show(msg);
-        else {
-          // If box is already visible (e.g. error), update text; otherwise keep it hidden.
-          var box = document.getElementById('__diagBox');
-          if (box && box.style && box.style.display !== 'none') show(msg);
-        }
-      } catch (e) {}
-    };
-    window.__dbgDump = function() {
-      try { return JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e) { return []; }
-    };
-    window.__dbgClear = function() { try { localStorage.removeItem(DBG_KEY); } catch (e) {} };
-
-    // Auto-clear on each load when dbg=1, to avoid mixing runs.
-    try {
-      if (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1)) {
-        localStorage.removeItem(DBG_KEY);
-      }
-    } catch (eClr) {}
-
-    // Ensure debug launcher exists in dbg mode (so user can open panel without an error).
-    try { ensureLauncher(); } catch (eL) {}
-  } catch (eOuter) {}
 })();
 </script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -2856,20 +2752,6 @@ function bindCatalogFilterDelegation() {
     if (endChip !== tapTrack.chip) { tapTrack = null; return; }
     ignoreClickUntil = now + 500;
     applyFilterChip(tapTrack.chip);
-    try {
-      (window.__dbgLog || function() {})('filter_chip_tap_touchend', {
-        rowId: (tapTrack.chip.closest && tapTrack.chip.closest('.filter-row')) ? (tapTrack.chip.closest('.filter-row').id || '') : '',
-        catId: tapTrack.chip.getAttribute('data-cat-id'),
-        subId: tapTrack.chip.getAttribute('data-sub-id'),
-        budgetId: tapTrack.chip.getAttribute('data-budget-id'),
-      }, 'H3_tap_ios');
-    } catch (eL) {}
-    // #region agent log
-    (function() {
-      var _rowEl = tapTrack.chip.closest && tapTrack.chip.closest('.filter-row');
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:bindCatalogFilterDelegation', message: 'filter_chip_tap_touchend', data: { rowId: _rowEl ? String(_rowEl.id || '') : '' }, timestamp: Date.now(), hypothesisId: 'H3_tap_ios' }) }).catch(function() {});
-    })();
-    // #endregion
     tapTrack = null;
   }, { passive: true });
 
@@ -3008,10 +2890,6 @@ function selectSubcategory(id) {
   activeSubcategory = id;
   renderSubcategoryFilters();
   renderGrid();
-
-  // #region agent log
-  (window.__dbgLog||function(){})('selectSubcategory',{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},'H3_stateSequence');
-  // #endregion
 }
 
 function selectCategory(id) {
@@ -3021,7 +2899,6 @@ function selectCategory(id) {
       activeSubcategory = 'any';
       renderSubcategoryFilters();
       renderGrid();
-      (window.__dbgLog||function(){})('selectCategory_repeat',{id:String(id||''),activeCategory:String(activeCategory||''),reason:'reset_subcategories'},'H3_stateSequence');
     }
     return;
   }
@@ -3030,10 +2907,6 @@ function selectCategory(id) {
   renderCategoryFilters();
   renderSubcategoryFilters();
   renderGrid();
-
-  // #region agent log
-  (window.__dbgLog||function(){})('selectCategory',{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},'H3_stateSequence');
-  // #endregion
 }
 
 function renderBudgetFilters() {
@@ -3917,7 +3790,7 @@ function touchEventTargetElement(evTarget) {
   if (evTarget.nodeType === 1) return evTarget;
   return null;
 }
-/** Ручной скролл нужен в основном после product modal; вне окна не трогаем жесты — иначе ломаются тапы по чипам (см. логи manual_scroll_engaged + selectCategory). */
+/** Ручной скролл только ~90s после закрытия карточки товара — иначе тапы по чипам конфликтуют с fallback. */
 function iosManualScrollGateOpen() {
   try {
     var ts = window.__afterProductModalCloseTs;
@@ -4005,14 +3878,6 @@ function ensureManualScrollFallback(row) {
       var sl = row.scrollLeft || 0;
       if (Math.abs(sl - startScrollLeft) >= 1) return;
       manualActive = true;
-      try {
-        if (typeof window.__dbgLog === 'function') {
-          window.__dbgLog('manual_scroll_engaged', { rowId: row.id || '', dx: Math.round(dx), sl0: startScrollLeft, sl: sl, onChip: !!touchStartedOnInteractive, gateMs: Math.round(Date.now() - (window.__afterProductModalCloseTs || 0)) }, 'H2_scrollLayerFreeze');
-        }
-      } catch (eL) {}
-      // #region agent log
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:ensureManualScrollFallback', message: 'manual_scroll_engaged', data: { rowId: String(row.id || ''), dx: Math.round(dx), onChip: !!touchStartedOnInteractive, gateMs: Math.round(Date.now() - (window.__afterProductModalCloseTs || 0)) }, timestamp: Date.now(), hypothesisId: 'H2_scrollLayerFreeze' }) }).catch(function() {});
-      // #endregion
     }
 
     var next = startScrollLeft - dx;
@@ -4053,112 +3918,6 @@ function bindIosManualScrollRows() {
   } catch (e0) {}
 }
 bindIosManualScrollRows();
-
-// ── Debug: touch/scroll trace for iOS freeze ─────────────────────────────────
-(function() {
-  try {
-    if (!(typeof location !== 'undefined' && location.search && location.search.indexOf('dbg=1') !== -1)) return;
-
-    var last = new WeakMap(); // el -> {x,y,scrollLeft,ts}
-    var lastLogTs = 0;
-    var lastScrollLeftSample = new WeakMap(); // el -> {scrollLeft:number, ts:number}
-
-    function isRow(el) {
-      return !!(el && (el.classList && (el.classList.contains('filter-row') || el.classList.contains('presets'))));
-    }
-    function getRowFromTarget(t) {
-      if (!t || !t.closest) return null;
-      var r = t.closest('.filter-row');
-      if (r) return r;
-      var p = t.closest('.presets');
-      return p || null;
-    }
-    function point(e) {
-      var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
-      return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
-    }
-    function hitAt(x, y) {
-      try {
-        var h = document.elementFromPoint(Math.round(x), Math.round(y));
-        if (!h) return null;
-        return (h.tagName || '') + '#' + (h.id || '') + '.' + String(h.className || '').split(/\s+/).slice(0, 3).join('.');
-      } catch (e) { return null; }
-    }
-    function log(msg, data, hid) {
-      try { (window.__dbgLog || function(){})(); } catch (e0) {}
-      try { window.__dbgLog(msg, data || {}, hid || 'H2_scrollLayerFreeze'); } catch (e1) {}
-    }
-
-    document.addEventListener('touchstart', function(e) {
-      var t = e && e.target ? e.target : null;
-      var row = getRowFromTarget(t);
-      if (!isRow(row)) return;
-      // Only trace shortly after closing product modal (focus on the bug window).
-      var sinceClose = 0;
-      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
-      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
-      var p = point(e);
-      lastScrollLeftSample.set(row, { scrollLeft: Number(row.scrollLeft || 0), ts: Date.now() });
-      last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
-      log('row_touchstart', {
-        rowId: row.id || '',
-        rowClass: (row.className || '').toString(),
-        scrollLeft: Number(row.scrollLeft || 0),
-        scrollW: Number(row.scrollWidth || 0),
-        clientW: Number(row.clientWidth || 0),
-        hit: hitAt(p.x, p.y),
-        cancelable: !!e.cancelable,
-      }, 'H2_scrollLayerFreeze');
-    }, { passive: true, capture: true });
-
-    document.addEventListener('touchmove', function(e) {
-      var t = e && e.target ? e.target : null;
-      var row = getRowFromTarget(t);
-      if (!isRow(row)) return;
-      var sinceClose = 0;
-      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
-      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
-      var p = point(e);
-      var prev = last.get(row) || { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() };
-      var dx = p.x - prev.x;
-      var dy = p.y - prev.y;
-      // Only sample occasionally to keep logs small
-      if (Math.abs(dx) + Math.abs(dy) < 18) return;
-      // Global throttle
-      var now = Date.now();
-      if (now - lastLogTs < 250) return;
-      lastLogTs = now;
-      lastScrollLeftSample.set(row, { scrollLeft: Number(row.scrollLeft || 0), ts: Date.now() });
-      last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
-      log('row_touchmove', {
-        rowId: row.id || '',
-        dx: Math.round(dx),
-        dy: Math.round(dy),
-        scrollLeft: Number(row.scrollLeft || 0),
-        deltaScroll: Number((row.scrollLeft || 0) - (prev.scrollLeft || 0)),
-        hit: hitAt(p.x, p.y),
-        cancelable: !!e.cancelable,
-      }, 'H2_scrollLayerFreeze');
-    }, { passive: true, capture: true });
-
-    document.addEventListener('touchend', function(e) {
-      var t = e && e.target ? e.target : null;
-      var row = getRowFromTarget(t);
-      if (!isRow(row)) return;
-      var sinceClose = 0;
-      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
-      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
-      var p = point(e);
-      log('row_touchend', {
-        rowId: row.id || '',
-        scrollLeft: Number(row.scrollLeft || 0),
-        hit: hitAt(p.x, p.y),
-      }, 'H2_scrollLayerFreeze');
-    }, { passive: true, capture: true });
-
-    log('touch_trace_enabled', { ua: (navigator && navigator.userAgent) ? String(navigator.userAgent) : '' }, 'H2_scrollLayerFreeze');
-  } catch (e) {}
-})();
 
 // ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
 (function() {
@@ -4574,10 +4333,6 @@ function openProductModal(productId) {
   if (ov) { ov.style.display = 'block'; ov.classList.add('open'); }
   if (md) md.classList.add('open');
 
-  // #region agent log
-  (window.__dbgLog||function(){})('openProductModal',{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},'H1_overlayBlocksTouches');
-  // #endregion
-
   var img = document.getElementById('productImg');
   if (img) {
     img.src = p.img || '';
@@ -4611,9 +4366,7 @@ function closeProductModal() {
   if (ov) ov.style.display = 'none';
   try { window.__afterProductModalCloseTs = Date.now(); } catch (eTs) {}
 
-  // iOS Telegram WebView: after closing modal, horizontal overflow scrollers can "freeze".
-  // We keep native momentum (no manual drag). Most reliable fix: clone+replace the scroller nodes.
-  // Buttons inside rows use inline onclick, so cloning preserves behavior.
+  // iOS Telegram WebView: после модалки горизонтальные скроллеры иногда «замирают» — clone+replace узлов.
   function hardResetHorizontalScroll() {
     try {
       var ua = (navigator && navigator.userAgent) ? navigator.userAgent : '';
@@ -4639,28 +4392,6 @@ function closeProductModal() {
   hardResetHorizontalScroll();
   try { requestAnimationFrame(hardResetHorizontalScroll); } catch (e2) {}
   try { setTimeout(hardResetHorizontalScroll, 250); } catch (e3) {}
-
-  // #region agent log
-  (function(){
-    try {
-      var cat = document.getElementById('categoryFilters');
-      var sub = document.getElementById('subcategoryFilters');
-      var bud = document.getElementById('budgetFilters');
-      var pre = document.getElementById('presets');
-      function midEl(el){
-        if (!el) return null;
-        var r = el.getBoundingClientRect();
-        if (!r || !isFinite(r.left) || !isFinite(r.top)) return null;
-        var x = Math.round(r.left + Math.min(r.width, 60)/2);
-        var y = Math.round(r.top + Math.min(r.height, 30)/2);
-        var hit = document.elementFromPoint(x, y);
-        if (!hit) return {x:x,y:y,hit:null};
-        return {x:x,y:y,hit:(hit.tagName||'')+'#'+(hit.id||'')+'.'+String(hit.className||'').split(/\s+/).slice(0,3).join('.')};
-      }
-      (window.__dbgLog||function(){})('closeProductModal_afterReset',{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},'H1_overlayBlocksTouches');
-    } catch(e) {}
-  })();
-  // #endregion
 }
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
