@@ -779,6 +779,8 @@
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    /* iOS/Telegram: родитель .filter-row с pan-x иногда «съедает» тапы по чипам */
+    touch-action: manipulation;
   }
   .filter-chip.active {
     background: var(--accent-deep);
@@ -815,6 +817,7 @@
     box-shadow: 0 2px 12px var(--shadow);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    touch-action: manipulation;
   }
   .preset-card:active {
     transform: scale(0.98);
@@ -3712,8 +3715,13 @@ function ensureManualScrollFallback(row) {
   var velPxMs = 0;
   var rafId = 0;
   var manualActive = false;
+  /** Тап по чипу/пресету: не включать ручной скролл без явного горизонтального свайпа (иначе теряется click). */
+  var touchStartedOnInteractive = false;
 
-  var ENGAGE_PX = 30;
+  var ENGAGE_PX_ROW = 32;
+  var ENGAGE_PX_ON_CHIP = 56;
+  var ANGLE_ROW = 0.85;
+  var ANGLE_ON_CHIP = 1.25;
   var FRICTION = 0.993;
   var STOP_EPS = 0.006;
 
@@ -3741,6 +3749,11 @@ function ensureManualScrollFallback(row) {
     stopInertia();
     dragging = true;
     manualActive = false;
+    touchStartedOnInteractive = false;
+    try {
+      var t = e.target;
+      if (t && t.closest) touchStartedOnInteractive = !!t.closest('.filter-chip, .preset-card');
+    } catch (eTs) { touchStartedOnInteractive = false; }
     var p = touchPointForRow(e);
     startX = lastX = p.x;
     startY = p.y;
@@ -3756,8 +3769,10 @@ function ensureManualScrollFallback(row) {
     var dy = p.y - startY;
 
     if (!manualActive) {
-      if (Math.abs(dx) < ENGAGE_PX) return;
-      if (Math.abs(dx) < Math.abs(dy) * 0.85) return;
+      var need = touchStartedOnInteractive ? ENGAGE_PX_ON_CHIP : ENGAGE_PX_ROW;
+      var ang = touchStartedOnInteractive ? ANGLE_ON_CHIP : ANGLE_ROW;
+      if (Math.abs(dx) < need) return;
+      if (Math.abs(dx) < Math.abs(dy) * ang) return;
       var sl = row.scrollLeft || 0;
       if (Math.abs(sl - startScrollLeft) >= 1) return;
       manualActive = true;
