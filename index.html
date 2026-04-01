@@ -11,6 +11,7 @@
 <script>
 (function() {
   // Early diagnostics for iOS Telegram WebView: show JS errors instead of white screen.
+  // Also provides lightweight local debug logs via localStorage (network-less).
   function ensureBox() {
     try {
       var id = '__diagBox';
@@ -58,6 +59,36 @@
       show('Unhandled promise rejection:\\n' + msg + '\\n\\nUA:\\n' + (navigator && navigator.userAgent ? navigator.userAgent : ''));
     } catch (e) {}
   });
+
+  // ── Local debug logger (no network) ────────────────────────────────────────
+  // Stores last ~200 entries in localStorage and can render them in the diag box
+  // when URL contains ?dbg=1 (or &dbg=1).
+  try {
+    var DBG_KEY = '__dbg_d60e66';
+    function dbgPush(entry) {
+      try {
+        var arr = [];
+        try { arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e0) { arr = []; }
+        arr.push(entry);
+        if (arr.length > 220) arr = arr.slice(-220);
+        try { localStorage.setItem(DBG_KEY, JSON.stringify(arr)); } catch (e1) {}
+      } catch (e2) {}
+    }
+    window.__dbgLog = function(message, data, hypothesisId) {
+      dbgPush({ sessionId: 'd60e66', ts: Date.now(), hypothesisId: hypothesisId || '', message: String(message || ''), data: data || {} });
+      try {
+        if (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1)) {
+          var arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || [];
+          var last = arr.slice(-25).map(function(x) { return (new Date(x.ts)).toISOString() + ' ' + (x.hypothesisId ? ('['+x.hypothesisId+'] ') : '') + x.message + ' ' + JSON.stringify(x.data || {}); }).join('\n');
+          show('Debug log (last 25):\n' + last);
+        }
+      } catch (e3) {}
+    };
+    window.__dbgDump = function() {
+      try { return JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e) { return []; }
+    };
+    window.__dbgClear = function() { try { localStorage.removeItem(DBG_KEY); } catch (e) {} };
+  } catch (eOuter) {}
 })();
 </script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -2714,7 +2745,7 @@ function selectSubcategory(id) {
   renderGrid();
 
   // #region agent log
-  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectSubcategory',message:'selectSubcategory',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},timestamp:Date.now()})}).catch(()=>{});
+  (window.__dbgLog||function(){})('selectSubcategory',{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},'H3_stateSequence');
   // #endregion
 }
 
@@ -2726,7 +2757,7 @@ function selectCategory(id) {
   renderGrid();
 
   // #region agent log
-  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectCategory',message:'selectCategory',data:{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},timestamp:Date.now()})}).catch(()=>{});
+  (window.__dbgLog||function(){})('selectCategory',{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},'H3_stateSequence');
   // #endregion
 }
 
@@ -4013,7 +4044,7 @@ function openProductModal(productId) {
   if (md) md.classList.add('open');
 
   // #region agent log
-  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:openProductModal',message:'openProductModal',data:{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},timestamp:Date.now()})}).catch(()=>{});
+  (window.__dbgLog||function(){})('openProductModal',{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},'H1_overlayBlocksTouches');
   // #endregion
 
   var img = document.getElementById('productImg');
@@ -4093,7 +4124,7 @@ function closeProductModal() {
         if (!hit) return {x:x,y:y,hit:null};
         return {x:x,y:y,hit:(hit.tagName||'')+'#'+(hit.id||'')+'.'+String(hit.className||'').split(/\s+/).slice(0,3).join('.')};
       }
-      fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:closeProductModal',message:'closeProductModal_afterReset',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},timestamp:Date.now()})}).catch(()=>{});
+      (window.__dbgLog||function(){})('closeProductModal_afterReset',{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},'H1_overlayBlocksTouches');
     } catch(e) {}
   })();
   // #endregion
