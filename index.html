@@ -2712,6 +2712,10 @@ function selectSubcategory(id) {
   activeSubcategory = id;
   renderSubcategoryFilters();
   renderGrid();
+
+  // #region agent log
+  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectSubcategory',message:'selectSubcategory',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 }
 
 function selectCategory(id) {
@@ -2720,6 +2724,10 @@ function selectCategory(id) {
   renderCategoryFilters();
   renderSubcategoryFilters();
   renderGrid();
+
+  // #region agent log
+  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectCategory',message:'selectCategory',data:{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 }
 
 function renderBudgetFilters() {
@@ -4004,6 +4012,10 @@ function openProductModal(productId) {
   if (ov) { ov.style.display = 'block'; ov.classList.add('open'); }
   if (md) md.classList.add('open');
 
+  // #region agent log
+  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:openProductModal',message:'openProductModal',data:{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   var img = document.getElementById('productImg');
   if (img) {
     img.src = p.img || '';
@@ -4063,6 +4075,28 @@ function closeProductModal() {
   hardResetHorizontalScroll();
   try { requestAnimationFrame(hardResetHorizontalScroll); } catch (e2) {}
   try { setTimeout(hardResetHorizontalScroll, 250); } catch (e3) {}
+
+  // #region agent log
+  (function(){
+    try {
+      var cat = document.getElementById('categoryFilters');
+      var sub = document.getElementById('subcategoryFilters');
+      var bud = document.getElementById('budgetFilters');
+      var pre = document.getElementById('presets');
+      function midEl(el){
+        if (!el) return null;
+        var r = el.getBoundingClientRect();
+        if (!r || !isFinite(r.left) || !isFinite(r.top)) return null;
+        var x = Math.round(r.left + Math.min(r.width, 60)/2);
+        var y = Math.round(r.top + Math.min(r.height, 30)/2);
+        var hit = document.elementFromPoint(x, y);
+        if (!hit) return {x:x,y:y,hit:null};
+        return {x:x,y:y,hit:(hit.tagName||'')+'#'+(hit.id||'')+'.'+String(hit.className||'').split(/\s+/).slice(0,3).join('.')};
+      }
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:closeProductModal',message:'closeProductModal_afterReset',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},timestamp:Date.now()})}).catch(()=>{});
+    } catch(e) {}
+  })();
+  // #endregion
 }
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
