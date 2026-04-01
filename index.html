@@ -4037,30 +4037,32 @@ function closeProductModal() {
   if (ov) ov.style.display = 'none';
 
   // iOS Telegram WebView: after closing modal, horizontal overflow scrollers can "freeze".
-  // We avoid manual drag scrolling (keeps momentum), and instead force a layout+overflow reset.
-  function reviveHorizontalScroll() {
+  // We keep native momentum (no manual drag). Most reliable fix: clone+replace the scroller nodes.
+  // Buttons inside rows use inline onclick, so cloning preserves behavior.
+  function hardResetHorizontalScroll() {
     try {
+      var ua = (navigator && navigator.userAgent) ? navigator.userAgent : '';
+      var isIOS = /iP(hone|ad|od)/i.test(ua);
+      if (!isIOS) return;
+
       document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
-        if (!el) return;
+        if (!el || !el.parentNode) return;
+
         var x = el.scrollLeft || 0;
-        var prevWebkit = el.style.webkitOverflowScrolling;
-        var prevOverflowX = el.style.overflowX;
+        var clone = el.cloneNode(true);
+        // Preserve scroll position after re-attach.
+        el.parentNode.replaceChild(clone, el);
+        try { clone.scrollLeft = x; } catch (e0) {}
 
-        el.style.webkitOverflowScrolling = 'auto';
-        el.style.overflowX = 'hidden';
-        void el.offsetHeight;
-        el.style.overflowX = prevOverflowX || 'auto';
-        el.style.webkitOverflowScrolling = prevWebkit || 'touch';
-
-        // Nudge scroll position to wake up iOS scroll chain, then restore.
-        el.scrollLeft = x + 1;
-        el.scrollLeft = x;
+        // Re-enable wheel-to-horizontal on desktop (harmless on iOS).
+        try { if (typeof setupWheelScroll === 'function') setupWheelScroll(clone); } catch (e1) {}
       });
     } catch (e) {}
   }
 
-  reviveHorizontalScroll();
-  try { setTimeout(reviveHorizontalScroll, 220); } catch (e2) {}
+  hardResetHorizontalScroll();
+  try { requestAnimationFrame(hardResetHorizontalScroll); } catch (e2) {}
+  try { setTimeout(hardResetHorizontalScroll, 250); } catch (e3) {}
 }
 
 // «Собрать букет» — внутри миниаппа (без внешнего браузера)
