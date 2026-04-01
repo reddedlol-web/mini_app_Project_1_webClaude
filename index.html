@@ -3762,6 +3762,21 @@ function touchPointForRow(e) {
   var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
   return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
 }
+/** Text nodes don't have .closest — на iOS target часто текст внутри кнопки, из‑за этого «не чип» и срабатывал низкий порог ряда. */
+function touchEventTargetElement(evTarget) {
+  if (!evTarget) return null;
+  if (evTarget.nodeType === 3) return evTarget.parentElement || null;
+  if (evTarget.nodeType === 1) return evTarget;
+  return null;
+}
+/** Ручной скролл нужен в основном после product modal; вне окна не трогаем жесты — иначе ломаются тапы по чипам (см. логи manual_scroll_engaged + selectCategory). */
+function iosManualScrollGateOpen() {
+  try {
+    var ts = window.__afterProductModalCloseTs;
+    if (!ts || typeof ts !== 'number') return false;
+    return (Date.now() - ts) <= 90000;
+  } catch (e) { return false; }
+}
 function ensureManualScrollFallback(row) {
   if (!row || row._manualScrollBound) return;
   row._manualScrollBound = true;
@@ -3778,7 +3793,7 @@ function ensureManualScrollFallback(row) {
   /** Тап по чипу/пресету: не включать ручной скролл без явного горизонтального свайпа (иначе теряется click). */
   var touchStartedOnInteractive = false;
 
-  var ENGAGE_PX_ROW = 32;
+  var ENGAGE_PX_ROW = 48;
   var ENGAGE_PX_ON_CHIP = 56;
   var ANGLE_ROW = 0.85;
   var ANGLE_ON_CHIP = 1.25;
@@ -3810,11 +3825,16 @@ function ensureManualScrollFallback(row) {
     dragging = true;
     manualActive = false;
     touchStartedOnInteractive = false;
-    try {
-      var t = e.target;
-      if (t && t.closest) touchStartedOnInteractive = !!t.closest('.filter-chip, .preset-card');
-    } catch (eTs) { touchStartedOnInteractive = false; }
     var p = touchPointForRow(e);
+    try {
+      var t0 = touchEventTargetElement(e.target);
+      if (t0 && t0.closest) touchStartedOnInteractive = !!t0.closest('.filter-chip, .preset-card');
+      if (!touchStartedOnInteractive) {
+        var hit = document.elementFromPoint(p.x, p.y);
+        var hEl = touchEventTargetElement(hit);
+        if (hEl && hEl.closest) touchStartedOnInteractive = !!hEl.closest('.filter-chip, .preset-card');
+      }
+    } catch (eTs) { touchStartedOnInteractive = false; }
     startX = lastX = p.x;
     startY = p.y;
     startScrollLeft = row.scrollLeft || 0;
@@ -3824,6 +3844,7 @@ function ensureManualScrollFallback(row) {
 
   row.addEventListener('touchmove', function(e) {
     if (!dragging) return;
+    if (!iosManualScrollGateOpen()) return;
     var p = touchPointForRow(e);
     var dx = p.x - startX;
     var dy = p.y - startY;
@@ -3838,11 +3859,11 @@ function ensureManualScrollFallback(row) {
       manualActive = true;
       try {
         if (typeof window.__dbgLog === 'function') {
-          window.__dbgLog('manual_scroll_engaged', { rowId: row.id || '', dx: Math.round(dx), sl0: startScrollLeft, sl: sl }, 'H2_scrollLayerFreeze');
+          window.__dbgLog('manual_scroll_engaged', { rowId: row.id || '', dx: Math.round(dx), sl0: startScrollLeft, sl: sl, onChip: !!touchStartedOnInteractive, gateMs: Math.round(Date.now() - (window.__afterProductModalCloseTs || 0)) }, 'H2_scrollLayerFreeze');
         }
       } catch (eL) {}
       // #region agent log
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:ensureManualScrollFallback', message: 'manual_scroll_engaged', data: { rowId: String(row.id || ''), dx: Math.round(dx) }, timestamp: Date.now(), hypothesisId: 'H2_scrollLayerFreeze' }) }).catch(function() {});
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:ensureManualScrollFallback', message: 'manual_scroll_engaged', data: { rowId: String(row.id || ''), dx: Math.round(dx), onChip: !!touchStartedOnInteractive, gateMs: Math.round(Date.now() - (window.__afterProductModalCloseTs || 0)) }, timestamp: Date.now(), hypothesisId: 'H2_scrollLayerFreeze' }) }).catch(function() {});
       // #endregion
     }
 
