@@ -110,6 +110,13 @@
       try { return JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e) { return []; }
     };
     window.__dbgClear = function() { try { localStorage.removeItem(DBG_KEY); } catch (e) {} };
+
+    // Auto-clear on each load when dbg=1, to avoid mixing runs.
+    try {
+      if (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1)) {
+        localStorage.removeItem(DBG_KEY);
+      }
+    } catch (eClr) {}
   } catch (eOuter) {}
 })();
 </script>
@@ -3650,6 +3657,94 @@ function setupWheelScroll(el) {
 }
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
+
+// ── Debug: touch/scroll trace for iOS freeze ─────────────────────────────────
+(function() {
+  try {
+    if (!(typeof location !== 'undefined' && location.search && location.search.indexOf('dbg=1') !== -1)) return;
+
+    var last = new WeakMap(); // el -> {x,y,scrollLeft,ts}
+
+    function isRow(el) {
+      return !!(el && (el.classList && (el.classList.contains('filter-row') || el.classList.contains('presets'))));
+    }
+    function getRowFromTarget(t) {
+      if (!t || !t.closest) return null;
+      var r = t.closest('.filter-row');
+      if (r) return r;
+      var p = t.closest('.presets');
+      return p || null;
+    }
+    function point(e) {
+      var t = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
+      return t ? { x: t.clientX, y: t.clientY } : { x: 0, y: 0 };
+    }
+    function hitAt(x, y) {
+      try {
+        var h = document.elementFromPoint(Math.round(x), Math.round(y));
+        if (!h) return null;
+        return (h.tagName || '') + '#' + (h.id || '') + '.' + String(h.className || '').split(/\s+/).slice(0, 3).join('.');
+      } catch (e) { return null; }
+    }
+    function log(msg, data, hid) {
+      try { (window.__dbgLog || function(){})(); } catch (e0) {}
+      try { window.__dbgLog(msg, data || {}, hid || 'H2_scrollLayerFreeze'); } catch (e1) {}
+    }
+
+    document.addEventListener('touchstart', function(e) {
+      var t = e && e.target ? e.target : null;
+      var row = getRowFromTarget(t);
+      if (!isRow(row)) return;
+      var p = point(e);
+      last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
+      log('row_touchstart', {
+        rowId: row.id || '',
+        rowClass: (row.className || '').toString(),
+        scrollLeft: Number(row.scrollLeft || 0),
+        scrollW: Number(row.scrollWidth || 0),
+        clientW: Number(row.clientWidth || 0),
+        hit: hitAt(p.x, p.y),
+        cancelable: !!e.cancelable,
+      }, 'H2_scrollLayerFreeze');
+    }, { passive: true, capture: true });
+
+    document.addEventListener('touchmove', function(e) {
+      var t = e && e.target ? e.target : null;
+      var row = getRowFromTarget(t);
+      if (!isRow(row)) return;
+      var p = point(e);
+      var prev = last.get(row) || { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() };
+      var dx = p.x - prev.x;
+      var dy = p.y - prev.y;
+      // Only sample occasionally to keep logs small
+      if (Math.abs(dx) + Math.abs(dy) < 18) return;
+      last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
+      log('row_touchmove', {
+        rowId: row.id || '',
+        dx: Math.round(dx),
+        dy: Math.round(dy),
+        scrollLeft: Number(row.scrollLeft || 0),
+        deltaScroll: Number((row.scrollLeft || 0) - (prev.scrollLeft || 0)),
+        hit: hitAt(p.x, p.y),
+        cancelable: !!e.cancelable,
+      }, 'H2_scrollLayerFreeze');
+    }, { passive: true, capture: true });
+
+    document.addEventListener('touchend', function(e) {
+      var t = e && e.target ? e.target : null;
+      var row = getRowFromTarget(t);
+      if (!isRow(row)) return;
+      var p = point(e);
+      log('row_touchend', {
+        rowId: row.id || '',
+        scrollLeft: Number(row.scrollLeft || 0),
+        hit: hitAt(p.x, p.y),
+      }, 'H2_scrollLayerFreeze');
+    }, { passive: true, capture: true });
+
+    log('touch_trace_enabled', { ua: (navigator && navigator.userAgent) ? String(navigator.userAgent) : '' }, 'H2_scrollLayerFreeze');
+  } catch (e) {}
+})();
 
 // ── Подстановка названия из SHOP_CONFIG ────────────────────────────────────────
 (function() {
