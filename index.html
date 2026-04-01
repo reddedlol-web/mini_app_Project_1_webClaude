@@ -32,6 +32,8 @@
       copyBtn.style.cssText = 'float:right;margin:-1px 8px 0 0;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#fff;font-size:12px;line-height:1.2;padding:5px 8px;border-radius:8px;cursor:pointer;display:none';
       copyBtn.onclick = function() {
         try {
+          // Render latest debug snapshot into the box (if available)
+          try { if (window.__dbgRender) window.__dbgRender(); } catch (e0) {}
           var t = document.getElementById('__diagText');
           var txt = t ? (t.textContent || '') : '';
           if (!txt) return;
@@ -41,6 +43,12 @@
         } catch (e) {}
       };
       box.appendChild(copyBtn);
+      var showBtn = document.createElement('button');
+      showBtn.textContent = 'Show debug';
+      showBtn.setAttribute('type', 'button');
+      showBtn.style.cssText = 'float:right;margin:-1px 8px 0 0;border:1px solid rgba(255,255,255,0.25);background:transparent;color:#fff;font-size:12px;line-height:1.2;padding:5px 8px;border-radius:8px;cursor:pointer;display:none';
+      showBtn.onclick = function() { try { if (window.__dbgRender) window.__dbgRender(true); } catch (e) {} };
+      box.appendChild(showBtn);
       var pre = document.createElement('div');
       pre.id = '__diagText';
       box.appendChild(pre);
@@ -53,11 +61,11 @@
       var box = ensureBox();
       if (!box) return;
       try {
-        var copyBtn = box.querySelector('button:nth-of-type(2)');
-        if (copyBtn) {
-          var dbg = (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1));
-          copyBtn.style.display = dbg ? 'inline-block' : 'none';
-        }
+        var dbg = (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1));
+        var btns = box.querySelectorAll('button');
+        // btns[0] = close, btns[1] = copy, btns[2] = show
+        if (btns && btns[1]) btns[1].style.display = dbg ? 'inline-block' : 'none';
+        if (btns && btns[2]) btns[2].style.display = dbg ? 'inline-block' : 'none';
       } catch (eBtn) {}
       var t = document.getElementById('__diagText');
       if (!t) return;
@@ -84,7 +92,7 @@
 
   // ── Local debug logger (no network) ────────────────────────────────────────
   // Stores last ~200 entries in localStorage and can render them in the diag box
-  // when URL contains ?dbg=1 (or &dbg=1).
+  // on demand (no auto-popup to avoid blocking UI).
   try {
     var DBG_KEY = '__dbg_d60e66';
     function dbgPush(entry) {
@@ -98,13 +106,21 @@
     }
     window.__dbgLog = function(message, data, hypothesisId) {
       dbgPush({ sessionId: 'd60e66', ts: Date.now(), hypothesisId: hypothesisId || '', message: String(message || ''), data: data || {} });
+    };
+    window.__dbgRender = function(forceShow) {
       try {
-        if (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1)) {
-          var arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || [];
-          var last = arr.slice(-25).map(function(x) { return (new Date(x.ts)).toISOString() + ' ' + (x.hypothesisId ? ('['+x.hypothesisId+'] ') : '') + x.message + ' ' + JSON.stringify(x.data || {}); }).join('\n');
-          show('Debug log (last 25):\n' + last);
+        var arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || [];
+        var last = arr.slice(-25).map(function(x) {
+          return (new Date(x.ts)).toISOString() + ' ' + (x.hypothesisId ? ('[' + x.hypothesisId + '] ') : '') + x.message + ' ' + JSON.stringify(x.data || {});
+        }).join('\n');
+        var msg = 'Debug log (last 25):\n' + last;
+        if (forceShow) show(msg);
+        else {
+          // If box is already visible (e.g. error), update text; otherwise keep it hidden.
+          var box = document.getElementById('__diagBox');
+          if (box && box.style && box.style.display !== 'none') show(msg);
         }
-      } catch (e3) {}
+      } catch (e) {}
     };
     window.__dbgDump = function() {
       try { return JSON.parse(localStorage.getItem(DBG_KEY) || '[]') || []; } catch (e) { return []; }
@@ -3664,6 +3680,7 @@ setupWheelScroll(document.querySelector('.presets'));
     if (!(typeof location !== 'undefined' && location.search && location.search.indexOf('dbg=1') !== -1)) return;
 
     var last = new WeakMap(); // el -> {x,y,scrollLeft,ts}
+    var lastLogTs = 0;
 
     function isRow(el) {
       return !!(el && (el.classList && (el.classList.contains('filter-row') || el.classList.contains('presets'))));
@@ -3695,6 +3712,10 @@ setupWheelScroll(document.querySelector('.presets'));
       var t = e && e.target ? e.target : null;
       var row = getRowFromTarget(t);
       if (!isRow(row)) return;
+      // Only trace shortly after closing product modal (focus on the bug window).
+      var sinceClose = 0;
+      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
+      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
       var p = point(e);
       last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
       log('row_touchstart', {
@@ -3712,12 +3733,19 @@ setupWheelScroll(document.querySelector('.presets'));
       var t = e && e.target ? e.target : null;
       var row = getRowFromTarget(t);
       if (!isRow(row)) return;
+      var sinceClose = 0;
+      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
+      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
       var p = point(e);
       var prev = last.get(row) || { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() };
       var dx = p.x - prev.x;
       var dy = p.y - prev.y;
       // Only sample occasionally to keep logs small
       if (Math.abs(dx) + Math.abs(dy) < 18) return;
+      // Global throttle
+      var now = Date.now();
+      if (now - lastLogTs < 250) return;
+      lastLogTs = now;
       last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
       log('row_touchmove', {
         rowId: row.id || '',
@@ -3734,6 +3762,9 @@ setupWheelScroll(document.querySelector('.presets'));
       var t = e && e.target ? e.target : null;
       var row = getRowFromTarget(t);
       if (!isRow(row)) return;
+      var sinceClose = 0;
+      try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
+      if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
       var p = point(e);
       log('row_touchend', {
         rowId: row.id || '',
@@ -4195,6 +4226,7 @@ function closeProductModal() {
   if (ov) ov.classList.remove('open');
   if (md) md.classList.remove('open');
   if (ov) ov.style.display = 'none';
+  try { window.__afterProductModalCloseTs = Date.now(); } catch (eTs) {}
 
   // iOS Telegram WebView: after closing modal, horizontal overflow scrollers can "freeze".
   // We keep native momentum (no manual drag). Most reliable fix: clone+replace the scroller nodes.
