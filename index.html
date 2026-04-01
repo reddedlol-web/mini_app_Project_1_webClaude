@@ -1894,6 +1894,7 @@
     <span class="cart-total-label">Итого</span>
     <span class="cart-total-sum" id="cartSum"></span>
   </div>
+  <div id="cartSumDisclaimer" style="display:none;padding:0 20px 10px;font-size:12px;color:var(--muted);line-height:1.35;"></div>
   <div class="contact-form" id="contactForm">
     <p class="contact-label">ДАННЫЕ ЗАКАЗЧИКА И ПОЛУЧАТЕЛЯ</p>
     <div class="contact-field">
@@ -2387,19 +2388,46 @@ function changeShowcaseQty(showcaseId, delta) {
 }
 
 // Загрузка каталога из API (лист «Каталог»); при ошибке или пустом ответе остаётся встроенный каталог
+var CATALOG_PRICE_ON_REQUEST_CATEGORY = 'Свадебные букеты';
+
+function catalogItemPriceOnRequest(p) {
+  if (!p) return false;
+  if (p.priceOnRequest === true) return true;
+  var cat = String(p.cat || p.category || '').trim();
+  var price = Number(p.price) || 0;
+  return cat === CATALOG_PRICE_ON_REQUEST_CATEGORY && price === 0;
+}
+
+/** HTML для блока цены на карточке каталога (число + валюта в span или текст «у менеджера»). */
+function formatCatalogPriceFooterHtml(p) {
+  var cur = (SHOP_CONFIG && SHOP_CONFIG.currency) ? SHOP_CONFIG.currency : 'BYN';
+  if (catalogItemPriceOnRequest(p)) return 'Уточняйте у менеджера';
+  return (Number(p && p.price) || 0) + ' <span>' + cur + '</span>';
+}
+
+/** innerHTML для #productPrice в модалке товара. */
+function formatCatalogPriceModalInnerHtml(p) {
+  if (catalogItemPriceOnRequest(p)) return escapeHtml('Уточняйте у менеджера');
+  return escapeHtml(String(Number(p && p.price) || 0)) + ' <span>' + escapeHtml(SHOP_CONFIG.currency) + '</span>';
+}
+
 function normalizeCatalogItem(it) {
   var occ = it.occasions;
   if (Array.isArray(occ)) occ = occ; else if (typeof occ === 'string' && occ) occ = occ.split(',').map(function(s) { return s.trim(); }); else occ = [];
   var isAddon = /^(да|yes|д)$/i.test(String(it.is_addon || '').trim());
+  var cat = (it.category || '').trim();
+  var priceNum = parseFloat(it.price) || 0;
+  var priceOnRequest = cat === CATALOG_PRICE_ON_REQUEST_CATEGORY && priceNum === 0;
   return {
     id: Number(it.id) || 0,
-    cat: (it.category || '').trim(),
+    cat: cat,
     subcategory: String(it.subcategory || '').trim(),
     composition: String(it.composition || '').trim(),
     name: (it.name || '').trim(),
     img: (it.image || '').trim(),
     desc: (it.description || '').trim(),
-    price: parseFloat(it.price) || 0,
+    price: priceNum,
+    priceOnRequest: priceOnRequest,
     article: String(it.article || '').trim(),
     occasions: occ,
     isAddon: isAddon,
@@ -3147,7 +3175,7 @@ function renderGrid() {
   if (activeBudget !== 'any') {
     const b = budgets.find(b => b.id === activeBudget);
     if (b) {
-      items = items.filter(p => p.price >= b.min && p.price <= b.max);
+      items = items.filter(p => catalogItemPriceOnRequest(p) || (p.price >= b.min && p.price <= b.max));
     }
   }
 
@@ -3175,7 +3203,7 @@ function renderGrid() {
         <div class="card-name">${p.name}</div>
         <div class="card-desc">${p.desc}</div>
         <div class="card-footer">
-          <div class="card-price">${p.price} <span>${SHOP_CONFIG.currency}</span></div>
+          <div class="card-price">${formatCatalogPriceFooterHtml(p)}</div>
           <button class="add-btn ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); addToCart(${p.id})" id="btn-${p.id}">
             ${inCart ? '✓' : '+'}
           </button>
@@ -3257,6 +3285,8 @@ function renderCartSheet() {
         Корзина пустая<br>Добавьте что-нибудь из каталога или витрины
       </div>`;
     totalEl.style.display = 'none';
+    var discEmpty = document.getElementById('cartSumDisclaimer');
+    if (discEmpty) { discEmpty.style.display = 'none'; discEmpty.textContent = ''; }
     orderBtn.disabled = true;
     contactForm.style.display = 'none';
     contactStep = false;
@@ -3311,16 +3341,23 @@ function renderCartSheet() {
     </div>`);
   });
 
+  var cartHasPriceOnRequest = false;
   parts.push(ids.map(id => {
     const p = catalog.find(p => p.id === id);
+    if (!p) return '';
     const qty = cart[id];
+    const por = catalogItemPriceOnRequest(p);
+    if (por) cartHasPriceOnRequest = true;
     sum += p.price * qty;
+    const priceLine = por
+      ? ('Уточняйте у менеджера × ' + qty)
+      : (p.price + ' ' + SHOP_CONFIG.currency + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + SHOP_CONFIG.currency);
     return `
     <div class="cart-item">
       <img src="${p.img}" alt="${p.name}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--ivory)"/>
       <div class="cart-item-info">
         <div class="cart-item-name">${p.name}</div>
-        <div class="cart-item-price">${p.price} ${SHOP_CONFIG.currency} × ${qty} = ${p.price * qty} ${SHOP_CONFIG.currency}</div>
+        <div class="cart-item-price">${priceLine}</div>
       </div>
       <div class="cart-item-controls">
         <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
@@ -3346,6 +3383,17 @@ function renderCartSheet() {
 
   totalEl.style.display = 'flex';
   sumEl.textContent = sum + ' ' + SHOP_CONFIG.currency;
+
+  var discEl = document.getElementById('cartSumDisclaimer');
+  if (discEl) {
+    if (cartHasPriceOnRequest) {
+      discEl.style.display = 'block';
+      discEl.textContent = 'Итог без учёта позиций с ценой по запросу (уточняйте у менеджера).';
+    } else {
+      discEl.style.display = 'none';
+      discEl.textContent = '';
+    }
+  }
 
   renderCartUpsell();
 }
@@ -3601,6 +3649,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
 
   ids.forEach(function(id) {
     const p = catalog.find(p => p.id === id);
+    if (!p) return;
     // Артикул: сначала из текущего каталога (если API его даёт), иначе из EMBEDDED_CATALOG_RAW
     var rawArticle = '';
     try {
@@ -3618,7 +3667,11 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     sum += p.price * qty;
     const cur = SHOP_CONFIG.currency;
     const art = rawArticle ? ' (арт. ' + rawArticle + ')' : '';
-    lines.push('• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur);
+    if (catalogItemPriceOnRequest(p)) {
+      lines.push('• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' — цена у менеджера');
+    } else {
+      lines.push('• ' + (p.emoji || '🌸') + ' ' + p.name + art + ' × ' + qty + ' = ' + (p.price * qty) + ' ' + cur);
+    }
   });
   var showcaseOrderItems = [];
   Object.keys(showcaseCart || {}).forEach(function(sk) {
@@ -3643,9 +3696,15 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     if (a.note) lines.push('• Записка на карточке: ' + a.note);
   });
 
+  var orderHasPriceOnRequest = ids.some(function(oid) {
+    var px = catalog.find(function(x) { return x.id === oid; });
+    return px && catalogItemPriceOnRequest(px);
+  });
+
   const orderText =
     '🛒 Заказ из каталога :\n' + lines.join('\n') +
     '\n\n💰 Итого: ' + sum + ' ' + SHOP_CONFIG.currency +
+    (orderHasPriceOnRequest ? '\n\nℹ️ Итог без учёта позиций с ценой по запросу (уточняйте у менеджера).' : '') +
     '\n\n👤 Имя заказчика: ' + name +
     '\n📞 Телефон заказчика: ' + phone +
     '\n👤 Имя получателя: ' + receiverName +
@@ -3693,6 +3752,7 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
           article: art,
           qty: cart[id],
           price: p.price,
+          price_on_request: catalogItemPriceOnRequest(p),
         };
       }).concat(showcaseOrderItems),
       addons: addons,
@@ -3803,7 +3863,7 @@ function builderRenderList(el, items) {
         <div class="builder-item-body">
           <div class="builder-item-name">${p.name}</div>
           <div class="builder-item-meta">
-            <div class="builder-item-price">${p.price} ${SHOP_CONFIG.currency}</div>
+            <div class="builder-item-price">${formatCatalogPriceFooterHtml(p)}</div>
             <div class="builder-qty" aria-label="Количество">
               <button type="button" onclick="builderChangeQty(${p.id}, -1)" aria-label="Уменьшить">−</button>
               <span>${qty}</span>
@@ -4136,13 +4196,17 @@ function normalizeApiItem(it) {
   if (existing) return existing;
   // Иначе делаем минимальную карточку и добавляем в catalog, чтобы работала модалка и корзина.
   var price = Number(it.price) || 0;
+  var priceRounded = price ? Math.round(price) : 0;
+  var catApi = String(it.category || '').trim() || 'any';
+  var priceOnRequestApi = catApi === CATALOG_PRICE_ON_REQUEST_CATEGORY && priceRounded === 0;
   var obj = {
     id: id,
     name: String(it.name || '').trim(),
-    price: price ? Math.round(price) : 0,
+    price: priceRounded,
+    priceOnRequest: priceOnRequestApi,
     img: String(it.image || it.img || '').trim(),
     desc: String(it.description || it.desc || '').trim() || 'Состав уточняется.',
-    cat: String(it.category || '').trim() || 'any',
+    cat: catApi,
     subcategory: String(it.subcategory || '').trim(),
     composition: String(it.composition || '').trim(),
     article: String(it.article || '').trim(),
@@ -4181,7 +4245,7 @@ function renderFiveVariantsGrid(items) {
         <div class="card-name">${p.name}</div>
         <div class="card-desc">${p.desc}</div>
         <div class="card-footer">
-          <div class="card-price">${p.price} <span>${SHOP_CONFIG.currency}</span></div>
+          <div class="card-price">${formatCatalogPriceFooterHtml(p)}</div>
           <button class="add-btn ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); addToCart(${p.id})" id="btn-${p.id}">
             ${inCart ? '✓' : '+'}
           </button>
@@ -4593,7 +4657,7 @@ function openProductModal(productId) {
   var title = document.getElementById('productTitle');
   if (title) title.textContent = p.name || '';
   var price = document.getElementById('productPrice');
-  if (price) price.innerHTML = escapeHtml(p.price) + ' <span>' + escapeHtml(SHOP_CONFIG.currency) + '</span>';
+  if (price) price.innerHTML = formatCatalogPriceModalInnerHtml(p);
 
   renderProductDescription(p);
 
