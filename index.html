@@ -868,6 +868,15 @@
     background: var(--bg-hero);
     box-shadow: 0 2px 14px var(--shadow);
   }
+  .store-card--loading {
+    cursor: wait;
+    opacity: 0.92;
+    animation: storeCardLoadingPulse 1s ease-in-out infinite;
+  }
+  @keyframes storeCardLoadingPulse {
+    0%, 100% { opacity: 0.92; }
+    50% { opacity: 1; }
+  }
   .store-card-address {
     font-size: 15px; font-weight: 500;
     color: var(--accent-deep);
@@ -942,6 +951,115 @@
   .showcase-card .add-btn:active { transform: scale(0.94); }
   .showcase-card .add-btn.added { background: var(--success); }
   .showcase-empty { font-size: 13px; color: var(--text-muted); padding: 0 20px 8px; }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .showcase-loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 132px;
+    padding: 12px 20px 20px;
+    box-sizing: border-box;
+  }
+  .showcase-loading.is-visible { display: flex; }
+  .showcase-loading-flower {
+    position: relative;
+    width: 88px;
+    height: 88px;
+  }
+  .showcase-loading-petals {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+  }
+  .showcase-loading-petal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 32px;
+    margin-left: -9px;
+    margin-top: -32px;
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    background: linear-gradient(165deg, var(--accent) 0%, var(--accent-deep) 100%);
+    transform-origin: 50% 100%;
+    opacity: 0;
+    animation: showcasePetalCycle 2.5s ease-in-out infinite;
+  }
+  @keyframes showcasePetalCycle {
+    0%, 8% {
+      opacity: 0;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(0) scaleY(0);
+    }
+    22% {
+      opacity: 1;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(0) scaleY(1);
+    }
+    42% {
+      opacity: 1;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(0) scaleY(1);
+    }
+    72% {
+      opacity: 0;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(52px) rotate(28deg) scaleY(0.75);
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(0) scaleY(0);
+    }
+  }
+  .showcase-loading-petal:nth-child(1) { --petal-rot: 0deg; animation-delay: 0s; }
+  .showcase-loading-petal:nth-child(2) { --petal-rot: 60deg; animation-delay: 0.12s; }
+  .showcase-loading-petal:nth-child(3) { --petal-rot: 120deg; animation-delay: 0.24s; }
+  .showcase-loading-petal:nth-child(4) { --petal-rot: 180deg; animation-delay: 0.36s; }
+  .showcase-loading-petal:nth-child(5) { --petal-rot: 240deg; animation-delay: 0.48s; }
+  .showcase-loading-petal:nth-child(6) { --petal-rot: 300deg; animation-delay: 0.6s; }
+  .showcase-loading-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border-radius: 50%;
+    background: var(--accent-deep);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+    z-index: 1;
+  }
+  .showcase-loading-caption {
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .store-card--loading { animation: none; opacity: 1; cursor: wait; }
+    .showcase-loading-petal {
+      animation: none;
+      opacity: 0.85;
+      transform: rotate(var(--petal-rot, 0deg)) translateY(-6px) scaleY(1);
+    }
+    .showcase-loading-flower {
+      animation: showcaseReducedPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes showcaseReducedPulse {
+      0%, 100% { opacity: 0.75; }
+      50% { opacity: 1; }
+    }
+  }
   .catalog-placeholder {
     padding: 28px 20px;
     text-align: center;
@@ -1551,6 +1669,21 @@
 <section class="showcase-section" id="showcaseSection" aria-label="Витрина">
   <div class="showcase-head" id="showcaseHead">Сегодня на витрине</div>
   <div class="showcase-empty" id="showcaseEmpty" style="display:none">Для выбранного магазина пока нет позиций на витрине.</div>
+  <div class="showcase-loading" id="showcaseLoading" aria-hidden="true">
+    <div class="showcase-loading-flower" role="presentation">
+      <div class="showcase-loading-petals">
+        <span class="showcase-loading-petal"></span>
+        <span class="showcase-loading-petal"></span>
+        <span class="showcase-loading-petal"></span>
+        <span class="showcase-loading-petal"></span>
+        <span class="showcase-loading-petal"></span>
+        <span class="showcase-loading-petal"></span>
+      </div>
+      <span class="showcase-loading-core"></span>
+    </div>
+    <span class="showcase-loading-caption" aria-hidden="true">Витрина загружается…</span>
+  </div>
+  <span id="showcaseLoadingStatus" class="visually-hidden" aria-live="polite"></span>
   <div class="showcase-scroll" id="showcaseScroll"></div>
 </section>
 
@@ -1925,6 +2058,8 @@ var demoStock = {
 // Если API не настроен — сразу подставляем демо-магазины, чтобы было что показать
 let stores = API_BASE ? [] : demoStores.slice();
 let selectedStoreId = null;
+let showcaseFetchGeneration = 0;
+let showcaseLoadPending = false;
 let inStockBouquetIds = new Set();
 let lastUpdated = API_BASE ? null : '28.02.2025';
 /** Состояние загрузки /api/stores (чтобы не показывать вечное «загружаются…» при ошибке). */
@@ -2026,7 +2161,8 @@ function renderStorePicker() {
     lastUpdated = lastUpdated || '28.02.2025';
     listEl.innerHTML = stores.map(function(s) {
       var isSelected = String(selectedStoreId) === String(s.id);
-      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+      var loadCls = isSelected && showcaseLoadPending ? ' store-card--loading' : '';
+      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
     }).join('');
     if (updatedEl) updatedEl.style.display = 'none';
     var subtitleEl = document.getElementById('catalogSubtitle');
@@ -2056,7 +2192,8 @@ function renderStorePicker() {
 
   listEl.innerHTML = stores.map(function(s) {
     const isSelected = String(selectedStoreId) === String(s.id);
-    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+    var loadCls = isSelected && showcaseLoadPending ? ' store-card--loading' : '';
+    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
   }).join('');
 
   if (updatedEl) updatedEl.style.display = 'none';
@@ -2067,20 +2204,60 @@ function renderStorePicker() {
 
 function selectStore(storeId) {
   selectedStoreId = storeId != null ? String(storeId) : null;
+  if (selectedStoreId) {
+    showcaseLoadPending = true;
+  } else {
+    showcaseLoadPending = false;
+  }
   renderStorePicker();
   fetchStock(selectedStoreId);
   fetchShowcase(selectedStoreId);
 }
 
+function setShowcaseLoadingUI(visible) {
+  var loadingEl = document.getElementById('showcaseLoading');
+  var scroll = document.getElementById('showcaseScroll');
+  var empty = document.getElementById('showcaseEmpty');
+  var section = document.getElementById('showcaseSection');
+  var statusEl = document.getElementById('showcaseLoadingStatus');
+  if (visible) {
+    if (scroll) scroll.innerHTML = '';
+    if (empty) empty.style.display = 'none';
+    if (loadingEl) {
+      loadingEl.classList.add('is-visible');
+      loadingEl.setAttribute('aria-hidden', 'false');
+    }
+    if (section) section.setAttribute('aria-busy', 'true');
+    if (statusEl) statusEl.textContent = 'Загрузка витрины…';
+  } else {
+    if (loadingEl) {
+      loadingEl.classList.remove('is-visible');
+      loadingEl.setAttribute('aria-hidden', 'true');
+    }
+    if (section) section.removeAttribute('aria-busy');
+    if (statusEl) statusEl.textContent = '';
+  }
+}
+
 async function fetchShowcase(storeId) {
-  showcaseItemsList = [];
   var section = document.getElementById('showcaseSection');
   if (!section) return;
   if (!storeId) {
+    showcaseFetchGeneration++;
+    showcaseLoadPending = false;
+    showcaseItemsList = [];
+    setShowcaseLoadingUI(false);
     section.classList.remove('visible');
     renderShowcase();
+    renderStorePicker();
     return;
   }
+  var gen = ++showcaseFetchGeneration;
+  showcaseItemsList = [];
+  showcaseLoadPending = true;
+  section.classList.add('visible');
+  renderStorePicker();
+  setShowcaseLoadingUI(true);
   try {
     var r = await fetchApi('/api/showcase?store_id=' + encodeURIComponent(storeId));
     if (!r.ok) {
@@ -2099,6 +2276,10 @@ async function fetchShowcase(storeId) {
     console.warn('Showcase API', e);
     showcaseItemsList = [];
   }
+  if (gen !== showcaseFetchGeneration) return;
+  showcaseLoadPending = false;
+  setShowcaseLoadingUI(false);
+  renderStorePicker();
   renderShowcase();
 }
 
@@ -2107,6 +2288,7 @@ function renderShowcase() {
   var scroll = document.getElementById('showcaseScroll');
   var empty = document.getElementById('showcaseEmpty');
   if (!section || !scroll) return;
+  setShowcaseLoadingUI(false);
   if (!selectedStoreId) {
     section.classList.remove('visible');
     scroll.innerHTML = '';
