@@ -388,7 +388,8 @@
     cursor: pointer;
     user-select: none;
   }
-  #fiveVariantsModal .chip input[type="radio"] {
+  #fiveVariantsModal .chip input[type="radio"],
+  #fiveVariantsModal .chip input[type="checkbox"] {
     position: absolute;
     opacity: 0;
     width: 1px;
@@ -408,7 +409,8 @@
     white-space: nowrap;
   }
   #fiveVariantsModal .chip:active span { transform: scale(0.98); }
-  #fiveVariantsModal .chip input[type="radio"]:checked + span {
+  #fiveVariantsModal .chip input[type="radio"]:checked + span,
+  #fiveVariantsModal .chip input[type="checkbox"]:checked + span {
     border-color: var(--accent-deep);
     background: var(--accent-soft);
   }
@@ -1677,7 +1679,7 @@
 <div class="modal" id="fiveVariantsModal" role="dialog" aria-modal="true" aria-labelledby="fiveVariantsTitle">
   <button type="button" class="modal-close" onclick="closeFiveVariantsModal()" aria-label="Закрыть">✕</button>
   <div class="modal-title" id="fiveVariantsTitle">Получить 5 вариантов</div>
-  <div class="modal-subtitle">Выберите параметры — покажем подходящие варианты по названию, описанию и составу букета (если найдётся меньше 5 — выведем сколько есть).</div>
+  <div class="modal-subtitle">Подбор идёт по составу букета (если он заполнен в каталоге), названию и описанию. Укажите виды цветов и бюджет — остальное можно дописать в пожеланиях.</div>
   <div id="fiveVariantsModalInner">
     <div class="contact-field">
       <label>Бюджет</label>
@@ -1688,51 +1690,25 @@
       <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">Можно заполнить одно поле — второе посчитаем автоматически.</div>
     </div>
     <div class="contact-field">
-      <label>Цветы</label>
+      <label>Какие цветы в букете (можно несколько)</label>
       <div class="chip-group" id="fiveFlowers">
-        <label class="chip"><input type="radio" name="fiveFlowers" value="розы"><span>Розы</span></label>
-        <label class="chip"><input type="radio" name="fiveFlowers" value="тюльпаны"><span>Тюльпаны</span></label>
-        <label class="chip"><input type="radio" name="fiveFlowers" value="пионы"><span>Пионы</span></label>
-        <label class="chip"><input type="radio" name="fiveFlowers" value="эустома"><span>Эустома</span></label>
-        <label class="chip"><input type="radio" name="fiveFlowers" value="микс"><span>Микс</span></label>
-        <label class="chip"><input type="radio" name="fiveFlowers" value="" checked><span>Не знаю</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="розы"><span>Розы</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="тюльпаны"><span>Тюльпаны</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="пионы"><span>Пионы</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="эустома"><span>Эустома</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="хризантемы"><span>Хризантемы</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="гортензии"><span>Гортензии</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="гвоздики"><span>Гвоздики</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="лилии"><span>Лилии</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="герберы"><span>Герберы</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="альстромерии"><span>Альстромерии</span></label>
+        <label class="chip"><input type="checkbox" name="fiveFlowers" value="микс"><span>Микс</span></label>
       </div>
-    </div>
-    <div class="contact-field">
-      <label>Цвета</label>
-      <div class="chip-group" id="fiveColors">
-        <label class="chip"><input type="radio" name="fiveColors" value="нежные"><span>Нежные</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="яркие"><span>Яркие</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="белые"><span>Белые</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="розовые"><span>Розовые</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="красные"><span>Красные</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="пастель"><span>Пастель</span></label>
-        <label class="chip"><input type="radio" name="fiveColors" value="" checked><span>Не знаю</span></label>
-      </div>
-    </div>
-    <div class="contact-field">
-      <label>Размер</label>
-      <div class="chip-group" id="fiveSize">
-        <label class="chip"><input type="radio" name="fiveSize" value="мини"><span>Мини</span></label>
-        <label class="chip"><input type="radio" name="fiveSize" value="средний"><span>Средний</span></label>
-        <label class="chip"><input type="radio" name="fiveSize" value="большой"><span>Большой</span></label>
-        <label class="chip"><input type="radio" name="fiveSize" value="" checked><span>Не знаю</span></label>
-      </div>
-    </div>
-    <div class="contact-field">
-      <label>Стиль</label>
-      <div class="chip-group" id="fiveStyle">
-        <label class="chip"><input type="radio" name="fiveStyle" value="классика"><span>Классика</span></label>
-        <label class="chip"><input type="radio" name="fiveStyle" value="современный"><span>Современный</span></label>
-        <label class="chip"><input type="radio" name="fiveStyle" value="моно"><span>Моно</span></label>
-        <label class="chip"><input type="radio" name="fiveStyle" value="микс"><span>Микс</span></label>
-        <label class="chip"><input type="radio" name="fiveStyle" value="в коробке"><span>В коробке</span></label>
-        <label class="chip"><input type="radio" name="fiveStyle" value="" checked><span>Не знаю</span></label>
-      </div>
+      <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">Ничего не отмечено — подберём только по бюджету и тексту пожеланий.</div>
     </div>
     <div class="contact-field">
       <label for="fiveWishes">Пожелания</label>
-      <textarea id="fiveWishes" rows="3" maxlength="500" placeholder="Например: нежные тона, розы/пионовидные, на день рождения"></textarea>
+      <textarea id="fiveWishes" rows="4" maxlength="500" placeholder="Например: нежные тона, в коробке, на день рождения — всё, чего нет в чекбоксах выше"></textarea>
     </div>
   </div>
   <button type="button" class="order-btn" id="fiveVariantsSendBtn" onclick="sendFiveVariantsRequest()">Показать 5 вариантов</button>
@@ -4017,46 +3993,34 @@ function fiveVariantsIsAddon(p) {
   return v === '1' || v === 'true' || v === 'yes' || v === 'да' || v === 'y';
 }
 
-function fiveVariantsExpandChipKeywords(flowers, colors, size, style) {
-  var keys = [];
-  function addList(arr) {
-    (arr || []).forEach(function(k) {
-      k = String(k || '').toLowerCase();
-      if (k.length >= 2 && keys.indexOf(k) === -1) keys.push(k);
-    });
-  }
-  var F_FLOW = {
-    'розы': ['роза', 'розы', 'розоч', 'пионовидн'],
-    'тюльпаны': ['тюльпан'],
-    'пионы': ['пион'],
-    'эустома': ['эустом', 'лизиантус'],
-    'микс': ['микс', 'смеш', 'ассорт']
-  };
-  var F_COL = {
-    'нежные': ['нежн', 'крем', 'пастел', 'светл', 'персик', 'лаванд', 'шампан', 'молочн', 'беж'],
-    'яркие': ['ярк', 'насыщ', 'контраст', 'сочн'],
-    'белые': ['бел', 'белоснеж'],
-    'розовые': ['розов', 'фукс'],
-    'красные': ['красн', 'бургунд', 'бордо'],
-    'пастель': ['пастел', 'пудр', 'крем', 'лосос']
-  };
-  var F_SZ = {
-    'мини': ['мини', 'компакт', 'маленьк', 'скромн', 'дюйм'],
-    'средний': ['средн', 'стандарт'],
-    'большой': ['больш', 'крупн', 'шикарн', 'премиум', 'макси']
-  };
-  var F_ST = {
-    'классика': ['классик', 'традиц', 'кругл'],
-    'современный': ['современ', 'авторск', 'тренд', 'минимал'],
-    'моно': ['моно', 'однотон', 'один вид'],
-    'микс': ['микс', 'смеш'],
-    'в коробке': ['короб', 'hatbox', 'коробк']
-  };
-  if (flowers) { addList(F_FLOW[flowers]); addList([flowers]); }
-  if (colors) { addList(F_COL[colors]); addList([colors]); }
-  if (size) { addList(F_SZ[size]); addList([size]); }
-  if (style) { addList(F_ST[style]); addList([style]); }
-  return keys;
+var FIVE_VARIANTS_FLOWER_SYNONYMS = {
+  'розы': ['роза', 'розы', 'розоч', 'пионовидн', 'кустовой роз', 'кустовая роз'],
+  'тюльпаны': ['тюльпан'],
+  'пионы': ['пион'],
+  'эустома': ['эустом', 'лизиантус'],
+  'микс': ['микс', 'смеш', 'ассорт'],
+  'хризантемы': ['хризантем'],
+  'гортензии': ['гортенз'],
+  'гвоздики': ['гвоздик'],
+  'лилии': ['лили', 'лилия'],
+  'герберы': ['гербер'],
+  'альстромерии': ['альстромер']
+};
+
+function fiveVariantsFlowerOverlapCount(p, flowersCsv) {
+  var h = fiveVariantsHaystack(p);
+  if (!flowersCsv || !String(flowersCsv).trim()) return 0;
+  var kinds = String(flowersCsv).split(/[,;]+/).map(function(s) { return s.trim().toLowerCase(); }).filter(Boolean);
+  var n = 0;
+  kinds.forEach(function(kind) {
+    var syn = FIVE_VARIANTS_FLOWER_SYNONYMS[kind];
+    if (syn) {
+      if (syn.some(function(s) { return h.indexOf(s) !== -1; })) n += 1;
+    } else if (kind.length >= 2 && h.indexOf(kind) !== -1) {
+      n += 1;
+    }
+  });
+  return n;
 }
 
 function fiveVariantsWishTextTokens(wishesText) {
@@ -4075,19 +4039,17 @@ function fiveVariantsHaystack(p) {
   ].join(' ').toLowerCase();
 }
 
-function fiveVariantsWishScore(p, chipKeys, textTokens) {
+function fiveVariantsPickScore(p, flowersCsv, textTokens) {
   var h = fiveVariantsHaystack(p);
-  var s = 0;
-  chipKeys.forEach(function(k) {
-    if (k && h.indexOf(k) !== -1) s += 1;
-  });
+  var flowerPart = fiveVariantsFlowerOverlapCount(p, flowersCsv) * 20;
+  var textPart = 0;
   textTokens.forEach(function(t) {
-    if (t && h.indexOf(t) !== -1) s += 1;
+    if (t && h.indexOf(t) !== -1) textPart += 1;
   });
-  return s;
+  return flowerPart + textPart;
 }
 
-function fiveVariantsLocalPick(budgetFrom, budgetTo, flowers, colors, size, style, wishesText) {
+function fiveVariantsLocalPick(budgetFrom, budgetTo, flowersCsv, wishesText) {
   var items = Array.isArray(catalog) ? catalog.slice() : [];
   if (!items.length) return null;
   items = items.filter(function(p) { return p && !fiveVariantsIsAddon(p); });
@@ -4112,7 +4074,6 @@ function fiveVariantsLocalPick(budgetFrom, budgetTo, flowers, colors, size, styl
     return null;
   }
   var mid = midBudget();
-  var chipKeys = fiveVariantsExpandChipKeywords(flowers, colors, size, style);
   var textTokens = fiveVariantsWishTextTokens(wishesText);
 
   function inBudgetRange(p, from, to) {
@@ -4140,8 +4101,8 @@ function fiveVariantsLocalPick(budgetFrom, budgetTo, flowers, colors, size, styl
   }
 
   pool.sort(function(a, b) {
-    var sa = fiveVariantsWishScore(a, chipKeys, textTokens);
-    var sb = fiveVariantsWishScore(b, chipKeys, textTokens);
+    var sa = fiveVariantsPickScore(a, flowersCsv, textTokens);
+    var sb = fiveVariantsPickScore(b, flowersCsv, textTokens);
     if (sa !== sb) return sb - sa;
     if (mid !== null) {
       var pa = Math.abs(priceOf(a) - mid);
@@ -4176,16 +4137,15 @@ async function sendFiveVariantsRequest() {
     var budgetToRaw = (budgetToEl && budgetToEl.value != null) ? String(budgetToEl.value).trim() : '';
     var wishesText = (wishesEl && wishesEl.value) ? String(wishesEl.value).trim() : '';
 
-    function getRadioVal(name) {
+    function getFiveFlowersCsv() {
       try {
-        var el = document.querySelector('input[name=\"' + name + '\"]:checked');
-        return el ? String(el.value || '') : '';
+        return Array.prototype.slice.call(document.querySelectorAll('input[name=\"fiveFlowers\"]:checked'))
+          .map(function(cb) { return String(cb.value || '').trim(); })
+          .filter(Boolean)
+          .join(',');
       } catch (e) { return ''; }
     }
-    var flowers = getRadioVal('fiveFlowers');
-    var colors = getRadioVal('fiveColors');
-    var size = getRadioVal('fiveSize');
-    var style = getRadioVal('fiveStyle');
+    var flowers = getFiveFlowersCsv();
 
     function toNum(raw) {
       var n = Number(String(raw || '').replace(',', '.'));
@@ -4230,7 +4190,7 @@ async function sendFiveVariantsRequest() {
       }
     }
 
-    var top = fiveVariantsLocalPick(budgetFrom, budgetTo, flowers, colors, size, style, wishesText);
+    var top = fiveVariantsLocalPick(budgetFrom, budgetTo, flowers, wishesText);
     if (top === null) {
       showToast('Каталог пока не загружен. Попробуйте открыть каталог ещё раз.');
       return;
