@@ -56,10 +56,27 @@
       return box;
     } catch (e) { return null; }
   }
+
+  function ensureLauncher() {
+    try {
+      if (!(typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1))) return;
+      if (document.getElementById('__diagLauncher')) return;
+      var b = document.createElement('button');
+      b.id = '__diagLauncher';
+      b.textContent = 'Debug';
+      b.setAttribute('type', 'button');
+      b.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:999998;border:1px solid rgba(0,0,0,0.2);background:#111;color:#fff;font-size:12px;line-height:1.2;padding:8px 10px;border-radius:999px;opacity:0.7';
+      b.onclick = function() {
+        try { if (window.__dbgRender) window.__dbgRender(true); } catch (e) {}
+      };
+      (document.body || document.documentElement).appendChild(b);
+    } catch (e) {}
+  }
   function show(msg) {
     try {
       var box = ensureBox();
       if (!box) return;
+      ensureLauncher();
       try {
         var dbg = (typeof location !== 'undefined' && location.search && (location.search.indexOf('dbg=1') !== -1));
         var btns = box.querySelectorAll('button');
@@ -133,6 +150,9 @@
         localStorage.removeItem(DBG_KEY);
       }
     } catch (eClr) {}
+
+    // Ensure debug launcher exists in dbg mode (so user can open panel without an error).
+    try { ensureLauncher(); } catch (eL) {}
   } catch (eOuter) {}
 })();
 </script>
