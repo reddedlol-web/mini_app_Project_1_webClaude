@@ -2761,6 +2761,55 @@ const presets = (function() {
   ];
 })();
 
+function escapeAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Один раз на контейнер .filters (его не заменяем при clone+replace рядов) — надёжнее inline onclick в iOS WebView. */
+function bindCatalogFilterDelegation() {
+  var root = document.querySelector('.filters.filters-scroll-hint');
+  if (!root || root._filterDelegateBound) return;
+  root._filterDelegateBound = true;
+  root.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest ? e.target.closest('button.filter-chip') : null;
+    if (!btn || !root.contains(btn)) return;
+    var cf = document.getElementById('categoryFilters');
+    var sf = document.getElementById('subcategoryFilters');
+    var bf = document.getElementById('budgetFilters');
+    if (cf && cf.contains(btn)) {
+      var cid = btn.getAttribute('data-cat-id');
+      if (cid == null) return;
+      selectCategory(cid);
+      return;
+    }
+    if (sf && sf.contains(btn)) {
+      var sid = btn.getAttribute('data-sub-id');
+      if (sid == null) return;
+      selectSubcategory(sid);
+      return;
+    }
+    if (bf && bf.contains(btn)) {
+      var bid = btn.getAttribute('data-budget-id');
+      if (bid == null) return;
+      selectBudget(bid);
+      return;
+    }
+  });
+}
+
+function bindPresetsDelegation() {
+  var root = document.querySelector('.presets-wrap.presets-scroll-hint');
+  if (!root || root._presetDelegateBound) return;
+  root._presetDelegateBound = true;
+  root.addEventListener('click', function(e) {
+    var card = e.target && e.target.closest ? e.target.closest('.preset-card') : null;
+    if (!card || !root.contains(card)) return;
+    var pid = card.getAttribute('data-preset-id');
+    if (pid == null) return;
+    applyPreset(pid);
+  });
+}
+
 // ── РЕНДЕР КАТЕГОРИЙ (как на сайте) ────────────────────────────────────────────
 function renderCategoryFilters() {
   const el = document.getElementById('categoryFilters');
@@ -2768,7 +2817,7 @@ function renderCategoryFilters() {
   el.innerHTML = categories.map((c, i) => {
     const key = c.altId || c.id;
     const isActive = (key === 'по поводу' && activeCategory === 'По поводу') || activeCategory === c.id;
-    return `<button class="filter-chip ${isActive ? 'active' : ''}" onclick="selectCategory('${(c.altId || c.id).replace(/'/g, "\\'")}')">${c.label}</button>`;
+    return '<button type="button" class="filter-chip ' + (isActive ? 'active' : '') + '" data-cat-id="' + escapeAttr(String(key)) + '">' + escapeHtml(c.label) + '</button>';
   }).join('');
 }
 
@@ -2802,12 +2851,12 @@ function renderSubcategoryFilters() {
   var chips = [{ id: 'any', label: 'Все подкатегории' }].concat(subs.map(function(s) { return { id: s, label: s }; }));
   el.innerHTML = chips.map(function(c) {
     var isActive = activeSubcategory === c.id;
-    var sid = String(c.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    return '<button class="filter-chip ' + (isActive ? 'active' : '') + '" onclick="selectSubcategory(\'' + sid + '\')">' + escapeHtml(c.label) + '</button>';
+    return '<button type="button" class="filter-chip ' + (isActive ? 'active' : '') + '" data-sub-id="' + escapeAttr(String(c.id)) + '">' + escapeHtml(c.label) + '</button>';
   }).join('');
 }
 
 function selectSubcategory(id) {
+  if (String(activeSubcategory) === String(id)) return;
   activeSubcategory = id;
   renderSubcategoryFilters();
   renderGrid();
@@ -2818,7 +2867,17 @@ function selectSubcategory(id) {
 }
 
 function selectCategory(id) {
-  activeCategory = id === 'по поводу' ? 'По поводу' : id;
+  var next = id === 'по поводу' ? 'По поводу' : id;
+  if (activeCategory === next) {
+    if (activeSubcategory !== 'any') {
+      activeSubcategory = 'any';
+      renderSubcategoryFilters();
+      renderGrid();
+      (window.__dbgLog||function(){})('selectCategory_repeat',{id:String(id||''),activeCategory:String(activeCategory||''),reason:'reset_subcategories'},'H3_stateSequence');
+    }
+    return;
+  }
+  activeCategory = next;
   activeSubcategory = 'any';
   renderCategoryFilters();
   renderSubcategoryFilters();
@@ -2832,13 +2891,14 @@ function selectCategory(id) {
 function renderBudgetFilters() {
   const el = document.getElementById('budgetFilters');
   el.innerHTML = budgets.map(b => `
-    <button class="filter-chip ${b.id === activeBudget ? 'active' : ''}" onclick="selectBudget('${b.id}')">
+    <button type="button" class="filter-chip ${b.id === activeBudget ? 'active' : ''}" data-budget-id="${escapeAttr(String(b.id))}">
       ${b.label}
     </button>
   `).join('');
 }
 
 function selectBudget(id) {
+  if (String(activeBudget) === String(id)) return;
   activeBudget = id;
   renderBudgetFilters();
   renderGrid();
@@ -2847,7 +2907,7 @@ function selectBudget(id) {
 function renderPresets() {
   const el = document.getElementById('presets');
   el.innerHTML = presets.map(p => `
-    <div class="preset-card" onclick="applyPreset('${p.id}')">
+    <div class="preset-card" data-preset-id="${escapeAttr(String(p.id))}">
       <div class="preset-title">${p.title}</div>
       <div class="preset-tag">${p.tag}</div>
       <div class="preset-desc">${p.desc}</div>
@@ -4523,6 +4583,8 @@ function __focusEntryMode() {
 }
 
 // ── СТАРТ ─────────────────────────────────────────────────────────────────────
+bindCatalogFilterDelegation();
+bindPresetsDelegation();
 renderCategoryFilters();
 renderSubcategoryFilters();
 renderBudgetFilters();
