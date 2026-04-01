@@ -1679,7 +1679,7 @@
 <div class="modal" id="fiveVariantsModal" role="dialog" aria-modal="true" aria-labelledby="fiveVariantsTitle">
   <button type="button" class="modal-close" onclick="closeFiveVariantsModal()" aria-label="Закрыть">✕</button>
   <div class="modal-title" id="fiveVariantsTitle">Получить 5 вариантов</div>
-  <div class="modal-subtitle">Подбор идёт по составу букета (если он заполнен в каталоге), названию и описанию. Укажите виды цветов и бюджет — остальное можно дописать в пожеланиях.</div>
+  <div class="modal-subtitle">Подбор идёт по составу букета, названию и описанию. Укажите виды цветов и бюджет — остальное можно дописать в пожеланиях.</div>
   <div id="fiveVariantsModalInner">
     <div class="contact-field">
       <label>Бюджет</label>
@@ -1687,7 +1687,7 @@
         <input id="fiveBudgetFrom" type="number" inputmode="numeric" min="0" step="1" placeholder="От">
         <input id="fiveBudgetTo" type="number" inputmode="numeric" min="0" step="1" placeholder="До">
       </div>
-      <div style="margin-top:6px; font-size:12px; color:var(--text-muted);">Можно заполнить одно поле — второе посчитаем автоматически.</div>
+      <div style="margin-top:6px; font-size:12px; color:var(--text-muted);"></div>
     </div>
     <div class="contact-field">
       <label>Какие цветы в букете (можно несколько)</label>
@@ -1696,11 +1696,9 @@
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="тюльпаны"><span>Тюльпаны</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="пионы"><span>Пионы</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="эустома"><span>Эустома</span></label>
-        <label class="chip"><input type="checkbox" name="fiveFlowers" value="хризантемы"><span>Хризантемы</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="гортензии"><span>Гортензии</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="гвоздики"><span>Гвоздики</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="лилии"><span>Лилии</span></label>
-        <label class="chip"><input type="checkbox" name="fiveFlowers" value="герберы"><span>Герберы</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="альстромерии"><span>Альстромерии</span></label>
         <label class="chip"><input type="checkbox" name="fiveFlowers" value="микс"><span>Микс</span></label>
       </div>
@@ -1708,7 +1706,7 @@
     </div>
     <div class="contact-field">
       <label for="fiveWishes">Пожелания</label>
-      <textarea id="fiveWishes" rows="4" maxlength="500" placeholder="Например: нежные тона, в коробке, на день рождения — всё, чего нет в чекбоксах выше"></textarea>
+      <textarea id="fiveWishes" rows="4" maxlength="500" placeholder="Например: нежные тона, в коробке, на день рождения и т.д."></textarea>
     </div>
   </div>
   <button type="button" class="order-btn" id="fiveVariantsSendBtn" onclick="sendFiveVariantsRequest()">Показать 5 вариантов</button>
