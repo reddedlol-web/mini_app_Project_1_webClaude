@@ -3701,6 +3701,7 @@ setupWheelScroll(document.querySelector('.presets'));
 
     var last = new WeakMap(); // el -> {x,y,scrollLeft,ts}
     var lastLogTs = 0;
+    var lastScrollLeftSample = new WeakMap(); // el -> {scrollLeft:number, ts:number}
 
     function isRow(el) {
       return !!(el && (el.classList && (el.classList.contains('filter-row') || el.classList.contains('presets'))));
@@ -3728,6 +3729,97 @@ setupWheelScroll(document.querySelector('.presets'));
       try { window.__dbgLog(msg, data || {}, hid || 'H2_scrollLayerFreeze'); } catch (e1) {}
     }
 
+    // Manual scroll fallback with inertia, only when native scroll appears frozen.
+    function ensureManualScrollFallback(row) {
+      if (!row || row._manualScrollBound) return;
+      row._manualScrollBound = true;
+
+      var dragging = false;
+      var startX = 0;
+      var startScrollLeft = 0;
+      var lastX = 0;
+      var lastT = 0;
+      var vx = 0;
+      var rafId = 0;
+      var manualActive = false;
+
+      function stopInertia() {
+        if (rafId) {
+          try { cancelAnimationFrame(rafId); } catch (e) {}
+          rafId = 0;
+        }
+      }
+
+      function step() {
+        // Exponential decay (simple, stable)
+        vx *= 0.94;
+        if (Math.abs(vx) < 0.15) {
+          rafId = 0;
+          return;
+        }
+        row.scrollLeft -= vx * 16; // px per frame approx
+        rafId = requestAnimationFrame(step);
+      }
+
+      row.addEventListener('touchstart', function(e) {
+        // Only if scrollable
+        if ((row.scrollWidth - row.clientWidth) <= 2) return;
+        stopInertia();
+        dragging = true;
+        manualActive = false;
+        var p = point(e);
+        startX = p.x;
+        lastX = p.x;
+        startScrollLeft = row.scrollLeft || 0;
+        lastT = Date.now();
+        vx = 0;
+      }, { passive: true });
+
+      row.addEventListener('touchmove', function(e) {
+        if (!dragging) return;
+        var p = point(e);
+        var dx = p.x - startX;
+
+        // Detect frozen native scroll: finger moved, but scrollLeft didn't change recently.
+        var sample = lastScrollLeftSample.get(row);
+        var frozen = false;
+        if (sample) {
+          frozen = (Math.abs(dx) > 14) && (Math.abs((row.scrollLeft || 0) - (sample.scrollLeft || 0)) < 1) && ((Date.now() - (sample.ts || 0)) < 1200);
+        }
+        // Also treat as frozen if touch event is non-cancelable (iOS sometimes locks scroll chain)
+        if (!e.cancelable && Math.abs(dx) > 14) frozen = true;
+
+        if (!manualActive && frozen) {
+          manualActive = true;
+          log('manual_scroll_engaged', { rowId: row.id || '', cancelable: !!e.cancelable }, 'H2_scrollLayerFreeze');
+        }
+        if (!manualActive) return;
+
+        // Manual scroll; do NOT preventDefault to keep click behavior stable.
+        row.scrollLeft = startScrollLeft - dx;
+
+        var now = Date.now();
+        var dt = Math.max(1, now - lastT);
+        vx = (p.x - lastX) / dt * 16; // normalize to ~per-frame
+        lastX = p.x;
+        lastT = now;
+      }, { passive: true });
+
+      row.addEventListener('touchend', function() {
+        if (!dragging) return;
+        dragging = false;
+        if (manualActive) {
+          // inertia
+          try { rafId = requestAnimationFrame(step); } catch (e) {}
+        }
+      }, { passive: true });
+
+      row.addEventListener('touchcancel', function() {
+        dragging = false;
+        stopInertia();
+      }, { passive: true });
+    }
+
     document.addEventListener('touchstart', function(e) {
       var t = e && e.target ? e.target : null;
       var row = getRowFromTarget(t);
@@ -3737,6 +3829,8 @@ setupWheelScroll(document.querySelector('.presets'));
       try { sinceClose = Date.now() - (window.__afterProductModalCloseTs || 0); } catch (e0) { sinceClose = 0; }
       if (!(sinceClose >= 0 && sinceClose <= 8000)) return;
       var p = point(e);
+      lastScrollLeftSample.set(row, { scrollLeft: Number(row.scrollLeft || 0), ts: Date.now() });
+      try { ensureManualScrollFallback(row); } catch (eBind) {}
       last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
       log('row_touchstart', {
         rowId: row.id || '',
@@ -3766,6 +3860,7 @@ setupWheelScroll(document.querySelector('.presets'));
       var now = Date.now();
       if (now - lastLogTs < 250) return;
       lastLogTs = now;
+      lastScrollLeftSample.set(row, { scrollLeft: Number(row.scrollLeft || 0), ts: Date.now() });
       last.set(row, { x: p.x, y: p.y, scrollLeft: row.scrollLeft || 0, ts: Date.now() });
       log('row_touchmove', {
         rowId: row.id || '',
