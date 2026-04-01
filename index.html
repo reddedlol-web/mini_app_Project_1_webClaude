@@ -2783,30 +2783,104 @@ function bindCatalogFilterDelegation() {
   var root = document.querySelector('.filters.filters-scroll-hint');
   if (!root || root._filterDelegateBound) return;
   root._filterDelegateBound = true;
-  root.addEventListener('click', function(e) {
-    var btn = e.target && e.target.closest ? e.target.closest('button.filter-chip') : null;
+
+  function normTouchTarget(t) {
+    if (!t) return null;
+    if (t.nodeType === 3) return t.parentElement || null;
+    if (t.nodeType === 1) return t;
+    return null;
+  }
+  function chipFromPoint(x, y) {
+    try {
+      var hit = document.elementFromPoint(x, y);
+      var el = normTouchTarget(hit);
+      if (!el || !el.closest) return null;
+      return el.closest('button.filter-chip');
+    } catch (e) { return null; }
+  }
+  function applyFilterChip(btn) {
     if (!btn || !root.contains(btn)) return;
     var cf = document.getElementById('categoryFilters');
     var sf = document.getElementById('subcategoryFilters');
     var bf = document.getElementById('budgetFilters');
     if (cf && cf.contains(btn)) {
       var cid = btn.getAttribute('data-cat-id');
-      if (cid == null) return;
-      selectCategory(cid);
+      if (cid != null) selectCategory(cid);
       return;
     }
     if (sf && sf.contains(btn)) {
       var sid = btn.getAttribute('data-sub-id');
-      if (sid == null) return;
-      selectSubcategory(sid);
+      if (sid != null) selectSubcategory(sid);
       return;
     }
     if (bf && bf.contains(btn)) {
       var bid = btn.getAttribute('data-budget-id');
-      if (bid == null) return;
-      selectBudget(bid);
+      if (bid != null) selectBudget(bid);
+    }
+  }
+
+  var tapTrack = null;
+  var TAP_PX = 28;
+  var TAP_MS = 550;
+  var ignoreClickUntil = 0;
+
+  root.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) { tapTrack = null; return; }
+    var x0 = e.touches[0].clientX;
+    var y0 = e.touches[0].clientY;
+    var chip = chipFromPoint(x0, y0);
+    if (!chip || !root.contains(chip)) { tapTrack = null; return; }
+    tapTrack = { x0: x0, y0: y0, t0: Date.now(), chip: chip };
+  }, { passive: true });
+
+  root.addEventListener('touchmove', function(e) {
+    if (!tapTrack || !e.touches || e.touches.length !== 1) return;
+    var p = e.touches[0];
+    var dx = p.clientX - tapTrack.x0;
+    var dy = p.clientY - tapTrack.y0;
+    if (dx * dx + dy * dy > TAP_PX * TAP_PX) tapTrack = null;
+  }, { passive: true });
+
+  root.addEventListener('touchcancel', function() { tapTrack = null; }, { passive: true });
+
+  root.addEventListener('touchend', function(e) {
+    if (!tapTrack || !tapTrack.chip) return;
+    var now = Date.now();
+    if (now - tapTrack.t0 > TAP_MS) { tapTrack = null; return; }
+    var ch = e.changedTouches && e.changedTouches[0];
+    if (!ch) { tapTrack = null; return; }
+    var dx = ch.clientX - tapTrack.x0;
+    var dy = ch.clientY - tapTrack.y0;
+    if (dx * dx + dy * dy > TAP_PX * TAP_PX) { tapTrack = null; return; }
+    var endChip = chipFromPoint(ch.clientX, ch.clientY);
+    if (endChip !== tapTrack.chip) { tapTrack = null; return; }
+    ignoreClickUntil = now + 500;
+    applyFilterChip(tapTrack.chip);
+    try {
+      (window.__dbgLog || function() {})('filter_chip_tap_touchend', {
+        rowId: (tapTrack.chip.closest && tapTrack.chip.closest('.filter-row')) ? (tapTrack.chip.closest('.filter-row').id || '') : '',
+        catId: tapTrack.chip.getAttribute('data-cat-id'),
+        subId: tapTrack.chip.getAttribute('data-sub-id'),
+        budgetId: tapTrack.chip.getAttribute('data-budget-id'),
+      }, 'H3_tap_ios');
+    } catch (eL) {}
+    // #region agent log
+    (function() {
+      var _rowEl = tapTrack.chip.closest && tapTrack.chip.closest('.filter-row');
+      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd60e66' }, body: JSON.stringify({ sessionId: 'd60e66', location: 'web/index.html:bindCatalogFilterDelegation', message: 'filter_chip_tap_touchend', data: { rowId: _rowEl ? String(_rowEl.id || '') : '' }, timestamp: Date.now(), hypothesisId: 'H3_tap_ios' }) }).catch(function() {});
+    })();
+    // #endregion
+    tapTrack = null;
+  }, { passive: true });
+
+  root.addEventListener('click', function(e) {
+    if (Date.now() < ignoreClickUntil) {
+      try { e.preventDefault(); e.stopPropagation(); } catch (e0) {}
       return;
     }
+    var btn = e.target && e.target.closest ? e.target.closest('button.filter-chip') : null;
+    if (!btn || !root.contains(btn)) return;
+    applyFilterChip(btn);
   });
 }
 
@@ -2814,7 +2888,68 @@ function bindPresetsDelegation() {
   var root = document.querySelector('.presets-wrap.presets-scroll-hint');
   if (!root || root._presetDelegateBound) return;
   root._presetDelegateBound = true;
+
+  function normTouchTarget(t) {
+    if (!t) return null;
+    if (t.nodeType === 3) return t.parentElement || null;
+    if (t.nodeType === 1) return t;
+    return null;
+  }
+  function cardFromPoint(x, y) {
+    try {
+      var hit = document.elementFromPoint(x, y);
+      var el = normTouchTarget(hit);
+      if (!el || !el.closest) return null;
+      return el.closest('.preset-card');
+    } catch (e) { return null; }
+  }
+
+  var tapTrack = null;
+  var TAP_PX = 28;
+  var TAP_MS = 550;
+  var ignoreClickUntil = 0;
+
+  root.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) { tapTrack = null; return; }
+    var x0 = e.touches[0].clientX;
+    var y0 = e.touches[0].clientY;
+    var card = cardFromPoint(x0, y0);
+    if (!card || !root.contains(card)) { tapTrack = null; return; }
+    tapTrack = { x0: x0, y0: y0, t0: Date.now(), card: card };
+  }, { passive: true });
+
+  root.addEventListener('touchmove', function(e) {
+    if (!tapTrack || !e.touches || e.touches.length !== 1) return;
+    var p = e.touches[0];
+    var dx = p.clientX - tapTrack.x0;
+    var dy = p.clientY - tapTrack.y0;
+    if (dx * dx + dy * dy > TAP_PX * TAP_PX) tapTrack = null;
+  }, { passive: true });
+
+  root.addEventListener('touchcancel', function() { tapTrack = null; }, { passive: true });
+
+  root.addEventListener('touchend', function(e) {
+    if (!tapTrack || !tapTrack.card) return;
+    var now = Date.now();
+    if (now - tapTrack.t0 > TAP_MS) { tapTrack = null; return; }
+    var ch = e.changedTouches && e.changedTouches[0];
+    if (!ch) { tapTrack = null; return; }
+    var dx = ch.clientX - tapTrack.x0;
+    var dy = ch.clientY - tapTrack.y0;
+    if (dx * dx + dy * dy > TAP_PX * TAP_PX) { tapTrack = null; return; }
+    var endCard = cardFromPoint(ch.clientX, ch.clientY);
+    if (endCard !== tapTrack.card) { tapTrack = null; return; }
+    ignoreClickUntil = now + 500;
+    var pid = tapTrack.card.getAttribute('data-preset-id');
+    if (pid != null) applyPreset(pid);
+    tapTrack = null;
+  }, { passive: true });
+
   root.addEventListener('click', function(e) {
+    if (Date.now() < ignoreClickUntil) {
+      try { e.preventDefault(); e.stopPropagation(); } catch (e0) {}
+      return;
+    }
     var card = e.target && e.target.closest ? e.target.closest('.preset-card') : null;
     if (!card || !root.contains(card)) return;
     var pid = card.getAttribute('data-preset-id');
