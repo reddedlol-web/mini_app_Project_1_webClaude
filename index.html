@@ -2714,7 +2714,7 @@ function selectSubcategory(id) {
   renderGrid();
 
   // #region agent log
-  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectSubcategory',message:'selectSubcategory',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},timestamp:Date.now()})}).catch(()=>{});
+  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectSubcategory',message:'selectSubcategory',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),subsRowDisplay:(document.getElementById('subcategoryFilters')?String(getComputedStyle(document.getElementById('subcategoryFilters')).display):'missing')},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 }
 
@@ -2726,7 +2726,7 @@ function selectCategory(id) {
   renderGrid();
 
   // #region agent log
-  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectCategory',message:'selectCategory',data:{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},timestamp:Date.now()})}).catch(()=>{});
+  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H3_stateSequence',location:'web/index.html:selectCategory',message:'selectCategory',data:{id:String(id||''),activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),catRowScrollW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').scrollWidth):null),catRowClientW:(document.getElementById('categoryFilters')?Number(document.getElementById('categoryFilters').clientWidth):null)},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 }
 
@@ -4013,7 +4013,7 @@ function openProductModal(productId) {
   if (md) md.classList.add('open');
 
   // #region agent log
-  fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:openProductModal',message:'openProductModal',data:{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},timestamp:Date.now()})}).catch(()=>{});
+  fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:openProductModal',message:'openProductModal',data:{productId:Number(id)||0,activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null)},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 
   var img = document.getElementById('productImg');
@@ -4093,7 +4093,7 @@ function closeProductModal() {
         if (!hit) return {x:x,y:y,hit:null};
         return {x:x,y:y,hit:(hit.tagName||'')+'#'+(hit.id||'')+'.'+String(hit.className||'').split(/\s+/).slice(0,3).join('.')};
       }
-      fetch('http://127.0.0.1:7580/ingest/8101abcc-f640-4800-8d47-61a1b42abb8a',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d60e66'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:closeProductModal',message:'closeProductModal_afterReset',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},timestamp:Date.now()})}).catch(()=>{});
+      fetch('/api/_debug_log_ingest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'d60e66',runId:'pre-fix',hypothesisId:'H1_overlayBlocksTouches',location:'web/index.html:closeProductModal',message:'closeProductModal_afterReset',data:{activeCategory:String(activeCategory||''),activeSubcategory:String(activeSubcategory||''),ovDisplay:(ov?String(getComputedStyle(ov).display):'missing'),ovOpen:(ov?ov.classList.contains('open'):null),mdOpen:(md?md.classList.contains('open'):null),hitCategory:midEl(cat),hitSubcategory:midEl(sub),hitBudget:midEl(bud),hitPresets:midEl(pre),bodyPos:String((document.body&&document.body.style&&document.body.style.position)||''),bodyClass:String((document.body&&document.body.className)||'').split(/\s+/).slice(0,6).join(' ')},timestamp:Date.now()})}).catch(()=>{});
     } catch(e) {}
   })();
   // #endregion
