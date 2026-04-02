@@ -2190,7 +2190,7 @@ function renderStorePicker() {
     listEl.innerHTML = stores.map(function(s) {
       var isSelected = String(selectedStoreId) === String(s.id);
       var loadCls = isSelected && showcaseLoadPending ? ' store-card--loading' : '';
-      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+      return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + escapeHtml(s.address || 'Адрес') + '</div></button>';
     }).join('');
     if (updatedEl) updatedEl.style.display = 'none';
     var subtitleEl = document.getElementById('catalogSubtitle');
@@ -2221,7 +2221,7 @@ function renderStorePicker() {
   listEl.innerHTML = stores.map(function(s) {
     const isSelected = String(selectedStoreId) === String(s.id);
     var loadCls = isSelected && showcaseLoadPending ? ' store-card--loading' : '';
-    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + (s.address || 'Адрес') + '</div></button>';
+    return '<button type="button" class="store-card' + (isSelected ? ' selected' : '') + loadCls + '" data-store-id="' + (s.id || '').replace(/"/g, '&quot;') + '" onclick="selectStore(\'' + (s.id || '').replace(/'/g, "\\'") + '\')"><div class="store-card-address">' + escapeHtml(s.address || 'Адрес') + '</div></button>';
   }).join('');
 
   if (updatedEl) updatedEl.style.display = 'none';
@@ -4231,19 +4231,22 @@ function renderFiveVariantsGrid(items) {
   block.style.display = 'block';
   el.innerHTML = resolved.map(function(p, i) {
     var inCart = cart[p.id] > 0;
+    var safeImg = escapeHtml(p.img);
+    var safeName = escapeHtml(p.name);
+    var safeDesc = escapeHtml(p.desc);
     return `
     <div class="card" style="animation-delay:${i * 0.05}s" role="button" tabindex="0" onclick="openProductModal(${p.id})">
       <img
         class="card-img"
-        src="${p.img}"
-        alt="${p.name}"
+        src="${safeImg}"
+        alt="${safeName}"
         loading="lazy"
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
       />
       <div class="card-img-fallback" style="display:none;aspect-ratio:1;align-items:center;justify-content:center;font-size:48px;background:linear-gradient(135deg,var(--accent-soft),var(--bg-hero))">🌸</div>
       <div class="card-body">
-        <div class="card-name">${p.name}</div>
-        <div class="card-desc">${p.desc}</div>
+        <div class="card-name">${safeName}</div>
+        <div class="card-desc">${safeDesc}</div>
         <div class="card-footer">
           <div class="card-price">${formatCatalogPriceFooterHtml(p)}</div>
           <button class="add-btn ${inCart ? 'added' : ''}" onclick="event.stopPropagation(); addToCart(${p.id})" id="btn-${p.id}">
