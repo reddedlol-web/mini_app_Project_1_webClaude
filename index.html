@@ -111,11 +111,11 @@
   /* ── ШАПКА (как на сайте: чистая, с тонкой границей) ── */
   .header {
     position: sticky; top: 0; z-index: 100;
+    /* Без backdrop-filter: в Telegram WebView sticky+blur даёт мигание всего контента при скролле. */
     background: var(--bg-main);
     border-bottom: 1px solid var(--border);
     padding: 16px 20px;
     display: flex; align-items: center; justify-content: space-between;
-    backdrop-filter: blur(12px);
   }
   .logo {
     font-family: 'Cormorant Garamond', serif;
@@ -257,16 +257,11 @@
     border: 1px solid var(--border);
     box-shadow: 0 2px 14px var(--shadow);
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    animation: fadeUp 0.4s ease both;
   }
   .card:active {
     transform: scale(0.98);
     box-shadow: 0 1px 8px var(--shadow);
     border-color: var(--border-strong);
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
   }
   .card-img {
     width: 100%; aspect-ratio: 1;
@@ -912,7 +907,8 @@
     gap: 14px;
     overflow-x: auto;
     padding: 0 20px 16px;
-    scroll-snap-type: x mandatory;
+    /* proximity вместо mandatory — меньше рывков и артефактов композитинга в WebView. */
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
   }
   .showcase-scroll::-webkit-scrollbar { height: 4px; }
@@ -1056,6 +1052,14 @@
     letter-spacing: 0.02em;
   }
   @media (prefers-reduced-motion: reduce) {
+    .card,
+    .preset-card,
+    .showcase-card,
+    .fab {
+      transition: none;
+    }
+    .fab-bump { animation: none; }
+    .scroll-target-flash { animation: none; }
     .store-card--loading { animation: none; opacity: 1; cursor: wait; }
     .showcase-loading-petal {
       animation: none;
@@ -3208,7 +3212,7 @@ function renderGrid() {
   el.innerHTML = items.map((p, i) => {
     const inCart = cart[p.id] > 0;
     return `
-    <div class="card" style="animation-delay:${i * 0.05}s" role="button" tabindex="0" onclick="openProductModal(${p.id})">
+    <div class="card" role="button" tabindex="0" onclick="openProductModal(${p.id})">
       <img
         class="card-img"
         src="${p.img}"
@@ -4285,13 +4289,13 @@ function renderFiveVariantsGrid(items) {
   }
 
   block.style.display = 'block';
-  el.innerHTML = resolved.map(function(p, i) {
+  el.innerHTML = resolved.map(function(p) {
     var inCart = cart[p.id] > 0;
     var safeImg = escapeHtml(p.img);
     var safeName = escapeHtml(p.name);
     var safeDesc = escapeHtml(p.desc);
     return `
-    <div class="card" style="animation-delay:${i * 0.05}s" role="button" tabindex="0" onclick="openProductModal(${p.id})">
+    <div class="card" role="button" tabindex="0" onclick="openProductModal(${p.id})">
       <img
         class="card-img"
         src="${safeImg}"
