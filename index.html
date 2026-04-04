@@ -906,6 +906,9 @@
     display: flex;
     gap: 14px;
     overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
     padding: 0 20px 16px;
     /* proximity вместо mandatory — меньше рывков и артефактов композитинга в WebView. */
     scroll-snap-type: x proximity;
@@ -4080,6 +4083,7 @@ function setupWheelScroll(el) {
 }
 document.querySelectorAll('.filter-row').forEach(setupWheelScroll);
 setupWheelScroll(document.querySelector('.presets'));
+document.querySelectorAll('.showcase-scroll').forEach(setupWheelScroll);
 
 /** iOS Telegram: native overflow-x sometimes stops updating scrollLeft after modal; passive touchmove is always non-cancelable, so we must NOT use e.cancelable as a freeze signal. */
 function touchPointForRow(e) {
@@ -4152,11 +4156,11 @@ function ensureManualScrollFallback(row) {
     var p = touchPointForRow(e);
     try {
       var t0 = touchEventTargetElement(e.target);
-      if (t0 && t0.closest) touchStartedOnInteractive = !!t0.closest('.filter-chip, .preset-card');
+      if (t0 && t0.closest) touchStartedOnInteractive = !!t0.closest('.filter-chip, .preset-card, .showcase-card');
       if (!touchStartedOnInteractive) {
         var hit = document.elementFromPoint(p.x, p.y);
         var hEl = touchEventTargetElement(hit);
-        if (hEl && hEl.closest) touchStartedOnInteractive = !!hEl.closest('.filter-chip, .preset-card');
+        if (hEl && hEl.closest) touchStartedOnInteractive = !!hEl.closest('.filter-chip, .preset-card, .showcase-card');
       }
     } catch (eTs) { touchStartedOnInteractive = false; }
     startX = lastX = p.x;
@@ -4215,7 +4219,7 @@ function bindIosManualScrollRows() {
   try {
     var ua = (navigator && navigator.userAgent) ? navigator.userAgent : '';
     if (!/iP(hone|ad|od)/i.test(ua)) return;
-    document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
+    document.querySelectorAll('.filter-row, .presets, .showcase-scroll').forEach(function(el) {
       try { ensureManualScrollFallback(el); } catch (e) {}
     });
   } catch (e0) {}
@@ -4750,7 +4754,7 @@ function closeProductModal() {
       var isIOS = /iP(hone|ad|od)/i.test(ua);
       if (!isIOS) return;
 
-      document.querySelectorAll('.filter-row, .presets').forEach(function(el) {
+      document.querySelectorAll('.filter-row, .presets, .showcase-scroll').forEach(function(el) {
         if (!el || !el.parentNode) return;
 
         var x = el.scrollLeft || 0;
