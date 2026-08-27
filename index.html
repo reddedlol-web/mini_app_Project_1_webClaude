@@ -1583,12 +1583,8 @@
   <button type="button" class="block-cta" id="btnCallback" onclick="openCallbackModal()">Заказать звонок</button>
   <div class="hero-addresses">
     <div class="hero-address-item">
-      <span class="hero-address-text">Минск, Скрипникова, 11А</span>
-      <span class="hero-address-hours">пн-вс 10:00 - 21:00</span>
-    </div>
-    <div class="hero-address-item">
-      <span class="hero-address-text">Минск, Сурганова 31</span>
-      <span class="hero-address-hours">пн-вс 10:00 - 21:00</span>
+      <span class="hero-address-text">Минск, Игуменский тракт, 15</span>
+      <span class="hero-address-hours">пн-вс 09:00 - 21:00</span>
     </div>
   </div>
   <div class="hero-five-variants">
@@ -1764,7 +1760,7 @@
     <a href="tel:+375292009880" style="color:var(--deep);font-weight:500;">+375 29 200 98 80</a><br>
     <a href="mailto:pastel.flowers@mail.ru" style="color:var(--deep);">pastel.flowers@mail.ru</a>
   </p>
-  <p class="block-text"><strong>Магазины:</strong><br>Минск, ул. Скрипникова, 11А — Пн-Вс 10:00–21:00<br>Минск, ул. Сурганова, 31 — Пн-Вс 10:00–21:00</p>
+  <p class="block-text"><strong>Магазин:</strong><br>Минск, Игуменский тракт, 15 — Пн-Вс 09:00–21:00</p>
 </section>
 
 <!-- FAQ -->
@@ -1923,7 +1919,7 @@
     <div class="contact-field">
       <label>Вариант доставки *</label>
       <div class="contact-radio">
-        <label><input type="radio" name="deliveryType" value="pickup"> Самовывоз (с 10:00 до 21:00)</label>
+        <label><input type="radio" name="deliveryType" value="pickup"> Самовывоз (с 09:00 до 21:00)</label>
         <label><input type="radio" name="deliveryType" value="courier"> Доставка курьером (+15 BYN) (с 11:00 до 21:30)</label>
        </div>
     </div>
@@ -1952,8 +1948,7 @@
     <div class="contact-field" id="fieldStore">
       <label>Адрес магазина</label>
       <div class="contact-radio">
-        <label><input type="radio" name="store" value="surganova"> Ул. Сурганова, 31</label>
-        <label><input type="radio" name="store" value="skripnikova"> Ул. Скрипникова, 11А</label>
+        <label><input type="radio" name="store" value="igumenski"> Игуменский тракт, 15</label>
       </div>
     </div>
     <div class="contact-field">
@@ -1993,7 +1988,7 @@
 
 <script>
 // Кастомизация под магазин: измените значения (валюта подставится в цены и корзину)
-const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн-вс 10:00 - 21:00', deliveryCostMinsk: '15', deliveryTime: '10:30–21:30' };
+const SHOP_CONFIG = { name: 'Pastel Flowers', currency: 'BYN', workingHours: 'пн-вс 09:00 - 21:00', deliveryCostMinsk: '15', deliveryTime: '10:30–21:30' };
 
 // ── ИНИЦИАЛИЗАЦИЯ TELEGRAM ────────────────────────────────────────────────────
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -2081,14 +2076,12 @@ async function fetchApi(pathAndQuery, init) {
   return lastResp;
 }
 
-// Демо-данные — адреса Pastel Flowers (pastelflowers.by)
+// Демо-данные — адрес Pastel Flowers (фолбэк, когда Google Sheets недоступны)
 var demoStores = [
-  { id: '1', name: 'Pastel Flowers — Скрипникова', address: 'Минск, ул. Скрипникова, 11А' },
-  { id: '2', name: 'Pastel Flowers — Сурганова', address: 'Минск, ул. Сурганова, 31' },
+  { id: '1', name: 'Pastel Flowers', address: 'Минск, Игуменский тракт, 15' },
 ];
 var demoStock = {
   '1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-  '2': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
 };
 
 // Если API не настроен — сразу подставляем демо-магазины, чтобы было что показать
@@ -3664,8 +3657,8 @@ function onOrderClick() {
   var addonNoteTextEl = document.getElementById('addonNoteText');
   if (addonNoteEl && addonNoteEl.checked) addons.push({ name: 'Записка на фирменной карточке', price: 0, note: (addonNoteTextEl && addonNoteTextEl.value) ? addonNoteTextEl.value.trim() : '' });
 
-  const deliveryLabel = deliveryType.value === 'pickup' ? 'Самовывоз (10:00–21:00)' : 'Доставка курьером (11:00–21:30)';
-  const storeLabel = storeRadio ? (storeRadio.value === 'surganova' ? 'Ул. Сурганова, 31' : 'Ул. Скрипникова, 11А') : '';
+  const deliveryLabel = deliveryType.value === 'pickup' ? 'Самовывоз (09:00–21:00)' : 'Доставка курьером (11:00–21:30)';
+  const storeLabel = storeRadio ? (storeRadio.value === 'igumenski' ? 'Игуменский тракт, 15' : storeRadio.value) : '';
   const timeLabel = timeSlot ? timeSlot.value.replace('-', ' – ') : '';
 
   var wishesParts = ['Дата: ' + date, 'Время: ' + timeLabel, 'Доставка: ' + deliveryLabel];
@@ -3775,14 +3768,15 @@ function sendOrder(name, receiverName, phone, receiverPhone, wishes, date, addon
     '\n✏️ ' + wishes;
   // (debug logs removed)
 
-  // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Сурганова»/«Скрипникова»)
+  // Магазин: из выбора выше каталога (если был) или из формы при самовывозе (радио «Игуменский»)
   var storeInfo = (function() {
     var id = selectedStoreId;
     if (!id) {
       var deliveryType = document.querySelector('input[name="deliveryType"]:checked');
       var storeRadio = document.querySelector('input[name="store"]:checked');
       if (deliveryType && deliveryType.value === 'pickup' && storeRadio) {
-        id = storeRadio.value === 'surganova' ? '2' : (storeRadio.value === 'skripnikova' ? '1' : null);
+        // В Google Sheets у точки «Игуменский тракт, 15» ожидаем id = "1".
+        id = storeRadio.value === 'igumenski' ? '1' : null;
       }
     }
     if (!id) return {};
